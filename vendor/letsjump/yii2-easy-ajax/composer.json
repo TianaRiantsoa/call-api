@@ -1,0 +1,43 @@
+{
+    "name": "letsjump/yii2-easy-ajax",
+    "description": "EasyAjax are a bunch of Yii methods that minimize the amount of code you need to write to interact with Ajax CRUD, notifies, modals, tabs, pjax-reloads, form validations among others...",
+    "type": "yii2-extension",
+    "keywords": [
+        "yii2",
+        "user interface",
+        "bootstrap",
+        "notify",
+        "modal",
+        "ajax CRUD",
+        "gii",
+        "tabs"
+    ],
+    "readme": "README.md",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Gianpaolo Scrigna",
+            "email": "letsjump@gmail.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {
+        "yiisoft/yii2": "~2.0.0",
+        "bower-asset/remarkable-bootstrap-notify": "~3.1.0",
+        "bower-asset/animate-css": "~3.7.0"
+    },
+    "repositories": [
+        {
+            "type": "composer",
+            "url": "https://asset-packagist.org"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "letsjump\\easyAjax\\": "src/"
+        }
+    },
+    "extra": {
+        "bootstrap": "letsjump\\easyAjax\\EasyAjaxBootstrap"
+    }
+}

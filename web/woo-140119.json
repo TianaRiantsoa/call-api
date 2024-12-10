@@ -1,0 +1,439 @@
+{
+    "id": 140119,
+    "parent_id": 0,
+    "status": "completed",
+    "currency": "EUR",
+    "version": "8.4.0",
+    "prices_include_tax": true,
+    "date_created": "2024-03-27T06:58:33",
+    "date_modified": "2024-03-27T11:52:32",
+    "discount_total": "0.00",
+    "discount_tax": "0.00",
+    "shipping_total": "0.00",
+    "shipping_tax": "0.00",
+    "cart_tax": "17.02",
+    "total": "106.50",
+    "total_tax": "17.02",
+    "customer_id": 0,
+    "order_key": "wc_order_nNHXBlxcOjGrb",
+    "billing": {
+        "first_name": "Claudia",
+        "last_name": "Kr\u00e4mer",
+        "company": "",
+        "address_1": "Waldstr. 61",
+        "address_2": "",
+        "city": "Herford",
+        "state": "DE-NW",
+        "postcode": "32052",
+        "country": "DE",
+        "email": "c-kraemer@web.de",
+        "phone": "+4915129903760"
+    },
+    "shipping": {
+        "first_name": "Claudia",
+        "last_name": "Kr\u00e4mer",
+        "company": "",
+        "address_1": "Waldstr. 61",
+        "address_2": "",
+        "city": "Herford",
+        "state": "DE-NW",
+        "postcode": "32052",
+        "country": "DE",
+        "phone": ""
+    },
+    "payment_method": "ppcp-gateway",
+    "payment_method_title": "PayPal",
+    "transaction_id": "3LW10002MJ4923741",
+    "customer_ip_address": "80.187.121.71",
+    "customer_user_agent": "Mozilla\/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) AppleWebKit\/605.1.15 (KHTML, like Gecko) CriOS\/123.0.6312.52 Mobile\/15E148 Safari\/604.1",
+    "created_via": "checkout",
+    "customer_note": "",
+    "date_completed": "2024-03-27T11:52:32",
+    "date_paid": "2024-03-27T06:58:44",
+    "cart_hash": "03aac195b1b44f3d929d7b858fbe92a1",
+    "number": "140119",
+    "meta_data": [
+        {
+            "id": 7443069,
+            "key": "is_vat_exempt",
+            "value": "no"
+        },
+        {
+            "id": 7443071,
+            "key": "wcal_abandoned_cart_id",
+            "value": "111334"
+        },
+        {
+            "id": 7443072,
+            "key": "_ppcp_paypal_order_id",
+            "value": "22040385P49765702"
+        },
+        {
+            "id": 7443073,
+            "key": "_ppcp_paypal_intent",
+            "value": "CAPTURE"
+        },
+        {
+            "id": 7443074,
+            "key": "_ppcp_paypal_payment_mode",
+            "value": "live"
+        },
+        {
+            "id": 7443075,
+            "key": "_ppcp_paypal_payment_source",
+            "value": "paypal"
+        },
+        {
+            "id": 7443080,
+            "key": "_wcpdf_invoice_settings",
+            "value": {
+                "display_shipping_address": "",
+                "display_email": "1",
+                "display_phone": "1",
+                "display_customer_notes": "1",
+                "display_date": "invoice_date",
+                "display_number": "invoice_number",
+                "header_logo": "69760",
+                "header_logo_height": "",
+                "vat_number": "",
+                "coc_number": "",
+                "shop_name": {
+                    "default": "Tissage Moutet"
+                },
+                "shop_address": {
+                    "default": "Rue du Souvenir fran\u00e7ais\r\n64300 Orthez\r\nFrance"
+                },
+                "footer": {
+                    "default": "Tissage Moutet - tisseur depuis 1919 | Retrouvez-nous sur www.tissage-moutet.com"
+                },
+                "extra_1": {
+                    "default": ""
+                },
+                "extra_2": {
+                    "default": ""
+                },
+                "extra_3": {
+                    "default": ""
+                }
+            }
+        },
+        {
+            "id": 7443081,
+            "key": "_wcpdf_invoice_display_date",
+            "value": "invoice_date"
+        },
+        {
+            "id": 7443082,
+            "key": "_wcpdf_invoice_creation_trigger",
+            "value": "email_attachment"
+        },
+        {
+            "id": 7443083,
+            "key": "_wcpdf_invoice_date",
+            "value": "1711519127"
+        },
+        {
+            "id": 7443084,
+            "key": "_wcpdf_invoice_date_formatted",
+            "value": "2024-03-27 06:58:47"
+        },
+        {
+            "id": 7443085,
+            "key": "_wcpdf_invoice_number",
+            "value": "5358"
+        },
+        {
+            "id": 7443086,
+            "key": "_wcpdf_invoice_number_data",
+            "value": {
+                "number": 5358,
+                "formatted_number": "5358",
+                "prefix": "",
+                "suffix": "",
+                "document_type": "invoice",
+                "order_id": 140119,
+                "padding": ""
+            }
+        },
+        {
+            "id": 7443087,
+            "key": "_wishlist_analytics_processed",
+            "value": "1"
+        },
+        {
+            "id": 7443088,
+            "key": "_ppcp_paypal_fees",
+            "value": {
+                "gross_amount": {
+                    "currency_code": "EUR",
+                    "value": "106.50"
+                },
+                "paypal_fee": {
+                    "currency_code": "EUR",
+                    "value": "3.44"
+                },
+                "net_amount": {
+                    "currency_code": "EUR",
+                    "value": "103.06"
+                }
+            }
+        },
+        {
+            "id": 7443089,
+            "key": "PayPal Transaction Fee",
+            "value": "3.44"
+        },
+        {
+            "id": 7443090,
+            "key": "_ga_tracked",
+            "value": "1"
+        },
+        {
+            "id": 7443094,
+            "key": "_wcpdf_packing_slip_creation_trigger",
+            "value": "bulk"
+        },
+        {
+            "id": 7443095,
+            "key": "_wcpdf_packing_slip_date",
+            "value": "1711522799"
+        },
+        {
+            "id": 7443096,
+            "key": "_wcpdf_packing_slip_date_formatted",
+            "value": "2024-03-27 07:59:59"
+        }
+    ],
+    "line_items": [
+        {
+            "id": 37691,
+            "name": "ARBRE",
+            "product_id": 131163,
+            "variation_id": 0,
+            "quantity": 1,
+            "tax_class": "",
+            "subtotal": "16.58",
+            "subtotal_tax": "3.15",
+            "total": "16.58",
+            "total_tax": "3.15",
+            "taxes": [
+                {
+                    "id": 7,
+                    "total": "3.150833",
+                    "subtotal": "3.150833"
+                }
+            ],
+            "meta_data": [],
+            "sku": "ARBRTC004",
+            "price": 16.583333,
+            "image": {
+                "id": "131577",
+                "src": "https:\/\/www.tissage-moutet.com\/wp-content\/uploads\/2023\/01\/ARBRE_2.jpg"
+            },
+            "parent_name": null
+        },
+        {
+            "id": 37692,
+            "name": "CIRCUS",
+            "product_id": 138669,
+            "variation_id": 0,
+            "quantity": 1,
+            "tax_class": "",
+            "subtotal": "14.08",
+            "subtotal_tax": "2.68",
+            "total": "14.08",
+            "total_tax": "2.68",
+            "taxes": [
+                {
+                    "id": 7,
+                    "total": "2.675833",
+                    "subtotal": "2.675833"
+                }
+            ],
+            "meta_data": [],
+            "sku": "CIRCTC002",
+            "price": 14.083333,
+            "image": {
+                "id": "138667",
+                "src": "https:\/\/www.tissage-moutet.com\/wp-content\/uploads\/2024\/02\/Circus_2.jpg"
+            },
+            "parent_name": null
+        },
+        {
+            "id": 37693,
+            "name": "LES HALLES",
+            "product_id": 131117,
+            "variation_id": 0,
+            "quantity": 1,
+            "tax_class": "",
+            "subtotal": "14.08",
+            "subtotal_tax": "2.68",
+            "total": "14.08",
+            "total_tax": "2.68",
+            "taxes": [
+                {
+                    "id": 7,
+                    "total": "2.675833",
+                    "subtotal": "2.675833"
+                }
+            ],
+            "meta_data": [],
+            "sku": "LESHTC006",
+            "price": 14.083333,
+            "image": {
+                "id": "131119",
+                "src": "https:\/\/www.tissage-moutet.com\/wp-content\/uploads\/2023\/01\/LES-HALLES_02.jpg"
+            },
+            "parent_name": null
+        },
+        {
+            "id": 37694,
+            "name": "CARROTS",
+            "product_id": 131067,
+            "variation_id": 0,
+            "quantity": 1,
+            "tax_class": "",
+            "subtotal": "14.08",
+            "subtotal_tax": "2.68",
+            "total": "14.08",
+            "total_tax": "2.68",
+            "taxes": [
+                {
+                    "id": 7,
+                    "total": "2.675833",
+                    "subtotal": "2.675833"
+                }
+            ],
+            "meta_data": [],
+            "sku": "CARRTC012",
+            "price": 14.083333,
+            "image": {
+                "id": "131581",
+                "src": "https:\/\/www.tissage-moutet.com\/wp-content\/uploads\/2023\/01\/CARROTS-1.jpg"
+            },
+            "parent_name": null
+        },
+        {
+            "id": 37695,
+            "name": "SERRE",
+            "product_id": 138890,
+            "variation_id": 0,
+            "quantity": 1,
+            "tax_class": "",
+            "subtotal": "16.58",
+            "subtotal_tax": "3.15",
+            "total": "16.58",
+            "total_tax": "3.15",
+            "taxes": [
+                {
+                    "id": 7,
+                    "total": "3.150833",
+                    "subtotal": "3.150833"
+                }
+            ],
+            "meta_data": [],
+            "sku": "SERRTC004",
+            "price": 16.583333,
+            "image": {
+                "id": "138877",
+                "src": "https:\/\/www.tissage-moutet.com\/wp-content\/uploads\/2024\/02\/Botanique_3.jpg"
+            },
+            "parent_name": null
+        },
+        {
+            "id": 37696,
+            "name": "SPORTS",
+            "product_id": 138665,
+            "variation_id": 0,
+            "quantity": 1,
+            "tax_class": "",
+            "subtotal": "14.08",
+            "subtotal_tax": "2.68",
+            "total": "14.08",
+            "total_tax": "2.68",
+            "taxes": [
+                {
+                    "id": 7,
+                    "total": "2.675833",
+                    "subtotal": "2.675833"
+                }
+            ],
+            "meta_data": [],
+            "sku": "SPORTC006",
+            "price": 14.083333,
+            "image": {
+                "id": "138663",
+                "src": "https:\/\/www.tissage-moutet.com\/wp-content\/uploads\/2024\/02\/Sports_2.jpg"
+            },
+            "parent_name": null
+        }
+    ],
+    "tax_lines": [
+        {
+            "id": 37698,
+            "rate_code": "DE-VAT-1",
+            "rate_id": 7,
+            "label": "Mehrwertsteuer MWST",
+            "compound": false,
+            "tax_total": "17.02",
+            "shipping_tax_total": "0.00",
+            "rate_percent": 19,
+            "meta_data": [
+                {
+                    "id": 341773,
+                    "key": "_wcpdf_rate_percentage",
+                    "value": "19.0000",
+                    "display_key": "_wcpdf_rate_percentage",
+                    "display_value": "19.0000"
+                }
+            ]
+        }
+    ],
+    "shipping_lines": [
+        {
+            "id": 37697,
+            "method_title": "Gratislieferung",
+            "method_id": "free_shipping",
+            "instance_id": "169",
+            "total": "0.00",
+            "total_tax": "0.00",
+            "taxes": [],
+            "meta_data": [
+                {
+                    "id": 341766,
+                    "key": "Positionen",
+                    "value": "ARBRE &times; 1, CIRCUS &times; 1, LES HALLES &times; 1, CARROTS &times; 1, SERRE &times; 1, SPORTS &times; 1",
+                    "display_key": "Positionen",
+                    "display_value": "ARBRE &times; 1, CIRCUS &times; 1, LES HALLES &times; 1, CARROTS &times; 1, SERRE &times; 1, SPORTS &times; 1"
+                }
+            ]
+        }
+    ],
+    "fee_lines": [],
+    "coupon_lines": [],
+    "refunds": [],
+    "payment_url": "https:\/\/www.tissage-moutet.com\/commande\/payer\/140119\/?pay_for_order=true&key=wc_order_nNHXBlxcOjGrb",
+    "is_editable": false,
+    "needs_payment": false,
+    "needs_processing": true,
+    "date_created_gmt": "2024-03-27T05:58:33",
+    "date_modified_gmt": "2024-03-27T10:52:32",
+    "date_completed_gmt": "2024-03-27T10:52:32",
+    "date_paid_gmt": "2024-03-27T05:58:44",
+    "lang": "de",
+    "pw_gift_cards_redeemed": [],
+    "pll_sync_post": [],
+    "currency_symbol": "\u20ac",
+    "_links": {
+        "self": [
+            {
+                "href": "https:\/\/www.tissage-moutet.com\/wp-json\/wc\/v3\/orders\/140119"
+            }
+        ],
+        "collection": [
+            {
+                "href": "https:\/\/www.tissage-moutet.com\/wp-json\/wc\/v3\/orders"
+            }
+        ]
+    }
+}
