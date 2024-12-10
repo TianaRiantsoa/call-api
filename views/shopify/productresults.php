@@ -24,7 +24,7 @@ $scopes = 'read_analytics, read_assigned_fulfillment_orders, read_customer_event
 
 $apiVersion = ApiVersion::LATEST;
 
-Context::initialize($api, $sct, Html::encode($scopes), $url, new FileSessionStorage('/tmp/php_sessions'), Html::encode($apiVersion));
+Context::initialize($api, $sct, Html::encode($scopes), $url, new FileSessionStorage('/tmp/php_sessions'));
 
 $client = new Graphql($url, $pwd);
 
