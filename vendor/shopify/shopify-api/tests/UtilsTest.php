@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace ShopifyTest;
 
+use Shopify\Exception\InvalidArgumentException;
+use Firebase\JWT\ExpiredException;
 use DateTime;
 use Firebase\JWT\JWT;
 use Shopify\Context;
@@ -87,6 +89,58 @@ final class UtilsTest extends BaseTestCase
         ];
     }
 
+    /**
+     * @dataProvider buildQueryStringProvider
+     */
+    public function testBuildQueryString($params, $queryString)
+    {
+        $this->assertEquals($queryString, Utils::buildQueryString($params));
+    }
+
+    public function buildQueryStringProvider()
+    {
+        return [
+            [
+                [],
+                ''
+            ],
+            [
+                [
+                    'hmac' => 'ThisShouldNotAppearInTheString',
+                    'foo' => 'ThisShould',
+                    'bar' => 'AsShouldThis',
+                ],
+                'foo=ThisShould&bar=AsShouldThis'
+            ],
+            [
+                [
+                    'hmac' => 'ThisShouldNotAppearInTheString',
+                    'someArray' => [
+                      'foo',
+                      'bar',
+                      1,
+                    ],
+                ],
+                'someArray=%5B%22foo%22%2C%22bar%22%2C%221%22%5D' // URLEncoded for: ["foo","bar","1"]
+            ],
+        ];
+    }
+
+    public function testEmptyHmac()
+    {
+        $this->assertEquals(false, Utils::validateHmac(
+            [],
+            'I AM SECRET'
+        ));
+
+        $this->assertEquals(false, Utils::validateHmac(
+            [
+                'hmac' => 'SomeHash',
+            ],
+            ''
+        ));
+    }
+
     public function testValidHmac()
     {
         // phpcs:ignore
@@ -154,7 +208,7 @@ final class UtilsTest extends BaseTestCase
         $this->assertTrue(Utils::isApiVersionCompatible('2020-10'));
         $this->assertFalse(Utils::isApiVersionCompatible('2021-07'));
 
-        $this->expectException(\Shopify\Exception\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
         $this->assertTrue(Utils::isApiVersionCompatible('not_a_version'));
     }
 
@@ -192,7 +246,7 @@ final class UtilsTest extends BaseTestCase
         $offlineSession = new Session("offline_$this->domain", $this->domain, false, 'state');
         $offlineSession->setScope(Context::$SCOPES->toString());
         $offlineSession->setAccessToken('vatican_cameos');
-        $offlineSession->setExpires(new \DateTime());
+        $offlineSession->setExpires(new DateTime());
         Context::$SESSION_STORAGE->storeSession($offlineSession);
 
         $this->assertNull(Utils::loadOfflineSession($this->domain, false));
@@ -253,7 +307,7 @@ final class UtilsTest extends BaseTestCase
         $jwt = JWT::encode($payload, Context::$API_SECRET_KEY, 'HS256');
 
         // Outside of leeway period - should throw an exception
-        $this->expectException(\Firebase\JWT\ExpiredException::class);
+        $this->expectException(ExpiredException::class);
         Utils::decodeSessionToken($jwt);
     }
 
@@ -384,13 +438,13 @@ final class UtilsTest extends BaseTestCase
 
     public function testGetEmbeddedAppUrlThrowsOnEmptyHost()
     {
-        $this->expectException(\Shopify\Exception\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
         Utils::getEmbeddedAppUrl("");
     }
 
     public function testGetEmbeddedAppUrlThrowsOnInvalidHost()
     {
-        $this->expectException(\Shopify\Exception\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
         Utils::getEmbeddedAppUrl("!@#$%^&*()");
     }
 
@@ -400,6 +454,13 @@ final class UtilsTest extends BaseTestCase
         $url = "my-app-url.io/path";
 
         $this->assertEquals("https://$url/apps/my-app-key", Utils::getEmbeddedAppUrl(base64_encode($url)));
+    }
+
+    public function testGetVersion()
+    {
+        $versionString = Utils::getVersion();
+
+        $this->assertMatchesRegularExpression('#^\d+.\d+.\d+$#', $versionString);
     }
 
     private function encodeJwtPayload(): string

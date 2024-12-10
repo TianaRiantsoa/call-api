@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace ShopifyTest\Clients;
 
+use Shopify\Exception\MissingArgumentException;
 use Shopify\Clients\Graphql;
 use Shopify\Context;
 use ShopifyTest\BaseTestCase;
@@ -22,9 +23,9 @@ final class GraphqlTest extends BaseTestCase
 
     /** @var array */
     private $testQueryArray = [
-          [
-              'shop' => 'name',
-          ],
+        [
+            'shop' => 'name',
+        ],
     ];
 
     /** @var string */
@@ -78,15 +79,15 @@ final class GraphqlTest extends BaseTestCase
 
     public function testPublicAppThrowsWithoutToken()
     {
-        $this->expectException(\Shopify\Exception\MissingArgumentException::class);
+        $this->expectException(MissingArgumentException::class);
         new Graphql('domain.myshopify.com');
     }
 
     public function testThrowsIfQueryMissing()
     {
         $client = new Graphql('domain.myshopify.com', 'token');
-        $this->expectException(\Shopify\Exception\MissingArgumentException::class);
-        $client->query('');
+        $this->expectException(MissingArgumentException::class);
+        $client->query(data: '');
     }
 
     public function testCanQueryWithDataString()
@@ -100,15 +101,15 @@ final class GraphqlTest extends BaseTestCase
                 'POST',
                 "Shopify Admin API Library for PHP v$this->version",
                 [
-                    'Content-Type: application/graphql',
-                    'Content-Length: ' . strlen($this->testQueryString),
+                    'Content-Type: application/json',
+                    'Content-Length: ' . strlen(json_encode(['query' => $this->testQueryString])),
                     'X-Shopify-Access-Token: token'
                 ],
-                $this->testQueryString
+                json_encode(['query' => $this->testQueryString])
             )
         ]);
 
-        $response = $client->query($this->testQueryString);
+        $response = $client->query(data: $this->testQueryString);
         $this->assertThat(
             $response,
             new HttpResponseMatcher(200, [], json_decode($this->querySuccessResponse, true))
@@ -134,7 +135,7 @@ final class GraphqlTest extends BaseTestCase
             )
         ]);
 
-        $response = $client->query($this->testQueryArray);
+        $response = $client->query(data: $this->testQueryArray);
         $this->assertThat(
             $response,
             new HttpResponseMatcher(200, [], json_decode($this->querySuccessResponse, true))
@@ -161,7 +162,7 @@ final class GraphqlTest extends BaseTestCase
             )
         ]);
 
-        $response = $client->query($query);
+        $response = $client->query(data: $query);
 
         $this->assertThat(
             $response,
@@ -181,16 +182,16 @@ final class GraphqlTest extends BaseTestCase
                 'POST',
                 "Shopify Admin API Library for PHP v$this->version",
                 [
-                    'Content-Type: application/graphql',
-                    'Content-Length: ' . strlen($this->testQueryString),
+                    'Content-Type: application/json',
+                    'Content-Length: ' . strlen(json_encode(['query' => $this->testQueryString])),
                     'Extra-Extra: hear_all_about_it',
                     'X-Shopify-Access-Token: token'
                 ],
-                $this->testQueryString
+                json_encode(['query' => $this->testQueryString])
             )
         ]);
 
-        $response = $client->query($this->testQueryString, [], $extraHeaders);
+        $response = $client->query(data: $this->testQueryString, extraHeaders: $extraHeaders);
         $this->assertThat(
             $response,
             new HttpResponseMatcher(200, [], json_decode($this->querySuccessResponse, true))
@@ -227,7 +228,7 @@ final class GraphqlTest extends BaseTestCase
             ]
         );
 
-        $response = $client->proxy($queryToProxy, $extraHeaders);
+        $response = $client->proxy(data: $queryToProxy, extraHeaders: $extraHeaders);
         $this->assertThat(
             $response,
             new HttpResponseMatcher(200, [], json_decode($this->querySuccessResponse, true))

@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace Shopify;
 
+use Shopify\Exception\UninitializedContextException;
+use Shopify\Exception\CookieNotFoundException;
+use Shopify\Exception\MissingArgumentException;
+use Psr\Http\Client\ClientExceptionInterface;
 use Shopify\Context;
 use Shopify\Auth\OAuth;
 use Shopify\Auth\Session;
@@ -53,11 +57,47 @@ final class Utils
         }
         $name = preg_replace("/\A(https?\:\/\/)/", '', $name);
 
-        if (preg_match("/\A[a-zA-Z0-9][a-zA-Z0-9\-]*\.{$allowedDomainsRegexp}\z/", $name)) {
+        if (preg_match("/\A[a-zA-Z0-9][a-zA-Z0-9\-]*\.{$allowedDomainsRegexp}\z/", (string) $name)) {
             return $name;
         } else {
             return null;
         }
+    }
+
+    /**
+     * Builds query strings that are compatible with Shopify's format for array handling
+     * Example: IDs = [1,2,3]
+     * PHP would generate:  ids[]=1&IDs[]=2&IDs[]=3
+     * Shopify expects:     ids=["1","2","3"] (URL encoded)
+     *
+     * @param array $params Array of query parameters
+     *
+     * @return string The URL encoded query string ("foo=bar&bar=foo")
+     */
+    public static function buildQueryString(array $params): string
+    {
+        // Exclude HMAC from query string
+        $params = array_filter($params, function ($key) {
+            return $key !== 'hmac';
+        }, ARRAY_FILTER_USE_KEY);
+
+        // Concatenate arrays to conform with Shopify
+        array_walk($params, function (&$value, $key) {
+            if (!is_array($value)) {
+                return;
+            }
+
+            $escapedValues = array_map(function ($value) {
+                return sprintf('"%s"', $value);
+            }, $value);
+            $concatenatedValues = implode(',', $escapedValues);
+            $encapsulatedValues = sprintf('[%s]', $concatenatedValues);
+
+            $value = $encapsulatedValues;
+        });
+
+        // Building the actual query using PHP's native function
+        return http_build_query($params);
     }
 
     /**
@@ -70,12 +110,14 @@ final class Utils
      */
     public static function validateHmac(array $params, string $secret): bool
     {
-        $hmac = $params['hmac'] ?? '';
-        unset($params['hmac']);
+        if (empty($params['hmac']) || empty($secret)) {
+            return false;
+        }
 
-        $computedHmac = hash_hmac('sha256', http_build_query($params), $secret);
-
-        return hash_equals($hmac, $computedHmac);
+        return hash_equals(
+            $params['hmac'],
+            hash_hmac('sha256', self::buildQueryString($params), $secret)
+        );
     }
 
     /**
@@ -102,7 +144,7 @@ final class Utils
      * @param string $referenceVersion The version to check
      *
      * @return bool
-     * @throws \Shopify\Exception\InvalidArgumentException
+     * @throws InvalidArgumentException
      */
     public static function isApiVersionCompatible(string $referenceVersion): bool
     {
@@ -128,7 +170,7 @@ final class Utils
      * @param bool   $includeExpired Optionally include expired sessions, defaults to false
      *
      * @return Session|null If exists, the most recent session
-     * @throws \Shopify\Exception\UninitializedContextException
+     * @throws UninitializedContextException
      */
     public static function loadOfflineSession(string $shop, bool $includeExpired = false): ?Session
     {
@@ -152,8 +194,8 @@ final class Utils
      * @param bool  $isOnline   Whether to load online or offline sessions
      *
      * @return Session|null The session or null if the session can't be found
-     * @throws \Shopify\Exception\CookieNotFoundException
-     * @throws \Shopify\Exception\MissingArgumentException
+     * @throws CookieNotFoundException
+     * @throws MissingArgumentException
      */
     public static function loadCurrentSession(array $rawHeaders, array $cookies, bool $isOnline): ?Session
     {
@@ -184,11 +226,11 @@ final class Utils
      * @param string $rawBody    The raw HTTP request payload
      *
      * @return HttpResponse
-     * @throws \Psr\Http\Client\ClientExceptionInterface
-     * @throws \Shopify\Exception\CookieNotFoundException
-     * @throws \Shopify\Exception\MissingArgumentException
-     * @throws \Shopify\Exception\SessionNotFoundException
-     * @throws \Shopify\Exception\UninitializedContextException
+     * @throws ClientExceptionInterface
+     * @throws CookieNotFoundException
+     * @throws MissingArgumentException
+     * @throws SessionNotFoundException
+     * @throws UninitializedContextException
      */
     public static function graphqlProxy(array $rawHeaders, array $cookies, string $rawBody): HttpResponse
     {
@@ -222,5 +264,15 @@ final class Utils
 
         $apiKey = Context::$API_KEY;
         return "https://$decodedHost/apps/$apiKey";
+    }
+
+    /**
+     * Returns the semantic version of the library (Major.Minor.Patch) as a string
+     *
+     * @return string
+     */
+    public static function getVersion(): string
+    {
+        return require(__DIR__ . DIRECTORY_SEPARATOR . 'version.php');
     }
 }

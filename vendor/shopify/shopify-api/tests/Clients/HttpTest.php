@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace ShopifyTest\Clients;
 
+use Shopify\Exception\HttpRequestException;
 use org\bovigo\vfs\vfsStream;
 use PHPUnit\Framework\MockObject\MockObject;
+use Psr\Log\LogLevel;
+use ReflectionProperty;
 use Shopify\Clients\Http;
 use Shopify\Context;
 use ShopifyTest\BaseTestCase;
@@ -44,7 +47,7 @@ final class HttpTest extends BaseTestCase
         ]);
 
         $client = new Http($this->domain);
-        $response = $client->get('test/path', $headers);
+        $response = $client->get(path: 'test/path', headers: $headers);
         $this->assertThat($response, new HttpResponseMatcher(200, [], $this->successResponse));
     }
 
@@ -65,7 +68,7 @@ final class HttpTest extends BaseTestCase
         ]);
 
         $client = new Http($this->domain);
-        $response = $client->get('test/path', $headers, ["path" => "some_path"]);
+        $response = $client->get(path: 'test/path', headers: $headers, query: ["path" => "some_path"]);
         $this->assertThat($response, new HttpResponseMatcher(200, [], $this->successResponse));
     }
 
@@ -87,9 +90,9 @@ final class HttpTest extends BaseTestCase
 
         $client = new Http($this->domain);
         $response = $client->get(
-            'test/path',
-            $headers,
-            ["array" => ["value"], "hash" => ["key1" => "value1", "key2" => "value2"]]
+            path: 'test/path',
+            headers: $headers,
+            query: ["array" => ["value"], "hash" => ["key1" => "value1", "key2" => "value2"]]
         );
         $this->assertThat($response, new HttpResponseMatcher(200, [], $this->successResponse));
     }
@@ -121,7 +124,12 @@ final class HttpTest extends BaseTestCase
         $client = new Http($this->domain);
 
 
-        $response = $client->post('test/path', $this->product1, $headers, ["path" => "some_path"]);
+        $response = $client->post(
+            path: 'test/path',
+            body: $this->product1,
+            headers: $headers,
+            query: ["path" => "some_path"],
+        );
         $this->assertThat($response, new HttpResponseMatcher(200, [], $this->successResponse));
     }
 
@@ -153,7 +161,12 @@ final class HttpTest extends BaseTestCase
         $client = new Http($this->domain);
 
 
-        $response = $client->put('test/path', $this->product1, $headers, ["path" => "some_path"]);
+        $response = $client->put(
+            path: 'test/path',
+            body: $this->product1,
+            headers: $headers,
+            query: ["path" => "some_path"],
+        );
         $this->assertThat($response, new HttpResponseMatcher(200, [], $this->successResponse));
     }
 
@@ -176,7 +189,7 @@ final class HttpTest extends BaseTestCase
 
         $client = new Http($this->domain);
 
-        $response = $client->delete('test/path', $headers, ["path" => "some_path"]);
+        $response = $client->delete(path: 'test/path', headers: $headers, query: ["path" => "some_path"]);
         $this->assertThat($response, new HttpResponseMatcher(200, [], $this->successResponse));
     }
 
@@ -203,7 +216,7 @@ final class HttpTest extends BaseTestCase
 
         $client = new Http($this->domain);
 
-        $response = $client->post('test/path', $body);
+        $response = $client->post(path: 'test/path', body: $body);
         $this->assertThat($response, new HttpResponseMatcher(200, [], $this->successResponse));
     }
 
@@ -223,7 +236,7 @@ final class HttpTest extends BaseTestCase
         ]);
 
         $client = new Http($this->domain);
-        $client->get('test/path');
+        $client->get(path: 'test/path');
 
         $this->mockTransportRequests([
             new MockRequest(
@@ -238,7 +251,7 @@ final class HttpTest extends BaseTestCase
             ),
         ]);
 
-        $client->get('test/path', ['User-Agent' => "Extra user agent"]);
+        $client->get(path: 'test/path', headers: ['User-Agent' => "Extra user agent"]);
 
         Context::$USER_AGENT_PREFIX = 'Test default user agent';
 
@@ -255,7 +268,7 @@ final class HttpTest extends BaseTestCase
             ),
         ]);
 
-        $client->get('test/path');
+        $client->get(path: 'test/path');
 
         $userAgent = "^Extra user agent | Test default user agent | Shopify Admin API Library for PHP v$this->version$";
         $this->mockTransportRequests([
@@ -271,7 +284,7 @@ final class HttpTest extends BaseTestCase
             ),
         ]);
 
-        $client->get('test/path', ['User-Agent' => "Extra user agent"]);
+        $client->get(path: 'test/path', headers: ['User-Agent' => "Extra user agent"]);
     }
 
     public function testRequestThrowsErrorOnRequestFailure()
@@ -290,8 +303,8 @@ final class HttpTest extends BaseTestCase
         ]);
 
         $client = new Http($this->domain);
-        $this->expectException(\Shopify\Exception\HttpRequestException::class);
-        $client->get('test/path');
+        $this->expectException(HttpRequestException::class);
+        $client->get(path: 'test/path');
     }
 
     public function testRetryAfterCanBeFloat()
@@ -319,7 +332,7 @@ final class HttpTest extends BaseTestCase
 
         $client = new Http($this->domain);
 
-        $response = $client->get('test/path', [], [], 2);
+        $response = $client->get(path: 'test/path', tries: 2);
         $this->assertThat($response, new HttpResponseMatcher(200, [], $this->successResponse));
     }
 
@@ -358,7 +371,7 @@ final class HttpTest extends BaseTestCase
 
         $client = new Http($this->domain);
 
-        $response = $client->get('test/path', [], [], 3);
+        $response = $client->get(path: 'test/path', tries: 3);
         $this->assertThat($response, new HttpResponseMatcher(200, [], $this->successResponse));
     }
 
@@ -397,7 +410,7 @@ final class HttpTest extends BaseTestCase
 
         $client = new Http($this->domain);
 
-        $response = $client->get('test/path', [], [], 3);
+        $response = $client->get(path: 'test/path', tries: 3);
         $this->assertThat($response, new HttpResponseMatcher(500, ['X-Is-Last-Test-Request' => [true]]));
     }
 
@@ -425,25 +438,24 @@ final class HttpTest extends BaseTestCase
 
         $client = new Http($this->domain);
 
-        $response = $client->get('test/path', [], [], 10);
+        $response = $client->get(path: 'test/path', tries: 10);
         $this->assertThat($response, new HttpResponseMatcher(400, ['X-Is-Last-Test-Request' => [true]]));
     }
 
-    public function testDeprecatedRequestsAreLogged()
+    public function testDeprecatedRequestsAreLoggedWithinLimit()
     {
-        $vfsRoot = vfsStream::setup('test');
-
         /** @var MockObject|Http */
         $mockedClient = $this->getMockBuilder(Http::class)
             ->setConstructorArgs([$this->domain])
-            ->onlyMethods(['getApiDeprecationTimestampFilePath'])
+            ->onlyMethods([])
             ->getMock();
-        $mockedClient->expects($this->once())
-            ->method('getApiDeprecationTimestampFilePath')
-            ->willReturn(vfsStream::url('test/timestamp_file'));
 
         $testLogger = new LogMock();
         Context::$LOGGER = $testLogger;
+
+        if (function_exists('apcu_enabled') && apcu_enabled()) {
+            apcu_delete('shopify/shopify-api/last-api-deprecation-warning');
+        }
 
         $this->mockTransportRequests([
             new MockRequest(
@@ -451,39 +463,74 @@ final class HttpTest extends BaseTestCase
                 "https://$this->domain/test/path",
                 "GET",
             ),
+            new MockRequest(
+                $this->buildMockHttpResponse(200, null, ['X-Shopify-API-Deprecated-Reason' => 'Test reason']),
+                "https://$this->domain/test/path",
+                "GET",
+            )
         ]);
 
-        $this->assertFalse($vfsRoot->hasChild('timestamp_file'));
+        $reflector = new ReflectionProperty(Http::class, 'lastApiDeprecationWarning');
+
+        $this->assertEquals(
+            0,
+            $reflector->getValue($mockedClient),
+            'Last API deprecation warning time starts out unset'
+        );
+
         $mockedClient->get('test/path');
 
-        $this->assertTrue($testLogger->hasWarningThatContains(
-            <<<NOTICE
-            API Deprecation notice:
-                URL: https://test-shop.myshopify.io/test/path
-                Reason: Test reason
-            Stack trace:
-            NOTICE
-        ));
-        $this->assertTrue($vfsRoot->hasChild('timestamp_file'));
+        $this->assertTrue(
+            $testLogger->hasWarningThatContains('API Deprecation notice'),
+            'Logger has API deprecation message'
+        );
+        $this->assertCount(
+            1,
+            $testLogger->recordsByLevel[LogLevel::WARNING],
+            'Logger has exactly one warning'
+        );
+        $this->assertGreaterThan(
+            0,
+            $reflector->getValue($mockedClient),
+            'Last API deprecation warning time is set'
+        );
+
+        $lastApiDeprecationWarning = $reflector->getValue($mockedClient);
+        $mockedClient->get('test/path');
+
+        $this->assertEquals(
+            $lastApiDeprecationWarning,
+            $reflector->getValue($mockedClient),
+            'Last API deprecation warning time is unchanged'
+        );
+        $this->assertCount(
+            1,
+            $testLogger->recordsByLevel[LogLevel::WARNING],
+            'Logger still has exactly one warning'
+        );
     }
 
     public function testDeprecationLogBackoffPeriod()
     {
-        vfsStream::setup('test');
-
         /** @var MockObject|Http */
         $mockedClient = $this->getMockBuilder(Http::class)
             ->setConstructorArgs([$this->domain])
-            ->onlyMethods(['getApiDeprecationTimestampFilePath'])
+            ->onlyMethods([])
             ->getMock();
-        $mockedClient->expects($this->exactly(3))
-            ->method('getApiDeprecationTimestampFilePath')
-            ->willReturn(vfsStream::url('test/timestamp_file'));
 
         $testLogger = new LogMock();
         Context::$LOGGER = $testLogger;
 
+        if (function_exists('apcu_enabled') && apcu_enabled()) {
+            apcu_delete('shopify/shopify-api/last-api-deprecation-warning');
+        }
+
         $this->mockTransportRequests([
+            new MockRequest(
+                $this->buildMockHttpResponse(200, null, ['X-Shopify-API-Deprecated-Reason' => 'Test reason']),
+                "https://$this->domain/test/path",
+                "GET",
+            ),
             new MockRequest(
                 $this->buildMockHttpResponse(200, null, ['X-Shopify-API-Deprecated-Reason' => 'Test reason']),
                 "https://$this->domain/test/path",
@@ -509,9 +556,19 @@ final class HttpTest extends BaseTestCase
         $mockedClient->get('test/path');
         $this->assertCount(1, $testLogger->records);
 
-        // We only log once every minute, so simulate more time than having elapsed
-        file_put_contents(vfsStream::url('test/timestamp_file'), time() - 70);
+        // We only log once every hour, so simulate more time than having elapsed
+        $reflector = new ReflectionProperty(Http::class, 'lastApiDeprecationWarning');
+        $reflector->setValue($mockedClient, time() - 7200);
 
+        $mockedClient->get('test/path');
+        $this->assertCount(2, $testLogger->records);
+
+        if (!function_exists('apcu_enabled') || !apcu_enabled()) {
+            $this->markTestSkipped('APCu is not enabled and is required for the correct testing of this feature.');
+        }
+
+        // Set the internal value back to its initial state. The class should read the stored value from APCu.
+        $reflector->setValue($mockedClient, 0);
         $mockedClient->get('test/path');
         $this->assertCount(2, $testLogger->records);
     }

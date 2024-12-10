@@ -49,7 +49,7 @@ class PrestaShopWebservice
     /** @var string Minimal version of PrestaShop to use with this library */
     const psCompatibleVersionsMin = '1.4.0.0';
     /** @var string Maximal version of PrestaShop to use with this library */
-    const psCompatibleVersionsMax = '8.1.1';
+    const psCompatibleVersionsMax = '8.2.0';
 
     /**
      * PrestaShopWebservice constructor. Throw an exception when CURL is not installed/activated
@@ -154,7 +154,7 @@ class PrestaShopWebservice
             CURLOPT_HTTPAUTH => CURLAUTH_BASIC,
             CURLOPT_USERPWD => $this->key . ':',
             CURLOPT_HTTPHEADER => array('Expect:'),
-            CURLOPT_SSL_VERIFYPEER => true, // reminder, in dev environment sometimes self-signed certificates are used
+            //CURLOPT_SSL_VERIFYPEER => false, // reminder, in dev environment sometimes self-signed certificates are used
             //CURLOPT_CAINFO => "PATH2CAINFO", // ssl certificate chain checking
             //CURLOPT_CAPATH => "PATH2CAPATH",
         );
@@ -194,13 +194,13 @@ class PrestaShopWebservice
         curl_setopt_array($session, $curl_options);
         $response = curl_exec($session);
 
-        $index = strpos($response, "\r\n\r\n");
-        if ($index === false && $curl_params[CURLOPT_CUSTOMREQUEST] != 'HEAD') {
+        $headerSize = curl_getinfo($session, CURLINFO_HEADER_SIZE);
+        if ($headerSize === false && $curl_params[CURLOPT_CUSTOMREQUEST] != 'HEAD') {
             throw new PrestaShopWebserviceException('Bad HTTP response ' . $response . curl_error($session));
         }
 
-        $header = substr($response, 0, $index);
-        $body = substr($response, $index + 4);
+        $header = substr($response, 0, $headerSize);
+        $body = substr($response, $headerSize);
 
         $headerArrayTmp = explode("\n", $header);
 
@@ -211,6 +211,10 @@ class PrestaShopWebservice
             if (count($tmp) == 2) {
                 $headerArray[$tmp[0]] = $tmp[1];
             }
+        }
+
+        if (!array_key_exists('PSWS-Version', $headerArray) && array_key_exists('psws-version', $headerArray)) {
+            $headerArray['PSWS-Version'] = $headerArray['psws-version'];
         }
 
         if (array_key_exists('PSWS-Version', $headerArray)) {
@@ -276,7 +280,13 @@ class PrestaShopWebservice
         if ($response != '') {
             libxml_clear_errors();
             libxml_use_internal_errors(true);
-            $xml = simplexml_load_string(trim($response), 'SimpleXMLElement', LIBXML_NOCDATA);
+            if (LIBXML_VERSION < 20900) {
+                // Avoid load of external entities (security problem).
+                // Required only if LIBXML_VERSION < 20900
+                libxml_disable_entity_loader(true);
+            }
+
+            $xml = simplexml_load_string(trim($response), 'SimpleXMLElement', LIBXML_NOCDATA|LIBXML_NONET);
             if (libxml_get_errors()) {
                 $msg = var_export(libxml_get_errors(), true);
                 libxml_clear_errors();
@@ -364,7 +374,7 @@ class PrestaShopWebservice
                 $url .= '/' . $options['id'];
             }
 
-            $params = array('filter', 'display', 'sort', 'limit', 'id_shop', 'id_group_shop', 'schema', 'language', 'date', 'price', 'output_format');
+            $params = array('filter', 'display', 'sort', 'limit', 'id_shop', 'id_group_shop', 'schema', 'language', 'date', 'price');
             foreach ($params as $p) {
                 foreach ($options as $k => $o) {
                     if (strpos($k, $p) !== false) {

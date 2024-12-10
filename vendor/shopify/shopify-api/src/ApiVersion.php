@@ -9,8 +9,6 @@ class ApiVersion
     /** @var string */
     public const UNSTABLE = "unstable";
     /** @var string */
-    public const JANUARY_2022 = "2022-01";
-    /** @var string */
     public const APRIL_2022 = "2022-04";
     /** @var string */
     public const JULY_2022 = "2022-07";
@@ -23,21 +21,15 @@ class ApiVersion
     /** @var string */
     public const JULY_2023 = "2023-07";
     /** @var string */
-    public const LATEST = self::JULY_2023;
-
-    private static $ALL_VERSIONS = [
-        self::UNSTABLE,
-        self::JANUARY_2022,
-        self::APRIL_2022,
-        self::JULY_2022,
-        self::OCTOBER_2022,
-        self::JANUARY_2023,
-        self::APRIL_2023,
-        self::JULY_2023,
-    ];
-
-    public static function isValid(string $version): bool
-    {
-        return in_array($version, self::$ALL_VERSIONS);
-    }
+    public const OCTOBER_2023 = "2023-10";
+    /** @var string */
+    public const JANUARY_2024 = "2024-01";
+    /** @var string */
+    public const APRIL_2024 = "2024-04";
+    /** @var string */
+    public const JULY_2024 = "2024-07";
+    /** @var string */
+    public const OCTOBER_2024 = "2024-10";
+    /** @var string */
+    public const LATEST = self::OCTOBER_2024;
 }

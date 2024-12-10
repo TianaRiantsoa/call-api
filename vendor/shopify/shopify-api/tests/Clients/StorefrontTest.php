@@ -38,16 +38,16 @@ final class StorefrontTest extends BaseTestCase
                 'POST',
                 null,
                 [
-                    'Content-Type: application/graphql',
+                    'Content-Type: application/json',
                     'X-Shopify-Storefront-Access-Token: test_token',
                 ],
-                $this->query,
+                json_encode(['query' => $this->query]),
             )
         ]);
 
         $client = new Storefront($this->domain, 'test_token');
 
-        $response = $client->query($this->query);
+        $response = $client->query(data: $this->query);
         $this->assertEquals(200, $response->getStatusCode());
         $this->assertEquals($this->successResponse, $response->getDecodedBody());
         $this->assertEquals('request_id', $response->getRequestId());
@@ -65,16 +65,16 @@ final class StorefrontTest extends BaseTestCase
                 'POST',
                 null,
                 [
-                    'Content-Type: application/graphql',
+                    'Content-Type: application/json',
                     'X-Shopify-Storefront-Access-Token: private_token',
                 ],
-                $this->query,
+                json_encode(['query' => $this->query]),
             )
         ]);
 
         $client = new Storefront($this->domain);
 
-        $response = $client->query($this->query);
+        $response = $client->query(data: $this->query);
         $this->assertEquals(200, $response->getStatusCode());
         $this->assertEquals($this->successResponse, $response->getDecodedBody());
         $this->assertEquals('request_id', $response->getRequestId());
@@ -91,16 +91,16 @@ final class StorefrontTest extends BaseTestCase
                 'POST',
                 null,
                 [
-                    'Content-Type: application/graphql',
+                    'Content-Type: application/json',
                     'X-Shopify-Storefront-Access-Token: test_token',
                 ],
-                $this->query,
+                json_encode(['query' => $this->query]),
             )
         ]);
 
         $client = new Storefront($this->domain, 'test_token');
 
-        $response = $client->query($this->query);
+        $response = $client->query(data: $this->query);
         $this->assertEquals(200, $response->getStatusCode());
         $this->assertEquals($this->successResponse, $response->getDecodedBody());
         $this->assertEquals('request_id', $response->getRequestId());

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace ShopifyTest\Clients;
 
+use Shopify\Exception\MissingArgumentException;
 use Shopify\Clients\Rest;
 use Shopify\Context;
 use ShopifyTest\BaseTestCase;
@@ -23,7 +24,7 @@ class RestTest extends BaseTestCase
 
     public function testFailsToInstantiateWithoutAccessTokenForNonPrivateApps()
     {
-        $this->expectException(\Shopify\Exception\MissingArgumentException::class);
+        $this->expectException(MissingArgumentException::class);
 
         new Rest($this->domain);
     }
@@ -57,7 +58,7 @@ class RestTest extends BaseTestCase
             ),
         ]);
 
-        $response = $client->get('products', $headers);
+        $response = $client->get(path: 'products', headers: $headers);
         $this->assertThat($response, new HttpResponseMatcher(200, [], $this->successResponse));
     }
 
@@ -80,7 +81,7 @@ class RestTest extends BaseTestCase
             ),
         ]);
 
-        $response = $client->get('products', $headers);
+        $response = $client->get(path: 'products', headers: $headers);
         $this->assertThat($response, new HttpResponseMatcher(200, [], $this->successResponse));
     }
 
@@ -103,7 +104,7 @@ class RestTest extends BaseTestCase
             ),
         ]);
 
-        $response = $client->get('/admin/custom_path', $headers);
+        $response = $client->get(path: '/admin/custom_path', headers: $headers);
         $this->assertThat($response, new HttpResponseMatcher(200, [], $this->successResponse));
     }
 
@@ -124,7 +125,7 @@ class RestTest extends BaseTestCase
             ),
         ]);
 
-        $response = $client->get('products', [], ["path" => "some_path"]);
+        $response = $client->get(path: 'products', query: ["path" => "some_path"]);
         $this->assertThat($response, new HttpResponseMatcher(200, [], $this->successResponse));
     }
 
@@ -157,7 +158,7 @@ class RestTest extends BaseTestCase
             ),
         ]);
 
-        $response = $client->post('products', $postData);
+        $response = $client->post(path: 'products', body: $postData);
         $this->assertThat($response, new HttpResponseMatcher(200, [], $this->successResponse));
     }
 
@@ -190,7 +191,7 @@ class RestTest extends BaseTestCase
             ),
         ]);
 
-        $response = $client->post('products', $postData, [], ["path" => "some_path"]);
+        $response = $client->post(path: 'products', body: $postData, query: ["path" => "some_path"]);
         $this->assertThat($response, new HttpResponseMatcher(200, [], $this->successResponse));
     }
 
@@ -223,7 +224,7 @@ class RestTest extends BaseTestCase
             ),
         ]);
 
-        $response = $client->put('products/123', $postData, [], ["path" => "some_path"]);
+        $response = $client->put(path: 'products/123', body: $postData, query: ["path" => "some_path"]);
         $this->assertThat($response, new HttpResponseMatcher(200, [], $this->successResponse));
     }
 
@@ -246,7 +247,7 @@ class RestTest extends BaseTestCase
             ),
         ]);
 
-        $response = $client->delete('products', $headers, ["path" => "some_path"]);
+        $response = $client->delete(path: 'products', headers: $headers, query: ["path" => "some_path"]);
         $this->assertThat($response, new HttpResponseMatcher(200, [], $this->successResponse));
     }
 
@@ -299,23 +300,23 @@ class RestTest extends BaseTestCase
         $client = new Rest($this->domain, 'dummy-token');
 
         /** @var RestResponse */
-        $response = $client->get('products', [], ["limit" => "10", "fields" => 'test1,test2']);
+        $response = $client->get(path: 'products', query: ["limit" => "10", "fields" => 'test1,test2']);
         $this->assertNull($response->getPageInfo()->getPreviousPageUrl());
 
         $this->assertTrue($response->getPageInfo()->hasNextPage());
         /** @var RestResponse */
-        $response = $client->get('products', [], $response->getPageInfo()->getNextPageQuery());
+        $response = $client->get(path: 'products', query: $response->getPageInfo()->getNextPageQuery());
         /** @var RestResponse */
-        $response = $client->get('products', [], $response->getPageInfo()->getNextPageQuery());
+        $response = $client->get(path: 'products', query: $response->getPageInfo()->getNextPageQuery());
         $this->assertFalse($response->getPageInfo()->hasNextPage());
         $this->assertNull($response->getPageInfo()->getNextPageUrl());
 
 
         $this->assertTrue($response->getPageInfo()->hasPreviousPage());
         /** @var RestResponse */
-        $response = $client->get('products', [], $response->getPageInfo()->getPreviousPageQuery());
+        $response = $client->get(path: 'products', query: $response->getPageInfo()->getPreviousPageQuery());
         /** @var RestResponse */
-        $response = $client->get('products', [], $response->getPageInfo()->getPreviousPageQuery());
+        $response = $client->get(path: 'products', query: $response->getPageInfo()->getPreviousPageQuery());
         $this->assertFalse($response->getPageInfo()->hasPreviousPage());
         $this->assertNull($response->getPageInfo()->getPreviousPageUrl());
     }

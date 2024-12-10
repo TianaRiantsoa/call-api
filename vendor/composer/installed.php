@@ -1,9 +1,9 @@
 <?php return array(
     'root' => array(
         'name' => 'yiisoft/yii2-app-basic',
-        'pretty_version' => '1.0.0+no-version-set',
-        'version' => '1.0.0.0',
-        'reference' => NULL,
+        'pretty_version' => 'dev-main',
+        'version' => 'dev-main',
+        'reference' => '95766d24f010e80ea8d2a1985b0f2673a829f108',
         'type' => 'project',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -388,7 +388,7 @@
         'prestashop/prestashop-webservice-lib' => array(
             'pretty_version' => 'dev-master',
             'version' => 'dev-master',
-            'reference' => '94feb5f547b4a33cd9c759edfa581f30fa42803b',
+            'reference' => 'e1d41ddc24cc3a5cfaf258e647da02eb05fb274e',
             'type' => 'library',
             'install_path' => __DIR__ . '/../prestashop/prestashop-webservice-lib',
             'aliases' => array(
@@ -667,9 +667,9 @@
             'dev_requirement' => true,
         ),
         'shopify/shopify-api' => array(
-            'pretty_version' => 'v4.3.0',
-            'version' => '4.3.0.0',
-            'reference' => '80cde593a69acb9b9095235fa8f7748e9389294c',
+            'pretty_version' => 'v5.8.1',
+            'version' => '5.8.1.0',
+            'reference' => '04dff050e8769b110881be20f8f799d8ece7d7d4',
             'type' => 'library',
             'install_path' => __DIR__ . '/../shopify/shopify-api',
             'aliases' => array(),
@@ -880,9 +880,9 @@
             'dev_requirement' => false,
         ),
         'yiisoft/yii2-app-basic' => array(
-            'pretty_version' => '1.0.0+no-version-set',
-            'version' => '1.0.0.0',
-            'reference' => NULL,
+            'pretty_version' => 'dev-main',
+            'version' => 'dev-main',
+            'reference' => '95766d24f010e80ea8d2a1985b0f2673a829f108',
             'type' => 'project',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),

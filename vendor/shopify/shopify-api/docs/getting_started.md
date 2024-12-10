@@ -19,7 +19,7 @@ The first thing your app will need to do to use this library is to set up your c
 | `scopes`          | `string \| array` |    Yes    |      -       | App scopes                                                                                                                                                                           |
 | `hostName`        | `string`          |    Yes    |      -       | App host name e.g. `my-app.my-domain.ca`. You may optionally include `https://` or `http://` to determine which scheme to use                                                        |
 | `sessionStorage`  | `SessionStorage`  |    Yes    |      -       | Session storage strategy. Read our [notes on session handling](issues.md#notes-on-session-handling) for more information                                                             |
-| `apiVersion`      | `string`          |    No     | `'unstable'` | App API version, defaults to unstable                                                                                                                                                |
+| `apiVersion`      | `string`          |    No     | `ApiVersion::LATEST` | App API version, defaults to `ApiVersion::LATEST`                                                                                                                                                |
 | `isEmbeddedApp`   | `bool`            |    No     |    `true`    | Whether the app is an embedded app                                                                                                                                                   |
 | `isPrivateApp`    | `bool`            |    No     |   `false`    | Whether the app is a private app                                                                                                                                                     |
 | `userAgentPrefix` | `string`          |    No     |      -       | Prefix for user agent header sent with a request                                                                                                                                     |
@@ -29,14 +29,14 @@ You should call this method as early as possible in your application, as none of
 
 ```php
 Context::initialize(
-    $_ENV['SHOPIFY_API_KEY'],
-    $_ENV['SHOPIFY_API_SECRET'],
-    $_ENV['SHOPIFY_APP_SCOPES'],
-    $_ENV['SHOPIFY_APP_HOST_NAME'],
-    new FileSessionStorage('/tmp/php_sessions'),
-    '2021-04',
-    true,
-    false,
+    apiKey: $_ENV['SHOPIFY_API_KEY'],
+    apiSecretKey: $_ENV['SHOPIFY_API_SECRET'],
+    scopes: $_ENV['SHOPIFY_APP_SCOPES'],
+    hostName: $_ENV['SHOPIFY_APP_HOST_NAME'],
+    sessionStorage: new FileSessionStorage('/tmp/php_sessions'),
+    apiVersion: '2024-10',
+    isEmbeddedApp: true,
+    isPrivateApp: false,
 );
 ```
 
