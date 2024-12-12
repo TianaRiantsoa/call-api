@@ -4,7 +4,6 @@ use Shopify\Auth\FileSessionStorage;
 use Shopify\Clients\Graphql;
 use Shopify\Context;
 use yii\helpers\Html;
-use SPF\init;
 /** @var yii\web\View $this */
 /** @var app\models\Shopify $model */
 
@@ -28,7 +27,9 @@ $ref = Html::encode($ref);
 
 // $client = new Graphql($url, $pwd);
 
-$init = init::InitShopify($url,$api, $pwd, $sct);
+require("function.php");
+
+$init = InitShopify($url,$api, $pwd, $sct);
 
 $query = <<<QUERY
     query {
