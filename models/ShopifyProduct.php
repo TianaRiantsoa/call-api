@@ -10,12 +10,13 @@ class ShopifyProduct extends Model
     public $api_key;
     public $password;
     public $secret_key;
+    public $type;
     public $ref;
 
     public function rules()
     {
         return [
-            [['url', 'api_key', 'password', 'secret_key', 'ref'], 'required'],
+            [['url', 'api_key', 'password', 'secret_key', 'ref', 'type'], 'required'],
         ];
     }
 
@@ -30,6 +31,7 @@ class ShopifyProduct extends Model
             'api_key' => 'Clé API',
             'password' => 'Mot de passe API',
             'secret_key' => 'Clé Secrète',
+            'type' => 'Type de produit',
             'ref' => 'Référence',
         ];
     }

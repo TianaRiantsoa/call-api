@@ -23,6 +23,11 @@ $this->params['breadcrumbs'][] = 'Recherche de produit';
 
     <?= $form->field($model, 'secret_key')->textInput(['maxlength' => true])->hiddenInput() ?>
 
+    <?= $form->field($mod, 'type')->radioList([
+        'simple' => 'Produit simple',
+        'variable' => 'Produit variable',
+    ]) ?>
+
     <?= $form->field($mod, 'ref')->textInput(['maxlength' => true, 'placeholder' => 'Exemple : AR00000'])->hint('<small>Renseignez ici la référence du produit à rechercher</small>') ?>
 
     <?= Html::submitButton('Rechercher', ['class' => 'btn btn-success btn-sm']) ?>

@@ -221,7 +221,7 @@ class ShopifyController extends Controller
         $mod = new ShopifyProduct();
 
         if ($this->request->isPost && $model->load($this->request->post()) && $mod->load($this->request->post())) {
-            return $this->redirect(['productresults', 'id' => $model->id, 'ref' => $mod->ref]);
+            return $this->redirect(['productresults', 'id' => $model->id, 'ref' => $mod->ref, 'type' => $mod->type]);
         }
 
         return $this->render('products', [
@@ -266,12 +266,13 @@ class ShopifyController extends Controller
      * Résultat des requêtes
      */
 
-    public function actionProductresults($id, $ref)
+    public function actionProductresults($id, $ref, $type)
     {
         $model = $this->findModel($id);
 
         return $this->render('productresults', [
             'model' => $model,
+            'type' => $type,
             'ref' => $ref,
         ]);
     }
