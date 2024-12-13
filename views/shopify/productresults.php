@@ -1,12 +1,10 @@
 <?php
-// use Shopify\ApiVersion;
-use Shopify\Auth\FileSessionStorage;
-use Shopify\Clients\Graphql;
-use Shopify\Context;
+
 use yii\helpers\Html;
 use yii\helpers\ArrayHelper;
 use yii\data\ArrayDataProvider;
 use yii\grid\GridView;
+use yii\widgets\Pjax;
 
 /** @var yii\web\View $this */
 /** @var app\models\Shopify $model */
@@ -44,6 +42,7 @@ $query = <<<QUERY
                 title
                 createdAt
                 updatedAt
+                status
                 variants(first: 250) {
                 edges {
                     node {
@@ -51,6 +50,7 @@ $query = <<<QUERY
                     sku
                     price
                     title
+                    inventoryQuantity
                     }
                 }
                 }
@@ -66,26 +66,36 @@ $query = <<<QUERY
 $response = $init->query(["query" => $query]);
 
 $contents = $response->getBody()->getContents();
-
 $data = json_decode($contents, true);
 
 $products = ArrayHelper::getValue($data, 'data.products.edges', []);
 
 $gridData = [];
+$id = Yii::$app->request->get('id');
+$ref = Yii::$app->request->get('ref');
+$globalSearch = Yii::$app->request->get('globalSearch', ''); // Récupération de la recherche globale
+
 foreach ($products as $product) {
     $node = $product['node'];
     $variants = ArrayHelper::getValue($node, 'variants.edges', []);
 
     foreach ($variants as $variant) {
         $variantNode = $variant['node'];
-        $gridData[] = [
+        $row = [
             'product_id' => explode("/", $node['id'])[4],
             'product_title' => $node['title'],
+            'product_status' => $node['status'] ?? 'Indéfini',
             'variant_id' => explode("/", $variantNode['id'])[4],
             'variant_sku' => $variantNode['sku'],
             'variant_title' => $variantNode['title'],
             'variant_price' => $variantNode['price'] . ' €',
+            'variant_quantity' => $variantNode['inventoryQuantity'],
         ];
+
+        // Ajout du filtre global (case insensitive)
+        if (stripos(json_encode($row), $globalSearch) !== false || empty($globalSearch)) {
+            $gridData[] = $row;
+        }
     }
 }
 
@@ -95,30 +105,71 @@ $dataProvider = new ArrayDataProvider([
         'pageSize' => 10,
     ],
 ]);
+?>
 
+<div class="product-index">
+    <h1><?= Html::encode('Liste des Produits Shopify') ?></h1>
 
-echo GridView::widget([
-    'dataProvider' => $dataProvider,
-    'columns' => [
-        [
-            'attribute' => 'product_id',
-            'label' => 'ID Produit',
+    <!-- Barre de recherche -->
+    <p>
+        <?= Html::input('text', 'globalSearch', $globalSearch, [
+            'id' => 'globalSearchInput',
+            'class' => 'form-control',
+            'placeholder' => 'Rechercher...',
+        ]) ?>
+    </p>
+
+    <?php Pjax::begin(['id' => 'productGrid']); ?>
+    <?= GridView::widget([
+        'dataProvider' => $dataProvider,
+        'columns' => [
+            [
+                'attribute' => 'product_id',
+                'label' => 'ID Produit',
+            ],
+            [
+                'attribute' => 'product_status',
+                'label' => 'Statut',
+            ],
+            [
+                'attribute' => 'product_title',
+                'label' => 'Nom du produit',
+            ],
+            [
+                'attribute' => 'variant_id',
+                'label' => 'ID Variante',
+            ],
+            [
+                'attribute' => 'variant_sku',
+                'label' => 'SKU',
+            ],
+            [
+                'attribute' => 'variant_price',
+                'label' => 'Prix de la variante',
+            ],
+            [
+                'attribute' => 'variant_quantity',
+                'label' => 'Quantité de la variante',
+            ],
         ],
-        [
-            'attribute' => 'product_title',
-            'label' => 'Nom du produit',
-        ],
-        [
-            'attribute' => 'variant_id',
-            'label' => 'ID Variante',
-        ],
-        // [
-        //     'attribute' => 'variant_title',
-        //     'label' => 'Variant Title',
-        // ],
-        [
-            'attribute' => 'variant_price',
-            'label' => 'Prix de la variante',
-        ],
-    ],
-]);
+    ]); ?>
+    <?php Pjax::end(); ?>
+</div>
+
+<?php
+$script = <<<JS
+// Recherche dynamique avec AJAX
+$('#globalSearchInput').on('keyup', function() {
+    let currentUrl = new URL(window.location.href);
+    let searchParams = new URLSearchParams(currentUrl.search);
+    searchParams.set('globalSearch', $(this).val());
+
+    $.pjax.reload({
+        container: '#productGrid',
+        url: currentUrl.pathname + '?' + searchParams.toString(),
+        timeout: 2000
+    });
+});
+JS;
+$this->registerJs($script);
+?>
