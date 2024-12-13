@@ -1,0 +1,17 @@
+Partner Shopify
+
+ID client : 60d8a5f3f2354c42cd67724387343662
+Secret client : 9bbe05d0381346b15d7841f5f07dac42
+Token refresh : 22c4ba044a3529c421fb1e9c2832010f-1689700128
+
+
+$hostName = 'vaisonet-test.myshopify.com';
+$accessToken = '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';
+$apiKey = '46bfecbf61f3a6d886644c8c2ea6777f';
+$apiSecret = '53e30d3f571599be85608a98e9c2fbbf';
+$scopes = 'read_analytics, write_assigned_fulfillment_orders, read_assigned_fulfillment_orders, read_customer_events, write_customers, read_customers, write_discounts, read_discounts, write_discovery, read_discovery, write_draft_orders, read_draft_orders, write_files, read_files, write_fulfillments, read_fulfillments, read_gdpr_data_request, write_gift_cards, read_gift_cards, write_inventory, read_inventory, write_legal_policies, read_legal_policies, write_locations, read_locations, write_marketing_events, read_marketing_events, write_merchant_managed_fulfillment_orders, read_merchant_managed_fulfillment_orders, write_online_store_navigation, read_online_store_navigation, write_online_store_pages, read_online_store_pages, write_order_edits, read_order_edits, write_orders, read_orders, write_packing_slip_templates, read_packing_slip_templates, write_payment_customizations, read_payment_customizations, write_payment_terms, read_payment_terms, write_pixels, read_pixels, write_price_rules, read_price_rules, write_product_feeds, read_product_feeds, write_product_listings, read_product_listings, write_products, read_products, write_publications, read_publications, write_purchase_options, read_purchase_options, write_reports, read_reports, write_resource_feedbacks, read_resource_feedbacks, write_returns, read_returns, write_channels, read_channels, write_script_tags, read_script_tags, write_shipping, read_shipping, write_locales, read_locales, write_markets, read_markets, read_shopify_payments_accounts, read_shopify_payments_bank_accounts, read_shopify_payments_disputes, read_shopify_payments_payouts, write_content, read_content, write_themes, read_themes, write_third_party_fulfillment_orders, read_third_party_fulfillment_orders, write_translations, read_translations, read_all_cart_transforms, write_cart_transforms, read_cart_transforms, write_custom_fulfillment_services, read_custom_fulfillment_services, write_delivery_customizations, read_delivery_customizations, write_fulfillment_constraint_rules, read_fulfillment_constraint_rules, write_gates, read_gates';
+$apiVersion = '2023-07';
+
+https://46bfecbf61f3a6d886644c8c2ea6777f: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@vaisonet-test.myshopify.com/admin/api/2023-07/variants.json
+
+https://shopify.dev/graphiql/admin-graphiql
