@@ -1,5 +1,6 @@
 <?php
 
+use Shopify\ApiVersion;
 use yii\helpers\Html;
 use yii\helpers\ArrayHelper;
 use yii\data\ArrayDataProvider;
@@ -34,27 +35,27 @@ require('function.php');
 $init = InitShopify($url, $api, $pwd, $sct);
 
 $query = <<<QUERY
-        query {
-        products(first: 250) {
+    query {
+        products(first: 250, query: "sku:$ref") {
             edges {
-            node {
-                id
-                title
-                createdAt
-                updatedAt
-                status
-                variants(first: 250) {
-                edges {
-                    node {
+                node {
                     id
-                    sku
-                    price
                     title
-                    inventoryQuantity
+                    createdAt
+                    updatedAt
+                    status                    
+                    variants(first: 250) {
+                        edges {
+                            node {
+                                id
+                                sku
+                                price
+                                title
+                                inventoryQuantity
+                            }
+                        }
                     }
                 }
-                }
-            }
             }
         }
     }
@@ -90,6 +91,12 @@ foreach ($products as $product) {
             'variant_title' => $variantNode['title'],
             'variant_price' => $variantNode['price'] . ' €',
             'variant_quantity' => $variantNode['inventoryQuantity'],
+            'date_add' => (new DateTime($node['createdAt'], new DateTimeZone('UTC')))
+                ->setTimezone(new DateTimeZone('Europe/Paris'))
+                ->format('d/m/Y H:i:s'),
+            'date_upd' => (new DateTime($node['updatedAt'], new DateTimeZone('UTC')))
+                ->setTimezone(new DateTimeZone('Europe/Paris'))
+                ->format('d/m/Y H:i:s'),
         ];
 
         // Ajout du filtre global (case insensitive)
@@ -102,7 +109,7 @@ foreach ($products as $product) {
 $dataProvider = new ArrayDataProvider([
     'allModels' => $gridData,
     'pagination' => [
-        'pageSize' => 10,
+        'pageSize' => 25,
     ],
 ]);
 ?>
@@ -124,8 +131,21 @@ $dataProvider = new ArrayDataProvider([
         'dataProvider' => $dataProvider,
         'columns' => [
             [
+                'attribute' => 'date_add',
+                'label' => 'Création',
+            ],
+            [
                 'attribute' => 'product_id',
                 'label' => 'ID Produit',
+                'format' => 'raw',
+                'value' => function ($model) use ($url, $api, $pwd) {
+                    return Html::a(
+                        $model['product_id'],
+
+                        "https://" . $api . ":" . $pwd . "@" . $url . "/admin/api/" . ApiVersion::LATEST . "/products/{$model['product_id']}.json",
+                        ['target' => '_blank', 'encode' => false, 'class' => 'badge badge-pill badge-primary']
+                    );
+                }
             ],
             [
                 'attribute' => 'product_status',
@@ -138,6 +158,15 @@ $dataProvider = new ArrayDataProvider([
             [
                 'attribute' => 'variant_id',
                 'label' => 'ID Variante',
+                'format' => 'raw',
+                'value' => function ($model) use ($url, $api, $pwd) {
+                    return Html::a(
+                        $model['variant_id'],
+
+                        "https://" . $api . ":" . $pwd . "@" . $url . "/admin/api/" . ApiVersion::LATEST . "/variants/{$model['variant_id']}.json",
+                        ['target' => '_blank', 'encode' => false, 'class' => 'badge badge-pill badge-success']
+                    );
+                }
             ],
             [
                 'attribute' => 'variant_sku',
@@ -150,6 +179,10 @@ $dataProvider = new ArrayDataProvider([
             [
                 'attribute' => 'variant_quantity',
                 'label' => 'Quantité de la variante',
+            ],
+            [
+                'attribute' => 'date_upd',
+                'label' => 'Mise à jour', //2022-05-25T13:29:18Z
             ],
         ],
     ]); ?>
