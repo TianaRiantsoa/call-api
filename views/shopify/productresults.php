@@ -4,6 +4,10 @@ use Shopify\Auth\FileSessionStorage;
 use Shopify\Clients\Graphql;
 use Shopify\Context;
 use yii\helpers\Html;
+use yii\helpers\ArrayHelper;
+use yii\data\ArrayDataProvider;
+use yii\grid\GridView;
+
 /** @var yii\web\View $this */
 /** @var app\models\Shopify $model */
 
@@ -29,34 +33,92 @@ $ref = Html::encode($ref);
 
 require('function.php');
 
-$init = InitShopify($url,$api, $pwd, $sct);
+$init = InitShopify($url, $api, $pwd, $sct);
 
 $query = <<<QUERY
-    query {
-        products(first:10, query: "sku:$ref") {            
-            edges {                
-                node {
-                    product {
-                        id
-                        title
-                        }
+        query {
+        products(first: 250) {
+            edges {
+            node {
+                id
+                title
+                createdAt
+                updatedAt
+                variants(first: 250) {
+                edges {
+                    node {
                     id
                     sku
                     price
-                    inventoryQuantity
                     title
-                    createdAt
-                    updatedAt
-                    }                    
+                    }
+                }
                 }
             }
-      
+            }
         }
+    }
+
     QUERY;
 
-    
+
 
 $response = $init->query(["query" => $query]);
 
 $contents = $response->getBody()->getContents();
 
+$data = json_decode($contents, true);
+
+$products = ArrayHelper::getValue($data, 'data.products.edges', []);
+
+$gridData = [];
+foreach ($products as $product) {
+    $node = $product['node'];
+    $variants = ArrayHelper::getValue($node, 'variants.edges', []);
+
+    foreach ($variants as $variant) {
+        $variantNode = $variant['node'];
+        $gridData[] = [
+            'product_id' => explode("/", $node['id'])[4],
+            'product_title' => $node['title'],
+            'variant_id' => explode("/", $variantNode['id'])[4],
+            'variant_sku' => $variantNode['sku'],
+            'variant_title' => $variantNode['title'],
+            'variant_price' => $variantNode['price'] . ' €',
+        ];
+    }
+}
+
+$dataProvider = new ArrayDataProvider([
+    'allModels' => $gridData,
+    'pagination' => [
+        'pageSize' => 10,
+    ],
+]);
+
+
+echo GridView::widget([
+    'dataProvider' => $dataProvider,
+    'columns' => [
+        [
+            'attribute' => 'product_id',
+            'label' => 'ID Produit',
+        ],
+        [
+            'attribute' => 'product_title',
+            'label' => 'Nom du produit',
+        ],
+        [
+            'attribute' => 'variant_id',
+            'label' => 'ID Variante',
+        ],
+        // [
+        //     'attribute' => 'variant_title',
+        //     'label' => 'Variant Title',
+        // ],
+        [
+            'attribute' => 'variant_price',
+            'label' => 'Prix de la variante',
+        ],
+    ],
+]);
