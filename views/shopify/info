@@ -15,3 +15,30 @@ $apiVersion = '2023-07';
 https://46bfecbf61f3a6d886644c8c2ea6777f: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@vaisonet-test.myshopify.com/admin/api/2023-07/variants.json
 
 https://shopify.dev/graphiql/admin-graphiql
+
+productVariants(first: 10, query: "sku:$sku") {
+            edges {
+                node {
+                    id
+                    sku
+                    title
+                    displayName
+                    createdAt
+                    updatedAt
+                    price
+                    inventoryQuantity
+                    product {
+                        id
+                        status
+                        options {
+                            name
+                            optionValues {
+                            name
+                            hasVariants
+                        }
+                        values
+                        }
+                    }
+                }
+            }
+        }

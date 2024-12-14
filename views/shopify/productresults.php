@@ -34,6 +34,8 @@ $type = Html::encode($type);
 require('function.php');
 
 $init = InitShopify($url, $api, $pwd, $sct);
+
+
 if (isset($type) && $type == 'simple') {
     $query = <<<QUERY
     query {
@@ -53,6 +55,7 @@ if (isset($type) && $type == 'simple') {
                                 price
                                 title
                                 inventoryQuantity
+                                displayName
                             }
                         }
                     }
@@ -85,11 +88,11 @@ if (isset($type) && $type == 'simple') {
             $variantNode = $variant['node'];
             $row = [
                 'product_id' => explode("/", $node['id'])[4],
-                'product_title' => $node['title'],
+                'product_title' => $variantNode['displayName'],
                 'product_status' => $node['status'] ?? 'Indéfini',
                 'variant_id' => explode("/", $variantNode['id'])[4],
                 'variant_sku' => $variantNode['sku'],
-                'variant_title' => $variantNode['title'],
+                'variant_title' => $variantNode['displayName'],
                 'variant_price' => $variantNode['price'] . ' €',
                 'variant_quantity' => $variantNode['inventoryQuantity'],
                 'date_add' => (new DateTime($node['createdAt'], new DateTimeZone('UTC')))
@@ -169,7 +172,7 @@ if (isset($type) && $type == 'simple') {
                             $words = explode(' ', $model['product_title']);
 
                             // Regrouper les mots en groupes de 4
-                            $chunks = array_chunk($words, 3);
+                            $chunks = array_chunk($words, 4);
 
                             // Rejoindre chaque groupe avec un <br> pour créer un saut de ligne
                             return implode('<br>', array_map(function ($chunk) {
@@ -215,12 +218,215 @@ if (isset($type) && $type == 'simple') {
         ]); ?>
     <?php
     Pjax::end();
-}
-    ?>
-    </div>
+} elseif (isset($type) && $type == 'variable') {
+    $query = <<<QUERY
+    query {
+        productVariants(first: 10, query: "sku:$ref") {
+            edges {
+                node {
+                    id
+                    sku
+                    title
+                    displayName
+                    createdAt
+                    updatedAt
+                    price
+                    inventoryQuantity                    
+                    product {
+                        id
+                        status
+                        title
+                        options {
+                            name 
+                            optionValues {
+                            name
+                        }
+                        values
+                        }
+                    }
+                }
+            }
+        }
+    }
+    QUERY;
+    $response = $init->query(["query" => $query]);
 
-    <?php
-    $script = <<<JS
+    $contents = $response->getBody()->getContents();
+    $data = json_decode($contents, true);
+
+    // Récupération des variantes de produits
+    $productVariants = ArrayHelper::getValue($data, 'data.productVariants.edges', []);
+
+    $gridData = [];
+    $id = Yii::$app->request->get('id');
+    $ref = Yii::$app->request->get('ref');
+    $globalSearch = Yii::$app->request->get('globalSearch', ''); // Récupération de la recherche globale
+
+    foreach ($productVariants as $variantEdge) {
+        $variantNode = $variantEdge['node'];
+        $productNode = ArrayHelper::getValue($variantNode, 'product', []);
+        $options = ArrayHelper::getValue($productNode, 'options', []);
+
+        // Préparer les options sous forme lisible
+        $formattedOptions = [];
+        foreach ($options as $option) {
+            $optionName = $option['name'] ?? 'Inconnu';
+            $optionValues = $option['values'] ?? [];
+            $formattedOptions[] = $optionName . ': ' . implode(', ', $optionValues);
+        }
+
+        $row = [
+            'product_id' => explode("/", $productNode['id'])[4] ?? 'Inconnu',
+            'product_title' => $variantNode['displayName'] ?? $productNode['title'] ?? 'Sans titre',
+            'product_status' => $productNode['status'] ?? 'Indéfini',
+            'variant_id' => explode("/", $variantNode['id'])[4],
+            'variant_sku' => $variantNode['sku'] ?? 'N/A',
+            'variant_title' => $variantNode['title'] ?? 'Sans titre',
+            'variant_price' => ($variantNode['price'] ?? '0') . ' €',
+            'variant_quantity' => $variantNode['inventoryQuantity'] ?? 0,
+            'variant_options' => implode('<br>', $formattedOptions),
+            'variant_raw_data' => json_encode($variantNode, JSON_PRETTY_PRINT),
+            'date_add' => (new DateTime($variantNode['createdAt'], new DateTimeZone('UTC')))
+                ->setTimezone(new DateTimeZone('Europe/Paris'))
+                ->format("d/m/Y") . "<br>" .
+                (new DateTime($variantNode['createdAt'], new DateTimeZone('UTC')))
+                ->setTimezone(new DateTimeZone('Europe/Paris'))
+                ->format("H:i:s"),
+            'date_upd' => (new DateTime($variantNode['updatedAt'], new DateTimeZone('UTC')))
+                ->setTimezone(new DateTimeZone('Europe/Paris'))
+                ->format("d/m/Y") . "<br>" .
+                (new DateTime($variantNode['updatedAt'], new DateTimeZone('UTC')))
+                ->setTimezone(new DateTimeZone('Europe/Paris'))
+                ->format("H:i:s"),
+        ];
+
+        // Ajout du filtre global (case insensitive)
+        if (stripos(json_encode($row), $globalSearch) !== false || empty($globalSearch)) {
+            $gridData[] = $row;
+        }
+    }
+
+    $dataProvider = new ArrayDataProvider([
+        'allModels' => $gridData,
+        'pagination' => [
+            'pageSize' => 25,
+        ],
+    ]);
+    ?>
+
+        <div class="product-index">
+            <h1><?= Html::encode('Liste des Variantes Shopify') ?></h1>
+
+            <!-- Barre de recherche -->
+            <p>
+                <?= Html::input('text', 'globalSearch', $globalSearch, [
+                    'id' => 'globalSearchInput',
+                    'class' => 'form-control',
+                    'placeholder' => 'Rechercher...',
+                ]) ?>
+            </p>
+
+            <?php Pjax::begin(['id' => 'variantGrid']); ?>
+            <?= GridView::widget([
+                'dataProvider' => $dataProvider,
+                'columns' => [
+                    [
+                        'attribute' => 'date_add',
+                        'format' => 'raw',
+                        'label' => 'Création',
+                    ],
+                    [
+                        'attribute' => 'product_id',
+                        'label' => 'ID Produit',
+                        'format' => 'raw',
+                        'value' => function ($model) use ($url, $api, $pwd) {
+                            return Html::a(
+                                $model['product_id'],
+
+                                "https://" . $api . ":" . $pwd . "@" . $url . "/admin/api/" . ApiVersion::LATEST . "/products/{$model['product_id']}.json",
+                                ['target' => '_blank', 'encode' => false, 'class' => 'badge badge-pill badge-primary']
+                            );
+                        }
+                    ],
+                    [
+                        'attribute' => 'product_status',
+                        'label' => 'Statut',
+                    ],
+                    [
+                        'attribute' => 'product_title',
+                        'label' => 'Nom du produit',
+                        'value' => function ($model) {
+                        // Assure-toi que le nom du produit existe
+                        if (isset($model['product_title'])) {
+                            // Découper le nom du produit en mots
+                            $words = explode(' ', $model['product_title']);
+
+                            // Regrouper les mots en groupes de 4
+                            $chunks = array_chunk($words, 4);
+
+                            // Rejoindre chaque groupe avec un <br> pour créer un saut de ligne
+                            return implode('<br>', array_map(function ($chunk) {
+                                return implode(' ', $chunk);
+                            }, $chunks));
+                        }
+
+                        return '';
+                    },
+                        'format' => 'raw',
+                    ],
+                    [
+                        'attribute' => 'variant_id',
+                        'label' => 'ID Variante',
+                        'format' => 'raw',
+                        'value' => function ($model) use ($url, $api, $pwd) {
+                            return Html::a(
+                                $model['variant_id'],
+
+                                "https://" . $api . ":" . $pwd . "@" . $url . "/admin/api/" . ApiVersion::LATEST . "/variants/{$model['variant_id']}.json",
+                                ['target' => '_blank', 'encode' => false, 'class' => 'badge badge-pill badge-success']
+                            );
+                        }
+                    ],
+                    [
+                        'attribute' => 'variant_sku',
+                        'label' => 'SKU',
+                    ],
+                    [
+                        'attribute' => 'variant_price',
+                        'label' => 'Prix de la variante',
+                    ],
+                    [
+                        'attribute' => 'variant_quantity',
+                        'label' => 'Quantité de la variante',
+                    ],
+                    [
+                        'attribute' => 'variant_options',
+                        'label' => 'Options disponibles',
+                        'format' => 'raw',
+                    ],
+                    [
+                        'attribute' => 'date_upd',
+                        'format' => 'raw',
+                        'label' => 'Mise à jour',
+                    ],
+                    // [
+                    //     'attribute' => 'variant_raw_data',
+                    //     'label' => 'Données Brutes',
+                    //     'format' => 'raw',
+                    //     'value' => function ($model) {
+                    //         return Html::tag('pre', $model['variant_raw_data'], ['style' => 'white-space: pre-wrap; max-height: 200px; overflow: auto;']);
+                    //     }
+                    // ],
+                ],
+            ]); ?>
+        <?php
+        Pjax::end();
+    }
+        ?>
+        </div>
+
+        <?php
+        $script = <<<JS
 // Recherche dynamique avec AJAX
 $('#globalSearchInput').on('keyup', function() {
     let currentUrl = new URL(window.location.href);
@@ -228,11 +434,11 @@ $('#globalSearchInput').on('keyup', function() {
     searchParams.set('globalSearch', $(this).val());
 
     $.pjax.reload({
-        container: '#productGrid',
+        container: '#variantGrid',
         url: currentUrl.pathname + '?' + searchParams.toString(),
         timeout: 2000
     });
 });
 JS;
-    $this->registerJs($script);
-    ?>
+        $this->registerJs($script);
+        ?>

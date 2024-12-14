@@ -1,1 +1,57 @@
-1
+{
+  "data": {
+    "productVariants": {
+      "edges": [
+        {
+          "node": {
+            "id": "gid://shopify/ProductVariant/41916756656187",
+            "sku": "GAMME-1",
+            "title": "S / Rouge",
+            "displayName": "GAMME - S / Rouge",
+            "createdAt": "2024-12-14T16:44:29Z",
+            "updatedAt": "2024-12-14T16:44:29Z",
+            "price": "0.00",
+            "inventoryQuantity": 0,
+            "product": {
+              "id": "gid://shopify/Product/7322167214139",
+              "status": "ACTIVE",
+              "title": "GAMME",
+              "options": [
+                {
+                  "name": "TAILLE",
+                  "optionValues": [
+                    { "name": "S" },
+                    { "name": "M" },
+                    { "name": "L" },
+                    { "name": "XL" }
+                  ],
+                  "values": ["S", "M", "L", "XL"]
+                },
+                {
+                  "name": "Couleur",
+                  "optionValues": [
+                    { "name": "Rouge" },
+                    { "name": "Vert" },
+                    { "name": "Bleu" }
+                  ],
+                  "values": ["Rouge", "Vert", "Bleu"]
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  },
+  "extensions": {
+    "cost": {
+      "requestedQueryCost": 18,
+      "actualQueryCost": 6,
+      "throttleStatus": {
+        "maximumAvailable": 2000.0,
+        "currentlyAvailable": 1994,
+        "restoreRate": 100.0
+      }
+    }
+  }
+}
