@@ -20,7 +20,7 @@ $this->params['breadcrumbs'][] = $this->title;
 
     <p>
         <?= Html::a('Créer un client Prestashop', ['create'], ['class' => 'btn btn-success btn-sm']) ?>
-        
+
     </p>
 
     <?php Pjax::begin(); ?>
@@ -33,8 +33,20 @@ $this->params['breadcrumbs'][] = $this->title;
         'columns' => [
             //['class' => 'yii\grid\SerialColumn'],
             //'id',
-            'url',
-            'api_key',
+            [
+                'attribute' => 'url', // Colonne de la table
+                'format' => 'raw', // Permet de rendre le contenu HTML cliquable
+                'value' => function ($model) {
+                    return Html::a($model->url, ['view', 'id' => $model->id], ['target' => '_blank']);
+                },
+            ],
+            [
+                'attribute' => 'api_key', // Colonne de la table
+                'format' => 'raw', // Permet de rendre le contenu HTML cliquable
+                'value' => function ($model) {
+                    return Html::a($model->api_key, ['view', 'id' => $model->id], ['target' => '_blank']);
+                },
+            ],
             [
                 'class' => ActionColumn::className(),
                 'urlCreator' => function ($action, Prestashop $model, $key, $index, $column) {

@@ -32,71 +32,117 @@ $ref = Html::encode($ref);
 
 $client = new Client($url, $consumer_key, $consumer_secret, ['version' => 'wc/v3']);
 
-// Récupération des données de commande
-$order = $client->get('orders/' . $ref);
 
-// Récupération des informations du client
-if ($order->customer_id != 0) {
-    $customer = $client->get('customers/' . $order->customer_id);
-    $customerDetails[] = [
-        'id' => $customer->id,
-        'first_name' => $customer->first_name,
-        'last_name' => $customer->last_name,
-        'email' => $customer->email,
-        'date_created' => $customer->date_created,
-        'date_modified' => $customer->date_modified,
-        //'phone' => $customer->phone,
+try {
+    // Récupération des données de commande
+    $order = $client->get('orders/' . $ref);
+
+    // Vérification si la commande a un client associé
+    $customerDetails = [];
+    if (!empty($order->customer_id)) {
+        try {
+            // Récupération des informations du client
+            $customer = $client->get('customers/' . $order->customer_id);
+            $customerDetails[] = [
+                'id' => $customer->id,
+                'first_name' => $customer->first_name,
+                'last_name' => $customer->last_name,
+                'email' => $customer->email,
+                'date_created' => $customer->date_created,
+                'date_modified' => $customer->date_modified,
+            ];
+        } catch (HttpClientException $e) {
+            // Gestion des erreurs pour les clients
+            Yii::$app->session->setFlash('error', "Erreur lors de la récupération des informations du client : " . $e->getMessage());
+        }
+    }
+
+    // Préparer les détails de commande
+    $orderDetails = [
+        [
+            'id' => $order->id,
+            'status' => $order->status,
+            'date_created' => $order->date_created,
+            'date_modified' => $order->date_modified,
+            'total' => $order->total,
+            'total_tax' => $order->total_tax,
+            'payment_method_title' => $order->payment_method_title,
+        ],
     ];
-}
 
-// Préparer les données pour les GridViews
-$orderDetails = [
-    [
-        'id' => $order->id,
-        'status' => $order->status,
-        'date_created' => $order->date_created,
-        'date_modified' => $order->date_modified,
-        'total' => $order->total,
-        'total_tax' => $order->total_tax,
-        'payment_method_title' => $order->payment_method_title,
-    ],
-];
-
-$billingShippingDetails = [
-    [
-        'type' => 'Facturation',
-        'name' => $order->billing->first_name . ' ' . $order->billing->last_name,
-        'address' => $order->billing->address_1 . ', ' . $order->billing->postcode . ' ' . $order->billing->city . ', ' . $order->billing->country,
-        'phone' => $order->billing->phone,
-        'email' => $order->billing->email,
-    ],
-    [
-        'type' => 'Livraison',
-        'name' => $order->shipping->first_name . ' ' . $order->shipping->last_name,
-        'address' => $order->shipping->address_1 . ', ' . $order->shipping->postcode . ' ' . $order->shipping->city . ', ' . $order->shipping->country,
-        'phone' => $order->shipping->phone, // Non disponible pour la livraison
-        'email' => '', // Non disponible pour la livraison
-    ],
-];
-
-$productDetails = [];
-foreach ($order->line_items as $item) {
-    $productDetails[] = [
-        'product_id' => $item->product_id,
-        'sku' => $item->sku,
-        'name' => $item->name,
-        'variant_id' => $item->variation_id ?? null,
-        'quantity' => $item->quantity,
-        'total' => $item->total,
-        'total_tax' => $item->total_tax,
+    // Préparer les informations de facturation et livraison
+    $billingShippingDetails = [
+        [
+            'type' => 'Facturation',
+            'name' => $order->billing->first_name . ' ' . $order->billing->last_name,
+            'address' => $order->billing->address_1 . ', ' . $order->billing->postcode . ' ' . $order->billing->city . ', ' . $order->billing->country,
+            'phone' => $order->billing->phone,
+            'email' => $order->billing->email,
+        ],
+        [
+            'type' => 'Livraison',
+            'name' => $order->shipping->first_name . ' ' . $order->shipping->last_name,
+            'address' => $order->shipping->address_1 . ', ' . $order->shipping->postcode . ' ' . $order->shipping->city . ', ' . $order->shipping->country,
+            'phone' => $order->shipping->phone,
+            'email' => '',
+        ],
     ];
+
+    // Préparer les détails des produits
+    $productDetails = [];
+    foreach ($order->line_items as $item) {
+        $productDetails[] = [
+            'product_id' => $item->product_id,
+            'sku' => $item->sku,
+            'name' => $item->name,
+            'variant_id' => $item->variation_id ?? null,
+            'quantity' => $item->quantity,
+            'total' => $item->total,
+            'total_tax' => $item->total_tax,
+        ];
+    }
+} catch (HttpClientException $e) {
+    // Gestion des erreurs globales (exemple commande)
+    $response = $e->getResponse(); // Récupère l'objet de la réponse HTTP
+
+    // Vérifiez si $response est une instance valide avant de continuer
+    if ($response instanceof \Automattic\WooCommerce\HttpClient\Response) {
+        $errorCode = $response->getCode(); // Méthode pour obtenir le code HTTP
+    } else {
+        $errorCode = null; // Aucun code disponible
+    }
+
+    $errorMessage = $e->getMessage();
+
+    // Messages spécifiques aux erreurs
+    switch ($errorCode) {
+        case 404:
+            $message = "Commande introuvable (Erreur 404).";
+            break;
+        case 403:
+            $message = "Accès interdit (Erreur 403). Vérifiez vos clés API.";
+            break;
+        case 500:
+            $message = "Erreur interne du serveur (Erreur 500).";
+            break;
+        default:
+            $message = "Erreur inconnue : $errorMessage.";
+    }
+
+    Yii::$app->session->setFlash('error', $message);
+
+    // Arrêter l'exécution si critique
+    $orderDetails = [];
+    $customerDetails = [];
+    $billingShippingDetails = [];
+    $productDetails = [];
 }
 
 // Affichage des GridViews
 
 // Tableau 1 : Détail de la commande
 $site = $url . '/wp-json/wc/v3/orders/' . $ref . '?consumer_key=' . $consumer_key . '&consumer_secret=' . $consumer_secret;
-echo Html::a('Aller sur le JSON', $site, ['class' => 'btn btn-success', 'target' => '_blank']);
+echo Html::a('Afficher le JSON', $site, ['class' => 'btn btn-success', 'target' => '_blank']);
 
 echo '<br><br><h3>Détail de la commande</h3>';
 echo GridView::widget([

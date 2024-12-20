@@ -34,10 +34,34 @@ $this->params['breadcrumbs'][] = $this->title;
         'columns' => [
             // ['class' => 'yii\grid\SerialColumn'],
             // 'id',
-            'url',
-            'api_key',
-            'password',
-            'secret_key',
+            [
+                'attribute' => 'url', // Colonne de la table
+                'format' => 'raw', // Permet de rendre le contenu HTML cliquable
+                'value' => function ($model) {
+                    return Html::a($model->url, ['view', 'id' => $model->id], ['target' => '_blank']);
+                },
+            ],
+            [
+                'attribute' => 'api_key', // Colonne de la table
+                'format' => 'raw', // Permet de rendre le contenu HTML cliquable
+                'value' => function ($model) {
+                    return Html::a($model->api_key, ['view', 'id' => $model->id], ['target' => '_blank']);
+                },
+            ],
+            [
+                'attribute' => 'password', // Colonne de la table
+                'format' => 'raw', // Permet de rendre le contenu HTML cliquable
+                'value' => function ($model) {
+                    return Html::a($model->password, ['view', 'id' => $model->id], ['target' => '_blank']);
+                },
+            ],
+            [
+                'attribute' => 'secret_key', // Colonne de la table
+                'format' => 'raw', // Permet de rendre le contenu HTML cliquable
+                'value' => function ($model) {
+                    return Html::a($model->secret_key, ['view', 'id' => $model->id], ['target' => '_blank']);
+                },
+            ],
             [
                 'class' => ActionColumn::className(),
                 'urlCreator' => function ($action, Shopify $model, $key, $index, $column) {
