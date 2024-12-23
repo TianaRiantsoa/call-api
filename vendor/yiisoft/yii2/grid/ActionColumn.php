@@ -37,7 +37,7 @@ class ActionColumn extends Column
     /**
      * {@inheritdoc}
      */
-    public $headerOptions = ['class' => 'action-column'];
+    public $headerOptions = ['class' => 'action-column','style' => 'color:#5c5c5c'];
     /**
      * @var string|null the ID of the controller that should handle the actions specified here.
      * If not set, it will use the currently active controller. This property is mainly used by

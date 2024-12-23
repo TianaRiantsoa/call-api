@@ -273,14 +273,14 @@ $paiement = $node->{'paymentGatewayNames'}[0];
                     $quantity = $items->{'edges'}[$i]->{'node'}->{'quantity'};
                     $sku = $items->{'edges'}[$i]->{'node'}->{'sku'};
                     $name = $items->{'edges'}[$i]->{'node'}->{'name'};
-                    $price = $items->{'edges'}[$i]->{'node'}->{'variant'}->{'price'};
-                    $p_gid = $items->{'edges'}[$i]->{'node'}->{'variant'}->{'id'};
-                    $pid = explode("/", $p_gid);
+                    //$price = $items->{'edges'}[$i]->{'node'}->{'variant'}->{'price'};
+                    //$p_gid = $items->{'edges'}[$i]->{'node'}->{'variant'}->{'id'};
+                   // $pid = explode("/", $p_gid);
                     ?>
                     <tbody>
                       <tr>
                         <td scope='row'>
-                          <?= Html::a($pid[4], ['productresults', 'id' => $model->id, 'ref' => Html::encode($sku)], ['class' => 'link-offset-2 link-underline link-underline-opacity-0']) ?>
+                          
                         </td>
                         <td>
                           <?= Html::a($sku, ['productresults', 'id' => $model->id, 'ref' => Html::encode($sku)], ['class' => 'link-offset-2 link-underline link-underline-opacity-0']) ?>
@@ -292,7 +292,7 @@ $paiement = $node->{'paymentGatewayNames'}[0];
                           <?php echo Html::encode($quantity); ?>
                         </td>
                         <td>
-                          <?php echo Html::encode($price); ?> &euro;
+                          <?php //echo Html::encode($price); ?> &euro;
                         </td>
                       </tr>
                     </tbody>

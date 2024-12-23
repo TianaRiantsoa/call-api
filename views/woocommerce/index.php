@@ -1,4 +1,4 @@
-e<?php
+<?php
 
     use app\models\Woocommerce;
     use yii\helpers\Html;
@@ -54,6 +54,7 @@ e<?php
                 },
             ],
             [
+                'header' => 'Action',
                 'class' => ActionColumn::className(),
                 'urlCreator' => function ($action, Woocommerce $model, $key, $index, $column) {
                     return Url::toRoute([$action, 'id' => $model->id]);

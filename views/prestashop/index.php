@@ -48,6 +48,7 @@ $this->params['breadcrumbs'][] = $this->title;
                 },
             ],
             [
+                'header' => 'Action',
                 'class' => ActionColumn::className(),
                 'urlCreator' => function ($action, Prestashop $model, $key, $index, $column) {
                     return Url::toRoute([$action, 'id' => $model->id]);
