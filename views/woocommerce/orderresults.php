@@ -153,10 +153,20 @@ echo GridView::widget([
     'columns' => [
         ['attribute' => 'id', 'label' => 'ID'],
         ['attribute' => 'status', 'label' => 'Statut'],
-        ['attribute' => 'date_created', 'label' => 'Création'],
-        ['attribute' => 'date_modified', 'label' => 'Mise à jour'],
-        ['attribute' => 'total', 'label' => 'Total TTC'],
-        ['attribute' => 'total_tax', 'label' => 'Taxes'],
+        ['attribute' => 'date_created', 'value' => function ($model) {
+            $date = is_array($model) ? $model['date_created'] : $model->date_created;
+            return Yii::$app->formatter->asDatetime($date, 'php:d/m/Y H:i:s');
+        }, 'label' => 'Création'],
+        ['attribute' => 'date_modified', 'value' => function ($model) {
+            $date = is_array($model) ? $model['date_modified'] : $model->date_created;
+            return Yii::$app->formatter->asDatetime($date, 'php:d/m/Y H:i:s');
+        }, 'label' => 'Mise à jour'],
+        ['attribute' => 'total', 'value' => function ($model) {
+            return Yii::$app->formatter->asCurrency($model['total'], 'EUR');
+        }, 'label' => 'Total TTC'],
+        ['attribute' => 'total_tax', 'value' => function ($model) {
+            return Yii::$app->formatter->asCurrency($model['total_tax'], 'EUR');
+        }, 'label' => 'Taxes'],
         ['attribute' => 'payment_method_title', 'label' => 'Méthode de paiement'],
     ],
 ]);
@@ -174,8 +184,14 @@ if (!empty($customerDetails)) {
             ['attribute' => 'first_name', 'label' => 'Prénom'],
             ['attribute' => 'last_name', 'label' => 'Nom'],
             ['attribute' => 'email', 'label' => 'Email'],
-            ['attribute' => 'date_created', 'label' => 'Création'],
-            ['attribute' => 'date_modified', 'label' => 'Mise à jour'],
+            ['attribute' => 'date_created', 'value' => function ($model) {
+                $date = is_array($model) ? $model['date_created'] : $model->date_created;
+                return Yii::$app->formatter->asDatetime($date, 'php:d/m/Y H:i:s');
+            }, 'label' => 'Création'],
+            ['attribute' => 'date_modified', 'value' => function ($model) {
+                $date = is_array($model) ? $model['date_modified'] : $model->date_created;
+                return Yii::$app->formatter->asDatetime($date, 'php:d/m/Y H:i:s');
+            }, 'label' => 'Mise à jour'],
             //['attribute' => 'phone', 'label' => 'Téléphone'],
         ],
     ]);
@@ -210,8 +226,12 @@ echo GridView::widget([
         ['attribute' => 'name', 'label' => 'Nom'],
         ['attribute' => 'variant_id', 'label' => 'ID Variante'],
         ['attribute' => 'quantity', 'label' => 'Quantité'],
-        ['attribute' => 'total', 'label' => 'Total TTC'],
-        ['attribute' => 'total_tax', 'label' => 'Taxes'],
+        ['attribute' => 'total', 'value' => function ($model) {
+            return Yii::$app->formatter->asCurrency($model['total'], 'EUR');
+        }, 'label' => 'Total TTC'],
+        ['attribute' => 'total_tax', 'value' => function ($model) {
+            return Yii::$app->formatter->asCurrency($model['total_tax'], 'EUR');
+        }, 'label' => 'Taxes'],
     ],
 ]);
 
