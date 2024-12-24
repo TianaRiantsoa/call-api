@@ -64,6 +64,7 @@ try {
             'id_address_invoice' => (string) $order->id_address_invoice,
             'id_address_delivery' => (string) $order->id_address_delivery,
             'payment' => (string) $order->payment,
+            'reference' => (string) $order->reference,
             'date_add' => (string) $order->date_add,
             'date_upd' => (string) $order->date_upd,
         ];
@@ -147,7 +148,17 @@ try {
         // Récupérer les produits associés à la commande
         if (isset($order->associations->order_rows->order_row)) {
             foreach ($order->associations->order_rows->order_row as $product) {
+
+                // $rowId = (string) $product->id;
+                // $xmlDetail[] = $webService->get(['resource' => 'order_details', 'id' => $rowId]);
+
+                // echo '<pre>';
+                // print_r($xmlDetail);
+                // echo '</pre>';
+                // exit;
+
                 $products[] = [
+                    'order_row' => (string) $product->id,
                     'product_reference' => (string) $product->product_reference,
                     'product_name' => (string) $product->product_name,
                     'quantity' => (string) $product->product_quantity,
@@ -185,8 +196,11 @@ try {
 } catch (PrestaShopWebserviceException $e) {
     echo 'Erreur : ' . $e->getMessage();
 }
-?>
 
+$site = $url . '/api/orders/' . $ref . '?ws_key=' . $api;
+echo Html::a('Afficher le XML de la commande', $site, ['class' => 'btn btn-success', 'target' => '_blank']);
+?>
+<br><br>
 <h3>Détails des Commandes</h3>
 <?php
 // Afficher les commandes
@@ -208,6 +222,10 @@ echo GridView::widget([
         [
             'attribute' => 'payment',
             'label' => 'Moyen de paiement',  // Nouveau nom de la colonne
+        ],
+        [
+            'attribute' => 'reference',
+            'label' => 'Référence',  // Nouveau nom de la colonne
         ],
         [
             'attribute' => 'total_paid',
@@ -313,7 +331,7 @@ echo GridView::widget([
         ],
         [
             'attribute' => 'vat_number',
-            'label' => 'N° de TVA Intacom',  // Nouveau nom de la colonne
+            'label' => 'N° de TVA Intracom',  // Nouveau nom de la colonne
         ],
         [
             'attribute' => 'address',
@@ -331,6 +349,10 @@ echo '<h3>Détails des Produits Commandés</h3>';
 echo GridView::widget([
     'dataProvider' => $productDataProvider,
     'columns' => [
+        [
+            'attribute' => 'order_row',
+            'label' => 'ID Order Details',  // Nouveau nom de la colonne
+        ],
         [
             'attribute' => 'product_reference',
             'label' => 'Référence produit',  // Nouveau nom de la colonne

@@ -142,7 +142,7 @@ try {
 
 // Tableau 1 : Détail de la commande
 $site = $url . '/wp-json/wc/v3/orders/' . $ref . '?consumer_key=' . $consumer_key . '&consumer_secret=' . $consumer_secret;
-echo Html::a('Afficher le JSON', $site, ['class' => 'btn btn-success', 'target' => '_blank']);
+echo Html::a('Afficher le JSON de la commande', $site, ['class' => 'btn btn-success', 'target' => '_blank']);
 
 echo '<br><br><h3>Détail de la commande</h3>';
 echo GridView::widget([
