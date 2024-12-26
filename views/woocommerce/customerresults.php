@@ -26,3 +26,67 @@ $consumer_key = Html::encode($model->consumer_key);
 $consumer_secret = Html::encode($model->consumer_secret);
 $ref = Html::encode($ref);
 
+
+use Automattic\WooCommerce\Client;
+
+try {
+    // Connexion à l'API WooCommerce
+    $woocommerce = new Client(
+        $url, // Remplacez par l'URL de votre boutique
+        $consumer_key, // Clé consommateur
+        $consumer_secret, // Secret consommateur
+        [
+            'version' => 'wc/v3',
+        ]
+    );
+
+
+    // 1. Supprimer tous les produits et leurs variations
+    $page = 1;
+    do {
+        // Récupérer tous les produits
+        $products = $woocommerce->get('products', [
+            'per_page' => 100,
+            'page' => $page,
+        ]);
+
+        foreach ($products as $product) {
+            // Supprimer les variations du produit si c'est un produit variable
+            if ($product->type === 'variable') {
+                $variations = $woocommerce->get("products/{$product->id}/variations");
+                foreach ($variations as $variation) {
+                    //$woocommerce->delete("products/{$product->id}/variations/{$variation->id}", ['force' => true]);
+                    echo "Variation supprimée : ID {$variation->id}, Produit Parent : {$product->name}<br>";
+                }
+            }
+
+            // Supprimer le produit principal
+            //$woocommerce->delete("products/{$product->id}", ['force' => true]);
+            echo "Produit supprimé : ID {$product->id}, Nom : {$product->name}<br>";
+        }
+
+        $page++;
+    } while (count($products) > 0);
+
+    // 2. Supprimer toutes les catégories
+    $page = 1;
+    do {
+        // Récupérer toutes les catégories
+        $categories = $woocommerce->get('products/categories', [
+            'per_page' => 100,
+            'page' => $page,
+        ]);
+
+        foreach ($categories as $category) {
+            // Supprimer la catégorie
+            //$woocommerce->delete("products/categories/{$category->id}", ['force' => true]);
+            echo "Catégorie supprimée : ID {$category->id}, Nom : {$category->name}<br>";
+        }
+
+        $page++;
+    } while (count($categories) > 0);
+
+    echo "Tous les produits, variations et catégories ont été supprimés.<br>";
+} catch (Exception $e) {
+    echo 'Erreur : ' . $e->getMessage() . "\n";
+}

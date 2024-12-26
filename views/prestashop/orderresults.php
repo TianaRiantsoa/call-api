@@ -1,6 +1,7 @@
 <?php
 
 use prestashop\PrestaShopWebservice;
+use prestashop\PrestaShopWebserviceException;
 use yii\helpers\Html;
 use yii\grid\GridView;
 use yii\data\ArrayDataProvider;
@@ -18,11 +19,17 @@ $this->params['breadcrumbs'][] = ['label' => Html::encode($ref)];
 \yii\web\YiiAsset::register($this);
 $url = Html::encode($model->url);
 
-$headers = @get_headers("http://" . $url);
-if ($headers && strpos($headers[0], '200') !== false) {
-    $url = "https://" . $url;
+if (strpos($url, 'localhost') !== false) {
+    // Forcer HTTP pour localhost
+    $url = "http://" . $url;
 } else {
-    $url = "https://" . $url;
+    // Vérifier si le site est accessible en HTTP
+    $headers = @get_headers("http://" . $url);
+    if ($headers && strpos($headers[0], '200') !== false) {
+        $url = "https://" . $url;
+    } else {
+        $url = "https://" . $url;
+    }
 }
 
 $api = Html::encode($model->api_key);
@@ -148,22 +155,39 @@ try {
         // Récupérer les produits associés à la commande
         if (isset($order->associations->order_rows->order_row)) {
             foreach ($order->associations->order_rows->order_row as $product) {
-
-                // $rowId = (string) $product->id;
-                // $xmlDetail[] = $webService->get(['resource' => 'order_details', 'id' => $rowId]);
-
-                // echo '<pre>';
-                // print_r($xmlDetail);
-                // echo '</pre>';
-                // exit;
-
-                $products[] = [
-                    'order_row' => (string) $product->id,
+                // Récupérer les informations de base du produit commandé
+                $orderRowId = (string) $product->id;
+                $productData = [
+                    'order_row' => $orderRowId,
                     'product_reference' => (string) $product->product_reference,
                     'product_name' => (string) $product->product_name,
                     'quantity' => (string) $product->product_quantity,
                     'total' => (string) $product->unit_price_tax_incl,
                 ];
+
+                // Récupérer les détails supplémentaires de `order_details`
+                try {
+                    $orderDetailsOpt = [
+                        'resource' => 'order_details',
+                        'filter[id]' => $orderRowId, // Filtrer avec l'ID du `order_row`
+                        'display' => 'full'
+                    ];
+
+                    $orderDetailsXml = $webService->get($orderDetailsOpt);
+                    $orderDetails = $orderDetailsXml->order_details->children();
+
+                    foreach ($orderDetails as $detail) {
+                        $productData['total_price_tax_incl'] = (float) $detail->total_price_tax_incl;
+                        $productData['unit_price_tax_incl'] = (float) $detail->unit_price_tax_incl;
+                    }
+                } catch (Exception $e) {
+                    // Gestion des erreurs API
+                    $productData['total_price_tax_incl'] = 'N/A';
+                    $productData['unit_price_tax_incl'] = 'N/A';
+                }
+
+                // Ajouter les données fusionnées dans le tableau des produits
+                $products[] = $productData;
             }
         }
     }
@@ -267,19 +291,51 @@ echo GridView::widget([
     'columns' => [
         [
             'attribute' => 'customer_id',
-            'label' => 'ID du client',  // Nouveau nom de la colonne
+            'label' => 'ID du client',
+            'format' => 'raw',
+            'value' => function ($model) use ($url, $api) {
+                return Html::a(
+                    $model['customer_id'],
+                    $url . "/api/customers/{$model['customer_id']}?&ws_key=" . $api,
+                    ['target' => '_blank', 'encode' => false]
+                );
+            }
         ],
         [
             'attribute' => 'first_name',
-            'label' => 'Prénom',  // Nouveau nom de la colonne
+            'label' => 'Prénom',
+            'format' => 'raw',
+            'value' => function ($model) use ($url, $api) {
+                return Html::a(
+                    $model['first_name'],
+                    $url . "/api/customers/{$model['customer_id']}?&ws_key=" . $api,
+                    ['target' => '_blank', 'encode' => false]
+                );
+            }  // Nouveau nom de la colonne
         ],
         [
             'attribute' => 'last_name',
-            'label' => 'Nom',  // Nouveau nom de la colonne
+            'label' => 'Nom',
+            'format' => 'raw',
+            'value' => function ($model) use ($url, $api) {
+                return Html::a(
+                    $model['last_name'],
+                    $url . "/api/customers/{$model['customer_id']}?&ws_key=" . $api,
+                    ['target' => '_blank', 'encode' => false]
+                );
+            } // Nouveau nom de la colonne
         ],
         [
             'attribute' => 'email',
-            'label' => 'Email',  // Nouveau nom de la colonne
+            'label' => 'Email',
+            'format' => 'raw',
+            'value' => function ($model) use ($url, $api) {
+                return Html::a(
+                    $model['email'],
+                    $url . "/api/customers/{$model['customer_id']}?&ws_key=" . $api,
+                    ['target' => '_blank', 'encode' => false]
+                );
+            }  // Nouveau nom de la colonne
         ],
         [
             'attribute' => 'date_add',
@@ -307,7 +363,15 @@ echo GridView::widget([
     'columns' => [
         [
             'attribute' => 'address_type',
-            'label' => 'Type d\'adresse',  // Nouveau nom de la colonne
+            'label' => 'Type d\'adresse',
+            'format' => 'raw',
+            'value' => function ($model) use ($url, $api) {
+                return Html::a(
+                    $model['address_type'],
+                    $url . "/api/addresses/{$model['id']}?&ws_key=" . $api,
+                    ['target' => '_blank', 'encode' => false]
+                );
+            }  // Nouveau nom de la colonne
         ],
         [
             'attribute' => 'id',
@@ -366,11 +430,26 @@ echo GridView::widget([
             'label' => 'Quantité',  // Nouveau nom de la colonne
         ],
         [
-            'attribute' => 'total',
+            'attribute' => 'unit_price_tax_incl',
+            'label' => 'P.U TTC', 
             'value' => function ($model) {
-                return Yii::$app->formatter->asCurrency($model['total'], 'EUR');
-            },
-            'label' => 'Prix TTC',  // Nouveau nom de la colonne
+                return Yii::$app->formatter->asCurrency($model['unit_price_tax_incl'], 'EUR');
+            }, // Nouveau nom de la colonne
         ],
+        [
+            'attribute' => 'total_price_tax_incl',
+            'label' => 'Total TTC', 
+            'value' => function ($model) {
+                return Yii::$app->formatter->asCurrency($model['total_price_tax_incl'], 'EUR');
+            }, // Nouveau nom de la colonne
+        ],
+        // [
+        //     'attribute' => 'total',
+        //     'value' => function ($model) {
+        //         return Yii::$app->formatter->asCurrency($model['total'], 'EUR');
+        //     },
+        //     'label' => 'Prix TTC',  // Nouveau nom de la colonne
+        // ],
     ],
 ]);
+

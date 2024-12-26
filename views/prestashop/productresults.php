@@ -1,5 +1,9 @@
 <?php
 
+use prestashop\PrestaShopWebservice;
+use prestashop\PrestaShopWebserviceException;
+use yii\grid\GridView;
+use yii\data\ArrayDataProvider;
 use yii\helpers\Html;
 
 require("./../vendor/prestashop/prestashop-webservice-lib/PSWebServiceLibrary.php");
@@ -26,29 +30,74 @@ if ($headers && strpos($headers[0], '200') !== false) {
 $api = Html::encode($model->api_key);
 $ref = Html::encode($ref);
 
-require('function.php');
 
-$p = Product::get($url, $api, $ref);
-?>
-<div class="prestashop-products-results">
-	<main class="d-flex flex-nowrap">
-		<div class="container-fluid">
-			<div class="accordion" id="accordionProduct">
-				<div class="accordion-item">
-					<h2 class="accordion-header" id="headingOne">
-						<button class="accordion-button test" type="button" data-bs-toggle="collapse"
-							data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
-							Détail du produit
-						</button>
-					</h2>
-					<div id="collapse1" class="accordion-collapse collapse show" aria-labelledby="heading1"
-						data-bs-parent="#accordionProduct">
-						<div class="accordion-body" id="detail">
-							<?php include('include/product.php') ?>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
-	</main>
-</div>
+if ($ref) {
+	try {
+		// Connexion à l'API PrestaShop
+		$webService = new PrestaShopWebservice($url, $api, false);
+
+		$languageOpt = [
+			'resource' => 'languages',
+			'filter[iso_code]' => 'fr', // Filtrer par code ISO
+			'display'=> 'full',
+		];
+		$languageXml = $webService->get($languageOpt);
+		$languages = $languageXml->languages->children();
+
+		$languageId = null;
+		foreach ($languages as $language) {
+			$languageId = (int)$language->id; // Récupérer l'ID de la langue française
+			break; // On s'arrête après avoir trouvé une correspondance
+		}
+
+		if (!$languageId) {
+			throw new Exception('Langue française introuvable dans la boutique.');
+		}
+
+		// Construire les options de la requête pour filtrer par référence
+		$opt = [
+			'resource' => 'products',
+			'language' => $languageId, // Utiliser l'ID de la langue française
+			'filter[reference]' => $ref, // Filtrer par référence
+			'display'=> 'full',
+		];
+
+		// Récupérer les produits depuis l'API
+		$xml = $webService->get($opt);
+		$products = $xml->products->children();
+		$productList = [];
+
+		// Parcourir les produits récupérés et les stocker dans un tableau
+		foreach ($products as $product) {
+			$productList[] = [
+				'id' => (int)$product->id,
+				'name' => (string)$product->name->language,
+				'language' => $languageId,
+				'reference' => (string)$product->reference,
+				'price' => (float)$product->price,
+				// Ajoutez d'autres champs si nécessaire
+			];
+		}
+
+		// Afficher les produits dans un GridView
+		echo GridView::widget([
+			'dataProvider' => new \yii\data\ArrayDataProvider([
+				'allModels' => $productList,
+				'pagination' => [
+					'pageSize' => 10,
+				],
+			]),
+			'columns' => [
+				'id',
+				'name',
+				'language',
+				'reference',
+				'price',
+				// Ajoutez d'autres colonnes selon vos besoins
+			],
+		]);
+	} catch (\Exception $e) {
+		// En cas d'erreur, afficher un message d'erreur
+		Yii::$app->session->setFlash('error', 'Erreur API : ' . $e->getMessage());
+	}
+}
