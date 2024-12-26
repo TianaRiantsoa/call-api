@@ -64,7 +64,7 @@ try {
 
         $orders[] = [
             'id' => (string) $order->id,
-            'current_state' => (string) $stateName,
+            'current_state' => '(' . (string) $order->current_state . ') ' .(string) $stateName,
             'customer_id' => (string) $order->id_customer,
             'total_paid' => (string) $order->total_paid,
             'total_shipping_tax_incl' => (string) $order->total_shipping_tax_incl,
