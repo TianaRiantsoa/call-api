@@ -40,28 +40,33 @@ try {
         ]
     );
 
-    // Initialisation pour pagination
+    // Supprimer tous les produits
     $page = 1;
-
     do {
-        // Récupérer les catégories par page
-        $categories = $woocommerce->get('products/categories', [
-            'per_page' => 100, // Maximum 100 catégories par page
-            'page' => $page,
-        ]);
+        $products = $woocommerce->get('products', ['per_page' => 100, 'page' => $page]);
 
-        foreach ($categories as $category) {
-            $categoryId = $category->id;
-
-            // Supprimer la catégorie
-            $woocommerce->delete("products/categories/$categoryId", ['force' => true]);
-            echo "Catégorie ID $categoryId supprimée avec succès.\n";
+        foreach ($products as $product) {
+            $woocommerce->delete("products/{$product->id}", ['force' => true]);
+            echo "Produit supprimé : {$product->id} -> {$product->sku} -> {$product->name} <br>";
         }
 
         $page++;
-    } while (!empty($categories)); // Continue tant qu'il y a des catégories
+    } while (count($products) > 0);
 
-    echo "Toutes les catégories ont été supprimées avec succès.\n";
+    // Supprimer toutes les catégories
+    $page = 1;
+    do {
+        $categories = $woocommerce->get('products/categories', ['per_page' => 100, 'page' => $page]);
+
+        foreach ($categories as $category) {
+            $woocommerce->delete("products/categories/{$category->id}", ['force' => true]);
+            echo "Catégorie supprimée : {$category->id} -> {$category->name} <br>";
+        }
+
+        $page++;
+    } while (count($categories) > 0);
+
+    echo "Tous les produits et catégories ont été supprimés définitivement.\n";
 
 } catch (Exception $e) {
     // Gestion des erreurs
