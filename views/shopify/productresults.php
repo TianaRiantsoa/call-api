@@ -1,5 +1,4 @@
 <?php
-
 use Shopify\ApiVersion;
 use yii\helpers\Html;
 use yii\helpers\ArrayHelper;

@@ -1,9 +1,5 @@
 <?php
-
 use Shopify\ApiVersion;
-use Shopify\Auth\FileSessionStorage;
-use Shopify\Clients\Graphql;
-use Shopify\Context;
 use yii\grid\GridView;
 use yii\data\ArrayDataProvider;
 use yii\helpers\ArrayHelper;
@@ -382,7 +378,7 @@ $lineItemProvider = new ArrayDataProvider(['allModels' => $gridDataLineItems]);
     ],
     [
       'attribute' => 'address',
-      'label' => 'Adresse'
+      'label' => 'Adresse Complète'
     ],
   ],
 ]); ?>
