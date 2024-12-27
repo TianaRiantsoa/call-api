@@ -22,6 +22,10 @@ $this->params['breadcrumbs'][] = 'Recherche de commande';
     <?= $form->field($model, 'password')->textInput(['maxlength' => true])->hiddenInput() ?>
 
     <?= $form->field($model, 'secret_key')->textInput(['maxlength' => true])->hiddenInput() ?>
+    <?= $form->field($mod, 'type')->radioList([
+        'court' => 'Numéro court',
+        'long' => 'Numéro long',
+    ]) ?>
 
     <?= $form->field($mod, 'ref')->textInput(['maxlength' => true, 'placeholder' => 'Exemple : 123456'])->hint('<small>Renseignez ici le numéro de la commande à rechercher</small>') ?>
 

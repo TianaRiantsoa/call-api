@@ -4,6 +4,9 @@ use Shopify\ApiVersion;
 use Shopify\Auth\FileSessionStorage;
 use Shopify\Clients\Graphql;
 use Shopify\Context;
+use yii\grid\GridView;
+use yii\data\ArrayDataProvider;
+use yii\helpers\ArrayHelper;
 use yii\helpers\Html;
 
 /** @var yii\web\View $this */
@@ -19,120 +22,85 @@ $url = Html::encode($model->url);
 $api = Html::encode($model->api_key);
 $pwd = Html::encode($model->password);
 $sct = Html::encode($model->secret_key);
+$type = Html::encode($type);
 $ref = Html::encode($ref);
 
-$scopes = 'read_analytics, read_assigned_fulfillment_orders, read_customer_events, read_customers, read_discounts, read_discovery, read_draft_orders, read_files, read_fulfillments, read_gdpr_data_request, read_gift_cards, read_inventory, read_legal_policies, read_locations, read_marketing_events, read_merchant_managed_fulfillment_orders, read_online_store_navigation, read_online_store_pages, read_order_edits, read_orders, read_packing_slip_templates, read_payment_customizations, read_payment_terms, read_pixels, read_price_rules, read_product_feeds, read_product_listings, read_products, read_publications, read_purchase_options, read_reports, read_resource_feedbacks, read_returns, read_channels, read_script_tags, read_shipping, read_locales, read_markets, read_shopify_payments_accounts, read_shopify_payments_bank_accounts, read_shopify_payments_disputes, read_shopify_payments_payouts, read_content, read_themes, read_third_party_fulfillment_orders, read_translations, read_all_cart_transforms, read_cart_transforms, read_custom_fulfillment_services, read_delivery_customizations, read_fulfillment_constraint_rules, read_gates';
+require('function.php');
 
-$apiVersion = ApiVersion::LATEST;
-
-Context::initialize($api, $sct, Html::encode($scopes), $url, new FileSessionStorage('/tmp/php_sessions'), Html::encode($apiVersion));
-
-$client = new Graphql($url, $pwd);
+$init = InitShopify($url, $api, $pwd, $sct);
 
 $n = count(str_split($ref));
 
-if ($n != 13) {
+if (isset($type) && $type == 'court') {
   $q = "name:$ref";
-} else {
+} elseif (isset($type) && $type == 'long') {
   $q = "id:$ref";
+} else {
+  echo 'Erreur sur ne numéro saisi';
 }
+
 $query = <<<QUERY
   query {
-    orders(query: "$q", first: 3) {
+    orders(query: "$q", first: 10) {
       edges {
         node {
           id
+          name
           createdAt
           updatedAt
+          displayFinancialStatus
+          displayFulfillmentStatus
           paymentGatewayNames
-          totalPrice
+          subtotalPrice
+          taxesIncluded
+          totalDiscounts
           totalTax
-          fulfillments {
-            status
-            location {
-              id
-            }
-          }
-          name
-          totalShippingPrice
-          billingAddress {
-            company
-            address1
-            address2
-            city
-            country
-            countryCode
-            countryCodeV2
-            firstName
-            lastName
-            id
-            phone
-            name
-            zip
-          }
           shippingAddress {
-            company
-            address1
-            address2
-            city
-            country
-            countryCode
-            countryCodeV2
             firstName
             lastName
-            id
             phone
-            name
+            address1
+            address2
             zip
+            city
+            countryCode
+          }
+          billingAddress {
+            firstName
+            lastName
+            phone
+            address1
+            address2
+            zip
+            city
+            countryCode
           }
           customer {
-            displayName
             id
             firstName
             lastName
             email
             phone
-            orders {
-              nodes {
-                id
-              }
-            }
-            addresses {
-              company
-              address1
-              address2
-              city
-              country
-              countryCode
-              countryCodeV2
-              firstName
-              lastName
-              id
-              phone
-              name
-              zip
-            }
+            createdAt
+            updatedAt            
           }
-          lineItems(first: 100) {
+          lineItems(first: 250) {
             edges {
               node {
-                id
+                sku
+                name
+                quantity
+                originalUnitPrice
+                originalTotal
+                discountedUnitPrice
+                discountedTotal
+                taxable
                 product {
                   id
                 }
-                sku
                 variant {
                   id
-                  displayName
-                  price
-                  sku
-                  title
-                  createdAt
-                  updatedAt
-                }
-                title
-                quantity
-                name
+                }                
               }
             }
           }
@@ -142,172 +110,173 @@ $query = <<<QUERY
   }
 QUERY;
 
-$response = $client->query(["query" => $query]);
+$response = $init->query(["query" => $query]);
 
 $contents = $response->getBody()->getContents();
 
-$contenu = json_decode($contents);
+$data = json_decode($contents, true);
 
-$node = $contenu->{'data'}->{'orders'}->{'edges'}[0]->{'node'};
+$orders = ArrayHelper::getValue($data, 'data.orders.edges', []);
 
-// $location = $node->{'fulfillments'}[0]->{'location'}->{'id'};
-// $l_id = explode("/", $location);
+// echo '<pre>';
+// print_r($orders);
+// echo '<pre>';
+// exit;
 
-$o_gid = $node->{'id'};
-$oid = explode("/", $o_gid);
+$orders = $data['data']['orders']['edges'];
+$gridDataOrders = [];
+$gridDataCustomers = [];
+$gridDataAddresses = [];
+$gridDataLineItems = [];
 
-/******************************************************************
-$check = file_get_contents("https://$api:$pwd@$url/admin/api/$apiVersion/orders/$oid[4].json");
-file_put_contents(substr($node->{'name'}, 7) . ".json", $check);
+foreach ($orders as $orderEdge) {
+  $order = $orderEdge['node'];
 
-$f = substr($node->{'name'}, 7) . ".json";
+  // Commandes
+  $gridDataOrders[] = [
+    'id' => getId($order['id']),
+    'name' => $order['name'],
+    'createdAt' => formatDateTime($order['createdAt']),
+    'updatedAt' => formatDateTime($order['updatedAt']),
+    'payment_method' => $order['paymentGatewayNames'][0],
+    'status_payment' => $order['displayFinancialStatus'],
+    'status_fulfillment' => $order['displayFulfillmentStatus'],
+    'subtotal' => $order['subtotalPrice'],
+    'totalDiscounts' => $order['totalDiscounts'],
+    'totalTax' => $order['totalTax'],
+  ];
 
-$file = Yii::getAlias('@web/SDK_b3dd4cf24e2923c60bf0678398d6a8934d40781a_orders_get_after.ps1');
+  // Clients
+  if (!empty($order['customer'])) {
+    $gridDataCustomers[] = [
+      'id' => getId($order['customer']['id']),
+      'firstName' => $order['customer']['firstName'],
+      'lastName' => $order['customer']['lastName'],
+      'email' => $order['customer']['email'],
+      'phone' => $order['customer']['phone'],
+      'createdAt' => formatDateTime($order['customer']['createdAt']),
+      'updatedAt' => formatDateTime($order['customer']['updatedAt']),
+    ];
+  }
 
-$cmd = "powershell.exe -ExecutionPolicy Bypass -File ." . $file . " -data $f";
-$res = shell_exec($cmd);
+  // Adresses
+  foreach (['billingAddress' => 'Facturation', 'shippingAddress' => 'Livraison'] as $addressKey => $type) {
+    if (!empty($order[$addressKey])) {
+      $address = $order[$addressKey];
 
-file_put_contents("res-" . substr($node->{'name'}, 7) . ".json", $res);
-*****************************************************************/
+      $fullAddress = (string) $address['address1'];
+            if (!empty($address['address2'])) {
+                $fullAddress .= ', ' . (string) $address['address2'];
+            }
+            $fullAddress .= ', ' . (string) $address['zip'] . ' ' . (string) $address['city'] . ', ' . $address['countryCode'];
 
-$total_price = $node->{'totalPrice'};
+      $gridDataAddresses[] = [
+        'type' => $type,
+        'firstName' => $address['firstName'],
+        'lastName' => $address['lastName'],
+        'phone' => $address['phone'],
+        'address' => $fullAddress,
+      ];
+    }
+  }
 
-$items = $node->{'lineItems'};
+  // Produits commandés
+  if (!empty($order['lineItems']['edges'])) {
+    foreach ($order['lineItems']['edges'] as $lineItemEdge) {
+      $lineItem = $lineItemEdge['node'];
+      $gridDataLineItems[] = [
+        'product_id' => getId($lineItem['product']['id']),
+        'variant_id' => getId($lineItem['variant']['id']),
+        'sku' => $lineItem['sku'],
+        'name' => $lineItem['name'],
+        'quantity' => $lineItem['quantity'],
+        'originalUnitPrice' => $lineItem['originalUnitPrice'],
+        'discountedUnitPrice' => $lineItem['discountedUnitPrice'],
+        'originalTotal' => $lineItem['originalTotal'],
+        'discountedTotal' => $lineItem['discountedTotal'],
+        'taxable' => $lineItem['taxable'] ? 'Oui' : 'Non',
+      ];
+    }
+  }
+}
 
-$date_add = $node->{'createdAt'};
-$date_upd = $node->{'updatedAt'};
 
-$paiement = $node->{'paymentGatewayNames'}[0];
+// Data Providers
+$orderProvider = new ArrayDataProvider(['allModels' => $gridDataOrders]);
+$customerProvider = new ArrayDataProvider(['allModels' => $gridDataCustomers]);
+$addressProvider = new ArrayDataProvider(['allModels' => $gridDataAddresses]);
+$lineItemProvider = new ArrayDataProvider(['allModels' => $gridDataLineItems]);
+
 ?>
-<div class="shopify-orders-results">
-  <main class="d-flex flex-nowrap">
-    <div class="container-fluid">
-      <div class="accordion" id="accordionOrder">
 
-        <!-- Information Commande -->
-        <div class="accordion-item">
-          <h2 class="accordion-header" id="heading1">
-            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse1"
-              aria-expanded="true" aria-controls="collapse1">
-              Information sur la commande
-            </button>
-          </h2>
-          <div id="collapse1" class="accordion-collapse collapse show" aria-labelledby="heading1"
-            data-bs-parent="#accordionOrder">
-            <div class="accordion-body">
-              <table class="table table-striped table-hover">
-                <thead class="thead-inverse">
-                 <tr class="head-table-color">
-                    <th scope="col">ID de la commande</th>
-                    <th scope="col">N° court</th>
-                    <th scope="col">Mode de paiement</th>
-                    <th scope="col">Total HT</th>
-                    <!-- <th scope="col">ID Location</th> -->
-                    <th scope="col">Création</th>
-                    <th scope="col">Mise à jour</th>
-                  </tr>
-                </thead>
-                <?php
-                ?>
-                <tbody>
-                  <tr>
-                    <td><a class="link-offset-2 link-underline link-underline-opacity-0"
-                        href="<?php echo "https://$api:$pwd@$url/admin/api/$apiVersion/orders/$oid[4].json"; ?>">
-                        <?= $oid[4]; ?>
-                      </a></td>
-                    <td>
-                      <?php echo Html::encode($node->{'name'}); ?>
-                    </td>
-                    <td>
-                      <?php echo Html::encode($paiement); ?>
-                    </td>
-                    <td>
-                      <?php echo Html::encode($total_price) . " &euro;"; ?>
-                    </td>
-                    <!-- <td> -->
-                      <?php // echo Html::encode($l_id[4]); ?>
-                    <!-- </td> -->
-                    <td>
-                      <?php echo Html::encode($date_add); ?>
-                    </td>
-                    <td>
-                      <?php echo Html::encode($date_upd); ?>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
+<!-- Commandes -->
+<h3>Détail de la commande</h3>
+<?= GridView::widget([
+  'dataProvider' => $orderProvider,
+  'columns' => [
+    ['attribute' => 'id', 'label' => 'ID Long'],
+    ['attribute' => 'name', 'label' => 'ID Court'],
+    ['attribute' => 'payment_method', 'label' => 'Mode de paiement'],
+    ['attribute' => 'createdAt', 'label' => 'Créé le'],
+    ['attribute' => 'updatedAt', 'label' => 'Mis à jour le'],
+    ['attribute' => 'status_payment', 'label' => 'Statut de paiement'],
+    ['attribute' => 'status_fulfillment', 'label' => 'Statut d\'expédition'],
+    ['attribute' => 'subtotal', 'label' => 'Sous-total'],
+    ['attribute' => 'totalDiscounts', 'label' => 'Réductions totales'],
+    ['attribute' => 'totalTax', 'label' => 'Taxes totales'],
+  ],
+]); ?>
 
-        <!-- Liste des produits dans la commande -->
+<!-- Clients -->
+<h3>Détail du clients</h3>
+<?= GridView::widget([
+  'dataProvider' => $customerProvider,
+  'columns' => [
+    ['attribute' => 'id', 'label' => 'ID Client'],
+    ['attribute' => 'firstName', 'label' => 'Prénom'],
+    ['attribute' => 'lastName', 'label' => 'Nom'],
+    ['attribute' => 'email', 'label' => 'Email'],
+    ['attribute' => 'phone', 'label' => 'Téléphone'],
+    ['attribute' => 'createdAt', 'label' => 'Créé le'],
+    ['attribute' => 'updatedAt', 'label' => 'Mis à jour le'],
+  ],
+]); ?>
 
-        <?php
-        if (!empty ($items)) {
-          $i = 0;
-          ?>
+<!-- Adresses -->
+<h3>Adresses de Facturation et de Livraison</h3>
+<?= GridView::widget([
+  'dataProvider' => $addressProvider,
+  'columns' => [
+    ['attribute' => 'type', 'label' => 'Type'],
+    ['attribute' => 'firstName', 'label' => 'Prénom'],
+    ['attribute' => 'lastName', 'label' => 'Nom'],
+    ['attribute' => 'phone', 'label' => 'Téléphone'],
+    ['attribute' => 'address', 'label' => 'Adresse'],
+  ],
+]); ?>
 
-          <div class="accordion-item">
-            <h2 class="accordion-header" id="heading4">
-              <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse4"
-                aria-expanded="true" aria-controls="collapse4">
-                Liste des produits dans la commande
-              </button>
-            </h2>
-            <div id="collapse4" class="accordion-collapse collapse" aria-labelledby="heading4"
-              data-bs-parent="#accordionOrder">
-              <div class="accordion-body">
-                <table class="table table-striped table-hover">
-                  <thead class="thead-inverse">
-                    <tr class="head-table-color">
-                      <th scope="col">ID</th>
-                      <th scope="col">Référence</th>
-                      <th scope="col">Nom</th>
-                      <th scope="col">Quantité</th>
-                      <th scope="col">Prix HT</th>
-                    </tr>
-                  </thead>
-                  <?php
-                  //Interrogation de produit
-                  for ($i = 0; $i <= sizeof($items->{'edges'}) - 1; $i++) {
-                    $quantity = $items->{'edges'}[$i]->{'node'}->{'quantity'};
-                    $sku = $items->{'edges'}[$i]->{'node'}->{'sku'};
-                    $name = $items->{'edges'}[$i]->{'node'}->{'name'};
-                    //$price = $items->{'edges'}[$i]->{'node'}->{'variant'}->{'price'};
-                    //$p_gid = $items->{'edges'}[$i]->{'node'}->{'variant'}->{'id'};
-                   // $pid = explode("/", $p_gid);
-                    ?>
-                    <tbody>
-                      <tr>
-                        <td scope='row'>
-                          
-                        </td>
-                        <td>
-                          <?= Html::a($sku, ['productresults', 'id' => $model->id, 'ref' => Html::encode($sku)], ['class' => 'link-offset-2 link-underline link-underline-opacity-0']) ?>
-                        </td>
-                        <td>
-                          <?php echo Html::encode($name); ?>
-                        </td>
-                        <td>
-                          <?php echo Html::encode($quantity); ?>
-                        </td>
-                        <td>
-                          <?php //echo Html::encode($price); ?> &euro;
-                        </td>
-                      </tr>
-                    </tbody>
-                    <?php
-                  }
-        }
-        ?>
-              </table>
-            </div>
-          </div>
-        </div>
-
-        <!-- À propos du client -->
-
-      </div>
-    </div>
-  </main>
-</div>
+<!-- Produits Commandés -->
+<h3>Détails des Produits Commandés</h3>
+<?= GridView::widget([
+  'dataProvider' => $lineItemProvider,
+  'columns' => [
+    ['attribute' => 'product_id', 'label' => 'ID Produit'],
+    ['attribute' => 'variant_id', 'label' => 'ID Variante'],
+    ['attribute' => 'sku', 'label' => 'SKU'],
+    ['attribute' => 'name', 'label' => 'Nom du Produit'],
+    ['attribute' => 'quantity', 'label' => 'Quantité'],
+    ['attribute' => 'originalUnitPrice', 'label' => 'P.U Original','value' => function ($model) {
+      return Yii::$app->formatter->asCurrency($model['originalUnitPrice'], 'EUR');
+  },],
+    ['attribute' => 'discountedUnitPrice', 'label' => 'P.U Réduit','value' => function ($model) {
+      return Yii::$app->formatter->asCurrency($model['discountedUnitPrice'], 'EUR');
+  },],
+    ['attribute' => 'originalTotal', 'label' => 'Total Original','value' => function ($model) {
+      return Yii::$app->formatter->asCurrency($model['originalTotal'], 'EUR');
+  },],
+    ['attribute' => 'discountedTotal', 'label' => 'Total Réduit','value' => function ($model) {
+      return Yii::$app->formatter->asCurrency($model['discountedTotal'], 'EUR');
+  },],
+    ['attribute' => 'taxable', 'label' => 'Taxable'],
+  ],
+]); ?>

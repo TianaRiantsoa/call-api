@@ -10,7 +10,7 @@ use yii\widgets\Pjax;
 /** @var yii\web\View $this */
 /** @var app\models\Shopify $model */
 
-$this->title = 'Shopify | ' . Html::encode($ref) . ' | ' . Html::encode($model->url);
+$this->title = 'Produits | ' . Html::encode($ref) . ' | ' . Html::encode($model->url);
 $this->params['breadcrumbs'][] = ['label' => 'Shopify', 'url' => ['index']];
 $this->params['breadcrumbs'][] = ['label' => $model->url, 'url' => ['view', 'id' => $model->id]];
 $this->params['breadcrumbs'][] = ['label' => 'Recherche de produit', 'url' => ['products', 'id' => $model->id]];
@@ -23,13 +23,6 @@ $sct = Html::encode($model->secret_key);
 $ref = Html::encode($ref);
 $type = Html::encode($type);
 
-// $scopes = 'read_analytics, read_assigned_fulfillment_orders, read_customer_events, read_customers, read_discounts, read_discovery, read_draft_orders, read_files, read_fulfillments, read_gdpr_data_request, read_gift_cards, read_inventory, read_legal_policies, read_locations, read_marketing_events, read_merchant_managed_fulfillment_orders, read_online_store_navigation, read_online_store_pages, read_order_edits, read_orders, read_packing_slip_templates, read_payment_customizations, read_payment_terms, read_pixels, read_price_rules, read_product_feeds, read_product_listings, read_products, read_publications, read_purchase_options, read_reports, read_resource_feedbacks, read_returns, read_channels, read_script_tags, read_shipping, read_locales, read_markets, read_shopify_payments_accounts, read_shopify_payments_bank_accounts, read_shopify_payments_disputes, read_shopify_payments_payouts, read_content, read_themes, read_third_party_fulfillment_orders, read_translations, read_all_cart_transforms, read_cart_transforms, read_custom_fulfillment_services, read_delivery_customizations, read_fulfillment_constraint_rules, read_gates';
-
-// // $apiVersion = ApiVersion::LATEST;
-
-// Context::initialize($api, $sct, Html::encode($scopes), $url, new FileSessionStorage('/tmp/php_sessions'));
-
-// $client = new Graphql($url, $pwd);
 
 require('function.php');
 
@@ -66,8 +59,6 @@ if (isset($type) && $type == 'simple') {
 
     QUERY;
 
-
-
     $response = $init->query(["query" => $query]);
 
     $contents = $response->getBody()->getContents();
@@ -95,18 +86,8 @@ if (isset($type) && $type == 'simple') {
                 'variant_title' => $variantNode['displayName'],
                 'variant_price' => $variantNode['price'] . ' €',
                 'variant_quantity' => $variantNode['inventoryQuantity'],
-                'date_add' => (new DateTime($node['createdAt'], new DateTimeZone('UTC')))
-                    ->setTimezone(new DateTimeZone('Europe/Paris'))
-                    ->format("d/m/Y") . "<br>" .
-                    (new DateTime($node['createdAt'], new DateTimeZone('UTC')))
-                    ->setTimezone(new DateTimeZone('Europe/Paris'))
-                    ->format("H:i:s"),
-                'date_upd' => (new DateTime($node['updatedAt'], new DateTimeZone('UTC')))
-                    ->setTimezone(new DateTimeZone('Europe/Paris'))
-                    ->format("d/m/Y") . "<br>" .
-                    (new DateTime($node['updatedAt'], new DateTimeZone('UTC')))
-                    ->setTimezone(new DateTimeZone('Europe/Paris'))
-                    ->format("H:i:s"),
+                'date_add' => formatDateTime($node['createdAt']),
+                'date_upd' => formatDateTime($node['updatedAt']),
             ];
 
             // Ajout du filtre global (case insensitive)
@@ -286,18 +267,8 @@ if (isset($type) && $type == 'simple') {
             'variant_quantity' => $variantNode['inventoryQuantity'] ?? 0,
             'variant_options' => implode('<br>', $formattedOptions),
             'variant_raw_data' => json_encode($variantNode, JSON_PRETTY_PRINT),
-            'date_add' => (new DateTime($variantNode['createdAt'], new DateTimeZone('UTC')))
-                ->setTimezone(new DateTimeZone('Europe/Paris'))
-                ->format("d/m/Y") . "<br>" .
-                (new DateTime($variantNode['createdAt'], new DateTimeZone('UTC')))
-                ->setTimezone(new DateTimeZone('Europe/Paris'))
-                ->format("H:i:s"),
-            'date_upd' => (new DateTime($variantNode['updatedAt'], new DateTimeZone('UTC')))
-                ->setTimezone(new DateTimeZone('Europe/Paris'))
-                ->format("d/m/Y") . "<br>" .
-                (new DateTime($variantNode['updatedAt'], new DateTimeZone('UTC')))
-                ->setTimezone(new DateTimeZone('Europe/Paris'))
-                ->format("H:i:s"),
+            'date_add' => formatDateTime($variantNode['createdAt']),
+            'date_upd' => formatDateTime($variantNode['updatedAt']),
         ];
 
         // Ajout du filtre global (case insensitive)
@@ -356,22 +327,22 @@ if (isset($type) && $type == 'simple') {
                         'attribute' => 'product_title',
                         'label' => 'Nom du produit',
                         'value' => function ($model) {
-                        // Assure-toi que le nom du produit existe
-                        if (isset($model['product_title'])) {
-                            // Découper le nom du produit en mots
-                            $words = explode(' ', $model['product_title']);
+                            // Assure-toi que le nom du produit existe
+                            if (isset($model['product_title'])) {
+                                // Découper le nom du produit en mots
+                                $words = explode(' ', $model['product_title']);
 
-                            // Regrouper les mots en groupes de 4
-                            $chunks = array_chunk($words, 4);
+                                // Regrouper les mots en groupes de 4
+                                $chunks = array_chunk($words, 4);
 
-                            // Rejoindre chaque groupe avec un <br> pour créer un saut de ligne
-                            return implode('<br>', array_map(function ($chunk) {
-                                return implode(' ', $chunk);
-                            }, $chunks));
-                        }
+                                // Rejoindre chaque groupe avec un <br> pour créer un saut de ligne
+                                return implode('<br>', array_map(function ($chunk) {
+                                    return implode(' ', $chunk);
+                                }, $chunks));
+                            }
 
-                        return '';
-                    },
+                            return '';
+                        },
                         'format' => 'raw',
                     ],
                     [
@@ -402,6 +373,23 @@ if (isset($type) && $type == 'simple') {
                     [
                         'attribute' => 'variant_options',
                         'label' => 'Options disponibles',
+                        'value' => function ($model) {
+                            // Assure-toi que le nom du produit existe
+                            if (isset($model['variant_options'])) {
+                                // Découper le nom du produit en mots
+                                $words = explode(' ', $model['variant_options']);
+
+                                // Regrouper les mots en groupes de 4
+                                $chunks = array_chunk($words, 3);
+
+                                // Rejoindre chaque groupe avec un <br> pour créer un saut de ligne
+                                return implode('<br>', array_map(function ($chunk) {
+                                    return implode(' ', $chunk);
+                                }, $chunks));
+                            }
+
+                            return '';
+                        },
                         'format' => 'raw',
                     ],
                     [
@@ -409,14 +397,6 @@ if (isset($type) && $type == 'simple') {
                         'format' => 'raw',
                         'label' => 'Mise à jour',
                     ],
-                    // [
-                    //     'attribute' => 'variant_raw_data',
-                    //     'label' => 'Données Brutes',
-                    //     'format' => 'raw',
-                    //     'value' => function ($model) {
-                    //         return Html::tag('pre', $model['variant_raw_data'], ['style' => 'white-space: pre-wrap; max-height: 200px; overflow: auto;']);
-                    //     }
-                    // ],
                 ],
             ]); ?>
         <?php

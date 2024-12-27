@@ -170,7 +170,7 @@ QUERY;
         <div class="accordion" id="accordionOrder">
 
           <!-- Information Commande -->
-          
+
 
           <!-- Liste des produits dans la commande -->
 

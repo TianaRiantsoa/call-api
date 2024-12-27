@@ -237,7 +237,7 @@ class ShopifyController extends Controller
         $mod = new ShopifyOrder();
 
         if ($this->request->isPost && $model->load($this->request->post()) && $mod->load($this->request->post())) {
-            return $this->redirect(['orderresults', 'id' => $model->id, 'ref' => $mod->ref]);
+            return $this->redirect(['orderresults', 'id' => $model->id, 'ref' => $mod->ref, 'type' => $mod->type]);
         }
 
         return $this->render('orders', [
@@ -277,12 +277,13 @@ class ShopifyController extends Controller
         ]);
     }
 
-    public function actionOrderresults($id, $ref)
+    public function actionOrderresults($id, $ref, $type)
     {
         $model = $this->findModel($id);
 
         return $this->render('orderresults', [
             'model' => $model,
+            'type' => $type,
             'ref' => $ref,
         ]);
     }
