@@ -65,6 +65,9 @@ $query = <<<QUERY
             city
             countryCode
           }
+          shippingLine {
+            title
+          }
           billingAddress {
             firstName
             lastName
@@ -144,6 +147,7 @@ foreach ($orders as $orderEdge) {
     'subtotal' => $order['subtotalPrice'],
     'totalDiscounts' => $order['totalDiscounts'],
     'totalTax' => $order['totalTax'],
+    'transporteur' => $order['shippingLine']['title'],
   ];
 
   // Clients
@@ -165,10 +169,10 @@ foreach ($orders as $orderEdge) {
       $address = $order[$addressKey];
 
       $fullAddress = (string) $address['address1'];
-            if (!empty($address['address2'])) {
-                $fullAddress .= ', ' . (string) $address['address2'];
-            }
-            $fullAddress .= ', ' . (string) $address['zip'] . ' ' . (string) $address['city'] . ', ' . $address['countryCode'];
+      if (!empty($address['address2'])) {
+        $fullAddress .= ', ' . (string) $address['address2'];
+      }
+      $fullAddress .= ', ' . (string) $address['zip'] . ' ' . (string) $address['city'] . ', ' . $address['countryCode'];
 
       $gridDataAddresses[] = [
         'type' => $type,
@@ -214,16 +218,75 @@ $lineItemProvider = new ArrayDataProvider(['allModels' => $gridDataLineItems]);
 <?= GridView::widget([
   'dataProvider' => $orderProvider,
   'columns' => [
-    ['attribute' => 'id', 'label' => 'ID Long'],
-    ['attribute' => 'name', 'label' => 'ID Court'],
-    ['attribute' => 'payment_method', 'label' => 'Mode de paiement'],
-    ['attribute' => 'createdAt', 'label' => 'Créé le'],
-    ['attribute' => 'updatedAt', 'label' => 'Mis à jour le'],
-    ['attribute' => 'status_payment', 'label' => 'Statut de paiement'],
-    ['attribute' => 'status_fulfillment', 'label' => 'Statut d\'expédition'],
-    ['attribute' => 'subtotal', 'label' => 'Sous-total'],
-    ['attribute' => 'totalDiscounts', 'label' => 'Réductions totales'],
-    ['attribute' => 'totalTax', 'label' => 'Taxes totales'],
+    [
+      'attribute' => 'id',
+      'label' => 'ID Long',
+      'format' => 'raw',
+      'value' => function ($model) use ($url, $api, $pwd) {
+        return Html::a(
+          $model['id'],
+          "https://" . $api . ":" . $pwd . "@" . $url . "/admin/api/" . ApiVersion::LATEST . "/orders/{$model['id']}.json",
+          ['target' => '_blank', 'encode' => false]
+        );
+      }
+    ],
+    [
+      'attribute' => 'name',
+      'label' => 'ID Court',
+      'format' => 'raw',
+      'value' => function ($model) use ($url, $api, $pwd) {
+        return Html::a(
+          $model['name'],
+          "https://" . $api . ":" . $pwd . "@" . $url . "/admin/api/" . ApiVersion::LATEST . "/orders/{$model['id']}.json",
+          ['target' => '_blank', 'encode' => false]
+        );
+      }
+    ],
+    [
+      'attribute' => 'payment_method',
+      'label' => 'Mode de paiement'
+    ],
+    [
+      'attribute' => 'transporteur',
+      'label' => 'Transporteur'
+    ],
+    [
+      'attribute' => 'status_payment',
+      'label' => 'Statut de paiement'
+    ],
+    [
+      'attribute' => 'status_fulfillment',
+      'label' => 'Statut d\'expédition'
+    ],
+    [
+      'attribute' => 'subtotal',
+      'label' => 'Sous-total',
+      'value' => function ($model) {
+        return Yii::$app->formatter->asCurrency($model['subtotal'], 'EUR');
+      },
+    ],
+    [
+      'attribute' => 'totalDiscounts',
+      'label' => 'Réductions totales',
+      'value' => function ($model) {
+        return Yii::$app->formatter->asCurrency($model['totalDiscounts'], 'EUR');
+      },
+    ],
+    [
+      'attribute' => 'totalTax',
+      'label' => 'Taxes totales',
+      'value' => function ($model) {
+        return Yii::$app->formatter->asCurrency($model['totalTax'], 'EUR');
+      },
+    ],
+    [
+      'attribute' => 'createdAt',
+      'label' => 'Création'
+    ],
+    [
+      'attribute' => 'updatedAt',
+      'label' => 'Mis à jour'
+    ],
   ],
 ]); ?>
 
@@ -232,26 +295,95 @@ $lineItemProvider = new ArrayDataProvider(['allModels' => $gridDataLineItems]);
 <?= GridView::widget([
   'dataProvider' => $customerProvider,
   'columns' => [
-    ['attribute' => 'id', 'label' => 'ID Client'],
-    ['attribute' => 'firstName', 'label' => 'Prénom'],
-    ['attribute' => 'lastName', 'label' => 'Nom'],
-    ['attribute' => 'email', 'label' => 'Email'],
-    ['attribute' => 'phone', 'label' => 'Téléphone'],
-    ['attribute' => 'createdAt', 'label' => 'Créé le'],
-    ['attribute' => 'updatedAt', 'label' => 'Mis à jour le'],
+    [
+      'attribute' => 'id',
+      'label' => 'ID Client',
+      'format' => 'raw',
+      'value' => function ($model) use ($url, $api, $pwd) {
+        return Html::a(
+          $model['id'],
+          "https://" . $api . ":" . $pwd . "@" . $url . "/admin/api/" . ApiVersion::LATEST . "/customers/{$model['id']}.json",
+          ['target' => '_blank', 'encode' => false]
+        );
+      }
+    ],
+    [
+      'attribute' => 'firstName',
+      'label' => 'Prénom',
+      'format' => 'raw',
+      'value' => function ($model) use ($url, $api, $pwd) {
+        return Html::a(
+          $model['firstName'],
+          "https://" . $api . ":" . $pwd . "@" . $url . "/admin/api/" . ApiVersion::LATEST . "/customers/{$model['id']}.json",
+          ['target' => '_blank', 'encode' => false]
+        );
+      }
+    ],
+    [
+      'attribute' => 'lastName',
+      'label' => 'Nom',
+      'format' => 'raw',
+      'value' => function ($model) use ($url, $api, $pwd) {
+        return Html::a(
+          $model['lastName'],
+          "https://" . $api . ":" . $pwd . "@" . $url . "/admin/api/" . ApiVersion::LATEST . "/customers/{$model['id']}.json",
+          ['target' => '_blank', 'encode' => false]
+        );
+      }
+    ],
+    [
+      'attribute' => 'email',
+      'label' => 'Email',
+      'format' => 'raw',
+      'value' => function ($model) use ($url, $api, $pwd) {
+        return Html::a(
+          $model['email'],
+          "https://" . $api . ":" . $pwd . "@" . $url . "/admin/api/" . ApiVersion::LATEST . "/customers/{$model['id']}.json",
+          ['target' => '_blank', 'encode' => false]
+        );
+      }
+    ],
+    [
+      'attribute' => 'phone',
+      'label' => 'Téléphone'
+    ],
+    [
+      'attribute' => 'createdAt',
+      'label' => 'Création'
+    ],
+    [
+      'attribute' => 'updatedAt',
+      'label' => 'Mis à jour'
+    ],
   ],
-]); ?>
+]);
+?>
 
 <!-- Adresses -->
 <h3>Adresses de Facturation et de Livraison</h3>
 <?= GridView::widget([
   'dataProvider' => $addressProvider,
   'columns' => [
-    ['attribute' => 'type', 'label' => 'Type'],
-    ['attribute' => 'firstName', 'label' => 'Prénom'],
-    ['attribute' => 'lastName', 'label' => 'Nom'],
-    ['attribute' => 'phone', 'label' => 'Téléphone'],
-    ['attribute' => 'address', 'label' => 'Adresse'],
+    [
+      'attribute' => 'type',
+      'label' => 'Type'
+    ],
+    [
+      'attribute' => 'firstName',
+      'label' => 'Prénom'
+    ],
+    [
+      'attribute' => 'lastName',
+      'label' => 'Nom'
+    ],
+    [
+      'attribute' => 'phone',
+      'label' => 'Téléphone'
+    ],
+    [
+      'attribute' => 'address',
+      'label' => 'Adresse'
+    ],
   ],
 ]); ?>
 
@@ -260,23 +392,89 @@ $lineItemProvider = new ArrayDataProvider(['allModels' => $gridDataLineItems]);
 <?= GridView::widget([
   'dataProvider' => $lineItemProvider,
   'columns' => [
-    ['attribute' => 'product_id', 'label' => 'ID Produit'],
-    ['attribute' => 'variant_id', 'label' => 'ID Variante'],
-    ['attribute' => 'sku', 'label' => 'SKU'],
-    ['attribute' => 'name', 'label' => 'Nom du Produit'],
-    ['attribute' => 'quantity', 'label' => 'Quantité'],
-    ['attribute' => 'originalUnitPrice', 'label' => 'P.U Original','value' => function ($model) {
-      return Yii::$app->formatter->asCurrency($model['originalUnitPrice'], 'EUR');
-  },],
-    ['attribute' => 'discountedUnitPrice', 'label' => 'P.U Réduit','value' => function ($model) {
-      return Yii::$app->formatter->asCurrency($model['discountedUnitPrice'], 'EUR');
-  },],
-    ['attribute' => 'originalTotal', 'label' => 'Total Original','value' => function ($model) {
-      return Yii::$app->formatter->asCurrency($model['originalTotal'], 'EUR');
-  },],
-    ['attribute' => 'discountedTotal', 'label' => 'Total Réduit','value' => function ($model) {
-      return Yii::$app->formatter->asCurrency($model['discountedTotal'], 'EUR');
-  },],
-    ['attribute' => 'taxable', 'label' => 'Taxable'],
+    [
+      'attribute' => 'product_id',
+      'label' => 'ID Produit',
+      'value' => function ($model) use ($url, $api, $pwd) {
+        return Html::a(
+          $model['product_id'],
+          "https://" . $api . ":" . $pwd . "@" . $url . "/admin/api/" . ApiVersion::LATEST . "/products/{$model['product_id']}.json",
+          ['target' => '_blank', 'encode' => false]
+        );
+      },
+      'format' => 'raw'
+    ],
+    [
+      'attribute' => 'variant_id',
+      'label' => 'ID Variante',
+      'format' => 'raw',
+      'value' => function ($model) use ($url, $api, $pwd) {
+        return Html::a(
+          $model['variant_id'],
+          "https://" . $api . ":" . $pwd . "@" . $url . "/admin/api/" . ApiVersion::LATEST . "/variants/{$model['variant_id']}.json",
+          ['target' => '_blank', 'encode' => false]
+        );
+      }
+    ],
+    [
+      'attribute' => 'sku',
+      'label' => 'SKU',
+      'format' => 'raw',
+      'value' => function ($model) use ($url, $api, $pwd) {
+        return Html::a(
+          $model['sku'],
+          "https://" . $api . ":" . $pwd . "@" . $url . "/admin/api/" . ApiVersion::LATEST . "/variants/{$model['variant_id']}.json",
+          ['target' => '_blank', 'encode' => false]
+        );
+      }
+    ],
+    [
+      'attribute' => 'name',
+      'label' => 'Nom du Produit',
+      'format' => 'raw',
+      'value' => function ($model) use ($url, $api, $pwd) {
+        return Html::a(
+          $model['name'],
+          "https://" . $api . ":" . $pwd . "@" . $url . "/admin/api/" . ApiVersion::LATEST . "/variants/{$model['variant_id']}.json",
+          ['target' => '_blank', 'encode' => false]
+        );
+      }
+    ],
+    [
+      'attribute' => 'quantity',
+      'label' => 'Quantité'
+    ],
+    [
+      'attribute' => 'originalUnitPrice',
+      'label' => 'P.U Original',
+      'value' => function ($model) {
+        return Yii::$app->formatter->asCurrency($model['originalUnitPrice'], 'EUR');
+      },
+    ],
+    [
+      'attribute' => 'discountedUnitPrice',
+      'label' => 'P.U Réduit',
+      'value' => function ($model) {
+        return Yii::$app->formatter->asCurrency($model['discountedUnitPrice'], 'EUR');
+      },
+    ],
+    [
+      'attribute' => 'originalTotal',
+      'label' => 'Total Original',
+      'value' => function ($model) {
+        return Yii::$app->formatter->asCurrency($model['originalTotal'], 'EUR');
+      },
+    ],
+    [
+      'attribute' => 'discountedTotal',
+      'label' => 'Total Réduit',
+      'value' => function ($model) {
+        return Yii::$app->formatter->asCurrency($model['discountedTotal'], 'EUR');
+      },
+    ],
+    [
+      'attribute' => 'taxable',
+      'label' => 'Taxable'
+    ],
   ],
 ]); ?>
