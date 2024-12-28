@@ -1,4 +1,5 @@
 <?php
+
 use Shopify\ApiVersion;
 use yii\grid\GridView;
 use yii\data\ArrayDataProvider;

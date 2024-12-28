@@ -51,7 +51,7 @@ if ($ref) {
 		}
 
 		if (!$languageId) {
-			throw new Exception('Langue française introuvable dans la boutique.');
+			throw new PrestaShopWebserviceException('Langue française introuvable dans la boutique.');
 		}
 
 		// Construire les options de la requête pour filtrer par référence
