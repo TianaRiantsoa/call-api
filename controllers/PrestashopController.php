@@ -229,13 +229,14 @@ class PrestashopController extends Controller
      * Résultat des requêtes
      */
 
-    public function actionProductresults($id, $ref, $type)
+    public function actionProductresults($id, $ref, $type, $variation_type)
     {
         $model = $this->findModel($id);
 
         return $this->render('productresults', [
             'model' => $model,
             'type' => $type,
+            'variation_type' => $variation_type,
             'ref' => $ref,
         ]);
     }
