@@ -134,7 +134,7 @@ if (
 		// Si des produits sont trouvés et valides, afficher le GridView
 		if (!empty($productList)) {
 			echo GridView::widget([
-				'dataProvider' => new \yii\data\ArrayDataProvider([
+				'dataProvider' => new ArrayDataProvider([
 					'allModels' => $productList,
 					'pagination' => [
 						'pageSize' => 10,
@@ -250,7 +250,7 @@ elseif (
 		// Si des produits sont trouvés et valides, afficher le GridView
 		if (!empty($productList)) {
 			echo GridView::widget([
-				'dataProvider' => new \yii\data\ArrayDataProvider([
+				'dataProvider' => new ArrayDataProvider([
 					'allModels' => $productList,
 					'pagination' => [
 						'pageSize' => 10,
@@ -399,7 +399,7 @@ elseif (
 		// Si des produits sont trouvés et valides, afficher le GridView
 		if (!empty($combinationList)) {
 			echo GridView::widget([
-				'dataProvider' => new \yii\data\ArrayDataProvider([
+				'dataProvider' => new ArrayDataProvider([
 					'allModels' => $combinationList,
 					'pagination' => [
 						'pageSize' => 10,
