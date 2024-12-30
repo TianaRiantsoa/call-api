@@ -134,10 +134,8 @@ if (
 				'columns' => [
 					'id',
 					'name',
-					//'language',
 					'reference',
 					'price',
-					// Ajoutez d'autres colonnes selon vos besoins
 				],
 			]);
 		}
@@ -145,7 +143,11 @@ if (
 		// En cas d'erreur, afficher un message d'erreur
 		Yii::$app->session->setFlash('error', 'Erreur API : ' . $e->getMessage());
 	}
-} elseif (
+}
+
+//Traitement d'une déclinaison via la référence du produit Parent
+
+elseif (
 	isset($ref) && $ref != null
 	&& isset($type) && $type === 'variation'
 	&& isset($variation_type) && $variation_type == 'parent'
@@ -243,10 +245,8 @@ if (
 				'columns' => [
 					'id',
 					'name',
-					//'language',
 					'reference',
 					'price',
-					// Ajoutez d'autres colonnes selon vos besoins
 				],
 			]);
 		}
@@ -254,7 +254,12 @@ if (
 		// En cas d'erreur, afficher un message d'erreur
 		Yii::$app->session->setFlash('error', 'Erreur API : ' . $e->getMessage());
 	}
-} elseif (
+}
+
+
+//Traitement d'une déclinaison via la référence du produit enfant
+
+elseif (
 	isset($ref) && $ref != null
 	&& isset($type) && $type === 'variation'
 	&& isset($variation_type) && $variation_type == 'child'
@@ -291,40 +296,72 @@ if (
 		];
 
 		try {
-			// Récupérer les produits depuis l'API PrestaShop
+			// Récupérer les combinaisons depuis l'API PrestaShop
 			$xml = $webService->get($opt);
-			$combinations = $xml->combinations->children(); // Récupérer tous les produits
+			$combinations = $xml->combinations->children(); // Récupérer toutes les combinaisons
 
-			// Initialiser la variable pour stocker les produits
+			// Initialiser la liste des combinaisons
 			$combinationList = [];
 
-			// Vérifier si nous avons des produits
+			// Vérifier si nous avons des combinaisons
 			if (count($combinations) > 0) {
-				// Parcourir les produits et vérifier le type
+				// Parcourir les combinaisons
 				foreach ($combinations as $combination) {
+					$combinationData = [
+						'id' => (int)$combination->id,
+						'reference' => (string)$combination->reference,
+						'price' => (float)$combination->price,
+						'parent_reference' => 'N/A',
+					];
 
-					// Vérifier si le produit n'est pas de type "simple" ou de type "combinations"
-					if (isset($combination->id_product)  && $combination->id_product != null) {
-
-						// Ajouter les produits valides au tableau
-						$combinationList[] = [
-							'id' => (int)$combination->id,
-							'parents' => (string)$combination->id_product,
-							//'language' => $languageId,
-							'reference' => (string)$combination->reference,
-							'price' => (float)$combination->price,
-							// Ajoutez d'autres champs si nécessaire
+					// Récupération du produit parent
+					try {
+						$parentOpt = [
+							'resource' => 'products',
+							'id' => $combination->id_product, // ID du produit parent
+							'language' => $languageId, // Langue si nécessaire
 						];
-					} else {
 
-						// Ajouter un message flash spécifique
-						Yii::$app->session->setFlash('error', 'Le produit n\'est pas trouvé en tant que produit enfant. Essayer avec Produit Déclinaison > Parent ou Produit Simple');
-						return; // Stopper l'exécution ici
+						// Récupérer le produit parent depuis l'API
+						$parent = $webService->get($parentOpt);
+						$parentXML = $parent->product; // Le produit parent
+
+						// Ajouter la référence parent si elle existe
+						if (isset($parentXML->reference)) {
+							$combinationData['parent_reference'] = (string)$parentXML->reference;
+						}
+						try {
+							$stockOpt = [
+								'resource' => 'stock_availables',
+								'filter[id_product_attribute]' => (int)$combination->id,
+								'display' => 'full',
+							];
+
+							// Récupérer le stock de la déclinaison
+							$stock = $webService->get($stockOpt);
+							$stockXML = $stock->stock_availables->children();
+
+							// Ajouter la référence parent si elle existe
+							foreach ($stockXML as $stocks) {
+								if (isset($stocks->quantity)) {
+									$combinationData['quantity'] = (string)$stocks->quantity;
+								}
+							}
+						} catch (Exception $e) {
+							// En cas d'erreur lors de la récupération du parent
+							$combinationData['quantity'] = 'Erreur lors de la récupération';
+						}
+					} catch (Exception $e) {
+						// En cas d'erreur lors de la récupération du parent
+						$combinationData['parent_reference'] = 'Erreur lors de la récupération';
 					}
+
+					// Ajouter les données de la combinaison à la liste
+					$combinationList[] = $combinationData;
 				}
 			} else {
 				// Aucun produit trouvé
-				Yii::$app->session->setFlash('error', 'Aucun produit trouvé avec cette référence.');
+				Yii::$app->session->setFlash('error', 'Aucune combinaison trouvée.');
 				return; // Stopper l'exécution ici
 			}
 		} catch (Exception $e) {
@@ -332,7 +369,6 @@ if (
 			Yii::$app->session->setFlash('error', 'Erreur lors de la récupération des données produit : ' . $e->getMessage());
 			return; // Stopper l'exécution ici
 		}
-
 
 		/* 
 		TRAITEMENT DES DONNEES
@@ -349,11 +385,10 @@ if (
 				]),
 				'columns' => [
 					'id',
-					'parents',
-					//'language',
+					'parent_reference',
 					'reference',
+					'quantity',
 					'price',
-					// Ajoutez d'autres colonnes selon vos besoins
 				],
 			]);
 		}
