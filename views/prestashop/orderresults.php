@@ -64,7 +64,7 @@ try {
 
         $orders[] = [
             'id' => (string) $order->id,
-            'current_state' => '(' . (string) $order->current_state . ') ' .(string) $stateName,
+            'current_state' => '(' . (string) $order->current_state . ') ' . (string) $stateName,
             'customer_id' => (string) $order->id_customer,
             'total_paid' => (string) $order->total_paid,
             'total_shipping_tax_incl' => (string) $order->total_shipping_tax_incl,
@@ -221,10 +221,9 @@ try {
     echo 'Erreur : ' . $e->getMessage();
 }
 
-$site = $url . '/api/orders/' . $ref . '?ws_key=' . $api;
-echo Html::a('Afficher le XML de la commande', $site, ['class' => 'btn btn-success', 'target' => '_blank']);
+// $site = $url . '/api/orders/' . $ref . '?ws_key=' . $api;
+// echo Html::a('Afficher le XML de la commande', $site, ['class' => 'btn btn-success', 'target' => '_blank']);
 ?>
-<br><br>
 <h3>Détails des Commandes</h3>
 <?php
 // Afficher les commandes
@@ -233,7 +232,15 @@ echo GridView::widget([
     'columns' => [
         [
             'attribute' => 'id',
-            'label' => 'ID',  // Nouveau nom de la colonne
+            'label' => 'ID',
+            'format' => 'raw',
+            'value' => function ($model) use ($url, $api) {
+                return Html::a(
+                    $model['id'],
+                    $url . "/api/orders/{$model['id']}?&ws_key=" . $api,
+                    ['target' => '_blank', 'encode' => false]
+                );
+            }  // Nouveau nom de la colonne
         ],
         [
             'attribute' => 'current_state',
@@ -431,14 +438,14 @@ echo GridView::widget([
         ],
         [
             'attribute' => 'unit_price_tax_incl',
-            'label' => 'P.U TTC', 
+            'label' => 'P.U TTC',
             'value' => function ($model) {
                 return Yii::$app->formatter->asCurrency($model['unit_price_tax_incl'], 'EUR');
             }, // Nouveau nom de la colonne
         ],
         [
             'attribute' => 'total_price_tax_incl',
-            'label' => 'Total TTC', 
+            'label' => 'Total TTC',
             'value' => function ($model) {
                 return Yii::$app->formatter->asCurrency($model['total_price_tax_incl'], 'EUR');
             }, // Nouveau nom de la colonne
@@ -452,4 +459,3 @@ echo GridView::widget([
         // ],
     ],
 ]);
-
