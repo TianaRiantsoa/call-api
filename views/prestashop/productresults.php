@@ -35,8 +35,17 @@ if (strpos($url, 'localhost') !== false) {
 
 $api = Html::encode($model->api_key);
 $ref = Html::encode($ref);
+$db_id = $model->id;
 $type = Html::encode($type);
 $variation_type = Html::encode($variation_type);
+
+echo yii\widgets\DetailView::widget([
+	'model' => $model,
+	'attributes' => [
+		'url:url',
+		'api_key',
+	],
+]);
 
 //Produit simple
 if (
@@ -135,7 +144,13 @@ if (
 					'id',
 					'name',
 					'reference',
-					'price',
+					[
+						'attribute' => 'price',
+						'value' => function ($model) {
+							return Yii::$app->formatter->asCurrency($model['price'], 'EUR');
+						},
+						'label' => 'Prix',
+					],
 				],
 			]);
 		}
@@ -205,10 +220,9 @@ elseif (
 						$productList[] = [
 							'id' => (int)$product->id,
 							'name' => (string)$product->name->language,
-							//'language' => $languageId,
 							'reference' => (string)$product->reference,
+							'active' => (int)$product->active,
 							'price' => (float)$product->price,
-							// Ajoutez d'autres champs si nécessaire
 						];
 					} else {
 
@@ -246,6 +260,13 @@ elseif (
 					'id',
 					'name',
 					'reference',
+					[
+						'attribute' => 'active',
+						'label' => 'Statut',
+						'value' => function ($model) {
+							return isset($model['active']) && $model['active'] ? 'Actif' : 'Inactif';
+						},
+					],
 					'price',
 				],
 			]);
@@ -361,7 +382,7 @@ elseif (
 				}
 			} else {
 				// Aucun produit trouvé
-				Yii::$app->session->setFlash('error', 'Aucune combinaison trouvée.');
+				Yii::$app->session->setFlash('error', 'Aucun produit enfant trouvé avec cette référence.');
 				return; // Stopper l'exécution ici
 			}
 		} catch (Exception $e) {
@@ -374,6 +395,7 @@ elseif (
 		TRAITEMENT DES DONNEES
 		*/
 
+		echo '<h3>Détails du Produit</h3>';
 		// Si des produits sont trouvés et valides, afficher le GridView
 		if (!empty($combinationList)) {
 			echo GridView::widget([
@@ -384,11 +406,53 @@ elseif (
 					],
 				]),
 				'columns' => [
-					'id',
-					'parent_reference',
-					'reference',
-					'quantity',
-					'price',
+					[
+						'attribute' => 'id',
+						'label' => 'ID',
+						'format' => 'raw',
+						'value' => function ($model) use ($url, $api) {
+							return Html::a(
+								$model['id'],
+								$url . "/api/combinations/{$model['id']}?&ws_key=" . $api,
+								['target' => '_blank', 'encode' => false]
+							);
+						}
+					],
+					[
+						'attribute' => 'parent_reference',
+						'label' => 'Référence Parente',
+						'format' => 'raw',
+						'value' => function ($model) use ($url, $api, $db_id) {
+							return Html::a(
+								$model['parent_reference'],
+								'?id=' . $db_id . '&ref=' . $model['parent_reference'] . '&type=variation&variation_type=parent',
+								['target' => '_blank', 'encode' => false]
+							);
+						}
+					],
+					[
+						'attribute' => 'id',
+						'label' => 'Référence',
+						'format' => 'raw',
+						'value' => function ($model) use ($url, $api) {
+							return Html::a(
+								$model['reference'],
+								$url . "/api/combinations/{$model['id']}?&ws_key=" . $api,
+								['target' => '_blank', 'encode' => false]
+							);
+						}
+					],
+					[
+						'attribute' => 'quantity',
+						'label' => 'Quantité',
+					],
+					[
+						'attribute' => 'price',
+						'value' => function ($model) {
+							return Yii::$app->formatter->asCurrency($model['price'], 'EUR');
+						},
+						'label' => 'Prix',
+					],
 				],
 			]);
 		}

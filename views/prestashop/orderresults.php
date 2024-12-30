@@ -5,6 +5,7 @@ use prestashop\PrestaShopWebserviceException;
 use yii\helpers\Html;
 use yii\grid\GridView;
 use yii\data\ArrayDataProvider;
+use yii\helpers\Url;
 
 require("./../vendor/prestashop/prestashop-webservice-lib/PSWebServiceLibrary.php");
 
@@ -34,6 +35,7 @@ if (strpos($url, 'localhost') !== false) {
 
 $api = Html::encode($model->api_key);
 $ref = Html::encode($ref);
+$db_id = $model->id;
 
 
 try {
@@ -159,6 +161,7 @@ try {
                 $orderRowId = (string) $product->id;
                 $productData = [
                     'order_row' => $orderRowId,
+                    'id_product_attribute' => $product->product_attribute_id,
                     'product_reference' => (string) $product->product_reference,
                     'product_name' => (string) $product->product_name,
                     'quantity' => (string) $product->product_quantity,
@@ -422,15 +425,89 @@ echo GridView::widget([
     'columns' => [
         [
             'attribute' => 'order_row',
-            'label' => 'ID Order Details',  // Nouveau nom de la colonne
+            'label' => 'ID Order Details',
+            'format' => 'raw',
+						'value' => function ($model) use ($url, $api) {
+							return Html::a(
+								$model['order_row'],
+								$url . "/api/order_details/{$model['order_row']}?&ws_key=" . $api,
+								['target' => '_blank', 'encode' => false]
+							);
+						}
         ],
         [
             'attribute' => 'product_reference',
-            'label' => 'Référence produit',  // Nouveau nom de la colonne
+            'label' => 'Référence Produit',
+            'format' => 'raw',
+            'value' => function ($model) use ($db_id) {
+                // Vérifier si id_product_attribute est 0
+                if ($model['id_product_attribute'] == 0) {
+                    // Générer l'URL pour le produit simple
+                    $url = Url::to([
+                        'productresults',
+                        'id' => $db_id,  // Utilisation du $db_id déjà défini
+                        'ref' => $model['product_reference'],
+                        'type' => 'simple',
+                        'variation_type' => ''
+                    ]);
+                    $typeLabel = 'Simple';
+                }
+                // Vérifier si id_product_attribute est 1
+                else {
+                    // Générer l'URL pour la variation (type = 'variation', variation_type = 'child')
+                    $url = Url::to([
+                        'productresults',
+                        'id' => $db_id,
+                        'ref' => $model['product_reference'],
+                        'type' => 'variation',
+                        'variation_type' => 'child'
+                    ]);
+                    $typeLabel = 'Déclinaison';
+                }
+
+                // Afficher la référence produit avec le lien généré
+                return Html::a($model['product_reference'] . ' (' . $typeLabel . ')', $url, [
+                    'target' => '_blank',
+                    'encode' => false,
+                ]);
+            },
         ],
         [
             'attribute' => 'product_name',
-            'label' => 'Nom du produit',  // Nouveau nom de la colonne
+            'label' => 'Nom du produit',
+            'format' => 'raw',
+            'value' => function ($model) use ($db_id) {
+                // Vérifier si id_product_attribute est 0
+                if ($model['id_product_attribute'] == 0) {
+                    // Générer l'URL pour le produit simple
+                    $url = Url::to([
+                        'productresults',
+                        'id' => $db_id,  // Utilisation du $db_id déjà défini
+                        'ref' => $model['product_reference'],
+                        'type' => 'simple',
+                        'variation_type' => ''
+                    ]);
+                    $typeLabel = 'Simple';
+                }
+                // Vérifier si id_product_attribute est 1
+                else {
+                    // Générer l'URL pour la variation (type = 'variation', variation_type = 'child')
+                    $url = Url::to([
+                        'productresults',
+                        'id' => $db_id,
+                        'ref' => $model['product_reference'],
+                        'type' => 'variation',
+                        'variation_type' => 'child'
+                    ]);
+                    $typeLabel = 'Déclinaison';
+                }
+
+                // Afficher la référence produit avec le lien généré
+                return Html::a($model['product_name'] . ' (' . $typeLabel . ')', $url, [
+                    'target' => '_blank',
+                    'encode' => false,
+                ]);
+            },
         ],
         [
             'attribute' => 'quantity',

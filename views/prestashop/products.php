@@ -11,6 +11,14 @@ $this->params['breadcrumbs'][] = ['label' => 'Prestashop', 'url' => ['index']];
 $this->params['breadcrumbs'][] = ['label' => $model->url, 'url' => ['view', 'id' => $model->id]];
 $this->params['breadcrumbs'][] = 'Recherche de produit';
 \yii\web\YiiAsset::register($this);
+
+echo yii\widgets\DetailView::widget([
+	'model' => $model,
+	'attributes' => [
+		'url',
+		'api_key',
+	],
+]);
 ?>
 <div class="prestashop-products-form">
     <?php $form = ActiveForm::begin(); ?>

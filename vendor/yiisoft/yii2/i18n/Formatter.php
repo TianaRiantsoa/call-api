@@ -463,7 +463,7 @@ class Formatter extends Component
             return call_user_func_array([$this, $method], $params);
         }
 
-        throw new InvalidArgumentException("Unknown format type: $format");
+        throw new InvalidArgumentException("Format inconnu : $format");
     }
 
     // simple formats
