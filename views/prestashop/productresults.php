@@ -258,8 +258,8 @@ elseif (
 				]),
 				'columns' => [
 					'id',
-					'name',
 					'reference',
+					'name',					
 					[
 						'attribute' => 'active',
 						'label' => 'Statut',
