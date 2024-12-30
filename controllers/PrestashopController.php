@@ -184,7 +184,7 @@ class PrestashopController extends Controller
         $mod = new PrestashopProduct();
 
         if ($this->request->isPost && $model->load($this->request->post()) && $mod->load($this->request->post())) {
-            return $this->redirect(['productresults', 'id' => $model->id, 'ref' => $mod->ref]);
+            return $this->redirect(['productresults', 'id' => $model->id, 'ref' => $mod->ref, 'type' => $mod->type,'variation_type' => $mod->variation_type]);
         }
 
         return $this->render('products', [
@@ -229,12 +229,13 @@ class PrestashopController extends Controller
      * Résultat des requêtes
      */
 
-    public function actionProductresults($id, $ref)
+    public function actionProductresults($id, $ref, $type)
     {
         $model = $this->findModel($id);
 
         return $this->render('productresults', [
             'model' => $model,
+            'type' => $type,
             'ref' => $ref,
         ]);
     }

@@ -13,11 +13,17 @@ $this->params['breadcrumbs'][] = ['label' => Html::encode($ref)];
 
 $url = Html::encode($model->url);
 
-$headers = @get_headers("http://" . $url);
-if ($headers && strpos($headers[0], '200') !== false) {
-    $url = "https://" . $url;
+if (strpos($url, 'localhost') !== false) {
+    // Forcer HTTP pour localhost
+    $url = "http://" . $url;
 } else {
-    $url = "https://" . $url;
+    // Vérifier si le site est accessible en HTTP
+    $headers = @get_headers("http://" . $url);
+    if ($headers && strpos($headers[0], '200') !== false) {
+        $url = "https://" . $url;
+    } else {
+        $url = "https://" . $url;
+    }
 }
 
 $consumer_key = Html::encode($model->consumer_key);

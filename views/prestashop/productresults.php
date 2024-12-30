@@ -20,18 +20,30 @@ $this->params['breadcrumbs'][] = ['label' => Html::encode($ref)];
 
 $url = Html::encode($model->url);
 
-$headers = @get_headers("http://" . $url);
-if ($headers && strpos($headers[0], '200') !== false) {
-	$url = "https://" . $url;
+if (strpos($url, 'localhost') !== false) {
+	// Forcer HTTP pour localhost
+	$url = "http://" . $url;
 } else {
-	$url = "https://" . $url;
+	// Vérifier si le site est accessible en HTTP
+	$headers = @get_headers("http://" . $url);
+	if ($headers && strpos($headers[0], '200') !== false) {
+		$url = "https://" . $url;
+	} else {
+		$url = "https://" . $url;
+	}
 }
 
 $api = Html::encode($model->api_key);
 $ref = Html::encode($ref);
+$type = Html::encode($type);
+$variation_type = Html::encode($variation_type);
 
 
-if ($ref) {
+if (
+	isset($ref) && $ref != null
+	&& isset($type) && $type === 'simple'
+	&& isset($variation_type) && $variation_type == null
+) {
 	try {
 		// Connexion à l'API PrestaShop
 		$webService = new PrestaShopWebservice($url, $api, false);
@@ -39,7 +51,7 @@ if ($ref) {
 		$languageOpt = [
 			'resource' => 'languages',
 			'filter[iso_code]' => 'fr', // Filtrer par code ISO
-			'display'=> 'full',
+			'display' => 'full',
 		];
 		$languageXml = $webService->get($languageOpt);
 		$languages = $languageXml->languages->children();
@@ -59,7 +71,7 @@ if ($ref) {
 			'resource' => 'products',
 			'language' => $languageId, // Utiliser l'ID de la langue française
 			'filter[reference]' => $ref, // Filtrer par référence
-			'display'=> 'full',
+			'display' => 'full',
 		];
 
 		// Récupérer les produits depuis l'API
