@@ -254,9 +254,11 @@ elseif (
 							// En cas d'erreur lors de la récupération du parent
 							$productData['quantity'] = 'Erreur lors de la récupération';
 						}
+
+						//Envoi des données Final
 						$productList[] = $productData;
 
-						// Récupération des déclinaisons
+						// Récupération de la liste des déclinaisons
 						try {
 							$combOpt = [
 								'resource' => 'combinations',
@@ -296,7 +298,7 @@ elseif (
 									// En cas d'erreur lors de la récupération du parent
 									$combData['quantity'] = 'Erreur lors de la récupération';
 								}
-
+								//Envoi des données Final
 								$combinationList[] = $combData;
 							}
 						} catch (Exception $e) {
