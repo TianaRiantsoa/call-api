@@ -47,6 +47,8 @@ echo yii\widgets\DetailView::widget([
 	],
 ]);
 
+echo '<h2>Résultat de la recherche sur le produit rérérence : ' . $ref . ' du site ' . $url . '</h2>';
+
 //Produit simple
 if (
 	isset($ref) && $ref != null
@@ -106,14 +108,16 @@ if (
 					}
 
 					// Ajouter les produits valides au tableau
-					$productList[] = [
+					$productData = [
 						'id' => (int)$product->id,
 						'name' => (string)$product->name->language,
-						//'language' => $languageId,
 						'reference' => (string)$product->reference,
 						'price' => (float)$product->price,
-						// Ajoutez d'autres champs si nécessaire
 					];
+
+
+
+					$productList[] = $productData;
 				}
 			} else {
 				// Aucun produit trouvé
@@ -205,6 +209,7 @@ elseif (
 
 			// Initialiser la variable pour stocker les produits
 			$productList = [];
+			$combinationList = [];
 
 			// Vérifier si nous avons des produits
 			if (count($products) > 0) {
@@ -215,15 +220,88 @@ elseif (
 
 					// Vérifier si le produit n'est pas de type "simple" ou de type "combinations"
 					if ($productType !== 'simple' || $productTypeCheck === 'combinations') {
-
 						// Ajouter les produits valides au tableau
-						$productList[] = [
+						$productData = [
 							'id' => (int)$product->id,
 							'name' => (string)$product->name->language,
 							'reference' => (string)$product->reference,
 							'active' => (int)$product->active,
 							'price' => (float)$product->price,
+							'date_add' => (string)$product->date_add,
+							'date_upd' => (string)$product->date_upd,
 						];
+
+						//Récupération du stock su produit Parent, normalement il s'agit de la quantité total des délinaisons
+						try {
+							$stockOpt = [
+								'resource' => 'stock_availables',
+								'filter[id_product]' => (int)$product->id,
+								'filter[id_product_attribute]' => '0',
+								'display' => 'full',
+							];
+
+							// Récupérer le stock de la déclinaison
+							$stock = $webService->get($stockOpt);
+							$stockXML = $stock->stock_availables->children();
+
+							// Ajouter la référence parent si elle existe
+							foreach ($stockXML as $stocks) {
+								if (isset($stocks->quantity)) {
+									$productData['quantity'] = (string)$stocks->quantity;
+								}
+							}
+						} catch (Exception $e) {
+							// En cas d'erreur lors de la récupération du parent
+							$productData['quantity'] = 'Erreur lors de la récupération';
+						}
+						$productList[] = $productData;
+
+						// Récupération des déclinaisons
+						try {
+							$combOpt = [
+								'resource' => 'combinations',
+								'filter[id_product]' => (int)$product->id,
+								'display' => '[id,reference,price]',
+							];
+
+							$comb = $webService->get($combOpt);
+							$combXML = $comb->combinations->children();
+
+							foreach ($combXML as $combs) {
+								$combData = [
+									'id' => (int)$combs->id,
+									'reference' => (string)$combs->reference,
+									'price' => (float)$combs->price,
+								];
+
+								//Récupération du stock des déclinaisons
+								try {
+									$stockCombOpt = [
+										'resource' => 'stock_availables',
+										'filter[id_product_attribute]' => (int)$combs->id,
+										'display' => 'full',
+									];
+
+									// Récupérer le stock de la déclinaison
+									$stock = $webService->get($stockCombOpt);
+									$stockXML = $stock->stock_availables->children();
+
+									// Ajouter la référence parent si elle existe
+									foreach ($stockXML as $stocks) {
+										if (isset($stocks->quantity)) {
+											$combData['quantity'] = (string)$stocks->quantity;
+										}
+									}
+								} catch (Exception $e) {
+									// En cas d'erreur lors de la récupération du parent
+									$combData['quantity'] = 'Erreur lors de la récupération';
+								}
+
+								$combinationList[] = $combData;
+							}
+						} catch (Exception $e) {
+							//throw $th;
+						}
 					} else {
 
 						// Ajouter un message flash spécifique
@@ -246,7 +324,7 @@ elseif (
 		/* 
 		TRAITEMENT DES DONNEES
 		*/
-
+		echo '<h3>Détails du produit parent</h3>';
 		// Si des produits sont trouvés et valides, afficher le GridView
 		if (!empty($productList)) {
 			echo GridView::widget([
@@ -257,9 +335,42 @@ elseif (
 					],
 				]),
 				'columns' => [
-					'id',
-					'reference',
-					'name',					
+					[
+						'attribute' => 'id',
+						'label' => 'ID Produit',
+						'format' => 'raw',
+						'value' => function ($model) use ($url, $api) {
+							return Html::a(
+								$model['id'],
+								$url . "/api/products/{$model['id']}?&ws_key=" . $api,
+								['target' => '_blank', 'encode' => false]
+							);
+						}
+					],
+					[
+						'attribute' => 'reference',
+						'label' => 'Référence',
+						'format' => 'raw',
+						'value' => function ($model) use ($url, $api) {
+							return Html::a(
+								$model['reference'],
+								$url . "/api/products/{$model['id']}?&ws_key=" . $api,
+								['target' => '_blank', 'encode' => false]
+							);
+						}
+					],
+					[
+						'attribute' => 'name',
+						'label' => 'Nom du produit',
+						'format' => 'raw',
+						'value' => function ($model) use ($url, $api) {
+							return Html::a(
+								$model['name'],
+								$url . "/api/products/{$model['id']}?&ws_key=" . $api,
+								['target' => '_blank', 'encode' => false]
+							);
+						}
+					],
 					[
 						'attribute' => 'active',
 						'label' => 'Statut',
@@ -267,7 +378,72 @@ elseif (
 							return isset($model['active']) && $model['active'] ? 'Actif' : 'Inactif';
 						},
 					],
-					'price',
+					[
+						'attribute' => 'price',
+						'value' => function ($model) {
+							return Yii::$app->formatter->asCurrency($model['price'], 'EUR');
+						},
+						'label' => 'Prix',
+					],
+					[
+						'attribute' => 'quantity',
+						'label' => 'Total en stock',
+					],
+					[
+						'attribute' => 'date_add',
+						'value' => function ($model) {
+							$date = is_array($model) ? $model['date_add'] : $model->date_add;
+							return Yii::$app->formatter->asDatetime($date, 'php:d/m/Y H:i:s');
+						},
+						'label' => 'Création',  // Nouveau nom de la colonne
+					],
+					[
+						'attribute' => 'date_upd',
+						'value' => function ($model) {
+							$date = is_array($model) ? $model['date_upd'] : $model->date_upd;
+							return Yii::$app->formatter->asDatetime($date, 'php:d/m/Y H:i:s');
+						},
+						'label' => 'Mise à jour',  // Nouveau nom de la colonne
+					],
+				],
+			]);
+		}
+
+		echo '<h3>Liste des déclinaisons</h3>';
+		// Si des produits sont trouvés et valides, afficher le GridView
+		if (!empty($combinationList)) {
+			echo GridView::widget([
+				'dataProvider' => new ArrayDataProvider([
+					'allModels' => $combinationList,
+					'pagination' => [
+						'pageSize' => 10,
+					],
+				]),
+				'columns' => [
+					'id',
+					[
+						'attribute' => 'reference',
+						'label' => 'Référence de la déclinaison',
+						'format' => 'raw',
+						'value' => function ($model) use ($url, $api, $db_id) {
+							return Html::a(
+								$model['reference'],
+								'?id=' . $db_id . '&ref=' . $model['reference'] . '&type=variation&variation_type=child',
+								['target' => '_blank', 'encode' => false]
+							);
+						}
+					],
+					[
+						'attribute' => 'price',
+						'value' => function ($model) {
+							return Yii::$app->formatter->asCurrency($model['price'], 'EUR');
+						},
+						'label' => 'Prix',
+					],
+					[
+						'attribute' => 'quantity',
+						'label' => 'Quantité en stock',
+					],
 				],
 			]);
 		}

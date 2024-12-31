@@ -36,6 +36,16 @@ if (isset($type) && $type == 'court') {
   echo 'Erreur sur ne numéro saisi';
 }
 
+echo yii\widgets\DetailView::widget([
+  'model' => $model,
+  'attributes' => [
+      'url',
+      'api_key',
+      'password',
+      'secret_key',
+  ],
+]);
+
 $query = <<<QUERY
   query {
     orders(query: "$q", first: 10) {

@@ -37,6 +37,14 @@ $api = Html::encode($model->api_key);
 $ref = Html::encode($ref);
 $db_id = $model->id;
 
+echo yii\widgets\DetailView::widget([
+	'model' => $model,
+	'attributes' => [
+		'url:url',
+		'api_key',
+	],
+]);
+
 
 try {
     // Initialiser la connexion à l'API PrestaShop
