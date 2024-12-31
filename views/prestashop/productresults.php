@@ -548,7 +548,7 @@ elseif (
 							}
 						} catch (Exception $e) {
 							// En cas d'erreur lors de la récupération du parent
-							$combinationData['quantity'] = 'Erreur lors de la récupération';
+							$combinationData['quantity'] = 'Erreur lors de la récupération' . $e->getMessage();
 						}
 					} catch (Exception $e) {
 						// En cas d'erreur lors de la récupération du parent
