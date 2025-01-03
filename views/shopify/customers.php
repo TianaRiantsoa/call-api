@@ -15,13 +15,13 @@ $this->params['breadcrumbs'][] = 'Recherche de commande';
 <div class="shopify-customers-form">
     <?php $form = ActiveForm::begin(); ?>
 
-    <?= $form->field($model, 'url')->textInput(['maxlength' => true])->hiddenInput() ?>
+    <?= $form->field($model, 'url')->textInput(['maxlength' => true])->hiddenInput()->label(false) ?>
 
-    <?= $form->field($model, 'api_key')->textInput(['maxlength' => true])->hiddenInput() ?>
+    <?= $form->field($model, 'api_key')->textInput(['maxlength' => true])->hiddenInput()->label(false) ?>
 
-    <?= $form->field($model, 'password')->textInput(['maxlength' => true])->hiddenInput() ?>
+    <?= $form->field($model, 'password')->textInput(['maxlength' => true])->hiddenInput()->label(false) ?>
 
-    <?= $form->field($model, 'secret_key')->textInput(['maxlength' => true])->hiddenInput() ?>
+    <?= $form->field($model, 'secret_key')->textInput(['maxlength' => true])->hiddenInput()->label(false) ?>
 
     <?= $form->field($mod, 'ref')->textInput([
         'maxlength' => true,

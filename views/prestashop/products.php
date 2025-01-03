@@ -23,9 +23,9 @@ echo yii\widgets\DetailView::widget([
 <div class="prestashop-products-form">
     <?php $form = ActiveForm::begin(); ?>
 
-    <?= $form->field($model, 'url')->textInput(['maxlength' => true])->hiddenInput() ?>
+    <?= $form->field($model, 'url')->textInput(['maxlength' => true])->hiddenInput()->label(false) ?>
 
-    <?= $form->field($model, 'api_key')->textInput(['maxlength' => true])->hiddenInput() ?>
+    <?= $form->field($model, 'api_key')->textInput(['maxlength' => true])->hiddenInput()->label(false) ?>
 
     <div class="form-group">
         <!-- Radio principal -->
