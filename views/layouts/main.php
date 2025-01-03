@@ -33,6 +33,9 @@ $this->registerLinkTag(['rel' => 'icon', 'type' => 'image/x-icon', 'href' => Yii
         .navbar_brand img {
             width: 120px !important;
         }
+        nav.bg-dark{
+            background-color: #5c5c5c !important;
+        }
     </style>
     <link rel="stylesheet" href="https://d11lu0htm9h2oc.cloudfront.net/back/v2/css/v1.17.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>

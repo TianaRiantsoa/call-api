@@ -9,7 +9,8 @@ use Codeception\Stub\ConsecutiveMap;
 use Codeception\Stub\StubMarshaler;
 use Exception;
 use LogicException;
-use PHPUnit\Framework\MockObject\Generator;
+use PHPUnit\Framework\MockObject\Generator as LegacyGenerator;
+use PHPUnit\Framework\MockObject\Generator\Generator;
 use PHPUnit\Framework\MockObject\MockObject as PHPUnitMockObject;
 use PHPUnit\Framework\MockObject\Rule\AnyInvokedCount;
 use PHPUnit\Framework\MockObject\Stub\ConsecutiveCalls;
@@ -414,7 +415,24 @@ class Stub
 
     private static function generateMock()
     {
-        return self::doGenerateMock(func_get_args());
+        $args = func_get_args();
+        if (version_compare(PHPUnitVersion::series(), '11', '>=')) {
+            if (!is_bool($args[1]) || !is_bool($args[2])) {
+                $additionalParameters = [];
+                if (!is_bool($args[1])) {
+                    $additionalParameters[] = true;
+                }
+                if (!is_bool($args[2])) {
+                    $additionalParameters[] = true;
+                }
+
+                array_splice($args, 1, 0, $additionalParameters);
+            }
+        } elseif (version_compare(PHPUnitVersion::series(), '10.4', '>=') && !is_bool($args[1])) {
+            array_splice($args, 1, 0, [true]);
+        }
+
+        return self::doGenerateMock($args);
     }
 
     /**
@@ -432,21 +450,28 @@ class Stub
     private static function doGenerateMock($args, $isAbstract = false)
     {
         $testCase = self::extractTestCaseFromArgs($args);
-        $methodName = $isAbstract ? 'getMockForAbstractClass' : 'getMock';
-        $generatorClass = new Generator;
 
-        // using PHPUnit 5.4 mocks registration
-        if (version_compare(PHPUnitVersion::series(), '5.4', '>=')
-            && $testCase instanceof PHPUnitTestCase
-        ) {
-            $mock = call_user_func_array([$generatorClass, $methodName], $args);
-            $testCase->registerMockObject($mock);
-            return $mock;
+        // PHPUnit 10.4 changed method names
+        if (version_compare(PHPUnitVersion::series(), '10.4', '>=')) {
+            $methodName = $isAbstract ? 'mockObjectForAbstractClass' : 'testDouble';
+        } else {
+            $methodName = $isAbstract ? 'getMockForAbstractClass' : 'getMock';
         }
+
+        // PHPUnit 10.3 changed the namespace
+        if (version_compare(PHPUnitVersion::series(), '10.3', '>=')) {
+            $generatorClass = new Generator();
+        } else {
+            $generatorClass = new LegacyGenerator();
+        }
+
+        $mock = call_user_func_array([$generatorClass, $methodName], $args);
+
         if ($testCase instanceof PHPUnitTestCase) {
-            $generatorClass = $testCase;
+            $testCase->registerMockObject($mock);
         }
-        return call_user_func_array([$generatorClass, $methodName], $args);
+
+        return $mock;
     }
 
     private static function extractTestCaseFromArgs(&$args)

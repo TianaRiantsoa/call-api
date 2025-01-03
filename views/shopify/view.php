@@ -33,12 +33,10 @@ $this->params['breadcrumbs'][] = $this->title;
         ],
     ]) ?>
 
-    <div class="row ${1| ,row-cols-2,row-cols-3, auto,justify-content-md-center,|}">
-        <b5-col>
-            <?= Html::a('Recherche de produit', ['products', 'id' => $model->id], ['class' => 'btn btn-outline-primary btn-sm mx-3']) ?>
-            <?= Html::a('Recherche de commande', ['orders', 'id' => $model->id], ['class' => 'btn btn-outline-primary btn-sm mx-3']) ?>
-            <?= Html::a('Recherche de client', ['customers', 'id' => $model->id], ['class' => 'btn btn-outline-primary btn-sm mx-3']) ?>
-        </b5-col>
+    <div style="display: flex; justify-content: center; gap: 20px;">
+        <?= Html::a('Recherche de produit', ['products', 'id' => $model->id], ['class' => 'btn btn-outline-primary btn-sm mx-3']) ?>
+        <?= Html::a('Recherche de commande', ['orders', 'id' => $model->id], ['class' => 'btn btn-outline-primary btn-sm mx-3']) ?>
+        <?= Html::a('Recherche de client', ['customers', 'id' => $model->id], ['class' => 'btn btn-outline-primary btn-sm mx-3']) ?>
     </div>
 
 </div>

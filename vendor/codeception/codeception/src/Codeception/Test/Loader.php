@@ -68,7 +68,7 @@ class Loader
 
         $this->formats = [
             new CeptLoader(),
-            new CestLoader(),
+            new CestLoader($suiteSettings),
             new UnitLoader(),
             new GherkinLoader($suiteSettings)
         ];
@@ -106,6 +106,9 @@ class Loader
 
     private function splitTestsIntoChunks(int $chunks): array
     {
+        if (empty($this->tests)) {
+            return [];
+        }
         return array_chunk($this->tests, intval(ceil(sizeof($this->tests) / $chunks)));
     }
 

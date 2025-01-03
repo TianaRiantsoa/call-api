@@ -1,6 +1,89 @@
 Yii Framework 2 Change Log
 ==========================
 
+2.0.51 July 18, 2024
+--------------------
+
+- Bug #16116: Codeception: oci does not support enabling/disabling integrity check (@terabytesoftw)
+- Bug #20147: Fix error handler compatibility with PHP 8.3 (samdark)
+- Bug #20191: Fix `ActiveRecord::getDirtyAttributes()` for JSON columns with multi-dimensional array values (brandonkelly)
+- Bug #20195: Do not set non abstract values into `ColumnSchema->type` on MSSQL version less then 2017 (axeltomasson)
+- Bug #20211: Add acceptable parameters to `MaskedInput::init()` method (alxlnk)
+- Bug #20226: Revert all PR for "Data providers perform unnecessary COUNT queries that negatively affect performance" (@terabytesoftw)
+- Bug #20230: Fix getting ID in `\yii\filters\Cors::actions()` when attached to a module (timkelty)
+
+
+2.0.50 May 30, 2024
+-------------------
+
+- Bug #13920: Fixed erroneous validation for specific cases (tim-fischer-maschinensucher)
+- Bug #17181: Improved `BaseUrl::isRelative($url)` performance (sammousa, bizley, rob006)
+- Bug #17191: Fixed `BaseUrl::isRelative($url)` method in `yii\helpers\BaseUrl` (ggh2e3)
+- Bug #18469: Fixed `Link::serialize(array $links)` method in `yii\web\Link` (ggh2e3)
+- Bug #19060: Fix `yii\widgets\Menu` bug when using Closure for active item and adding additional tests in `tests\framework\widgets\MenuTest` (atrandafir)
+- Bug #19691: Allow using custom class to style error summary (skepticspriggan)
+- Bug #19817: Add MySQL Query `addCheck()` and `dropCheck()` (@bobonov)
+- Bug #19855: Fixed `yii\validators\FileValidator` to not limit some of its rules only to array attribute (bizley)
+- Bug #19927: Fixed `console\controllers\MessageController` when saving translations to database: fixed FK error when adding new string and language at the same time, checking/regenerating all missing messages and dropping messages for unused languages (atrandafir)
+- Bug #20002: Fixed superfluous query on HEAD request in serializer (xicond)
+- Bug #20005: Fix `yii\console\controllers\ServeController` to specify the router script (terabytesoftw)
+- Bug #20040: Fix type `boolean` in `MSSQL` (terabytesoftw)
+- Bug #20055: Fix Response header X-Pagination-Total-Count is always 0 (lav45, xicond)
+- Bug #20083: Fix deprecated warning implicit conversion from float (skepticspriggan)
+- Bug #20122: Fixed parsing of boolean keywords (e.g. used in SQLite) in `\yii\db\ColumnSchema::typecast()` (rhertogh)
+- Bug #20141: Update `ezyang/htmlpurifier` dependency to version `4.17` (@terabytesoftw)
+- Bug #20165: Adjust pretty name of closures for PHP 8.4 compatibility (@staabm)
+- Bug: CVE-2024-32877, Fix Reflected XSS in Debug mode (Antiphishing)
+- Bug: CVE-2024-4990, Fix Unsafe Reflection in base Component class (@mtangoo)
+- Enh #12743: Added new methods `BaseActiveRecord::loadRelations()` and `BaseActiveRecord::loadRelationsFor()` to eager load related models for existing primary model instances (PowerGamer1)
+- Enh #20030: Improve performance of handling `ErrorHandler::$memoryReserveSize` (antonshevelev, rob006)
+- Enh #20032: Added `yii\helpers\BaseStringHelper::mask()` method for string masking with multibyte support (salehhashemi1992)
+- Enh #20034: Added `yii\helpers\BaseStringHelper::findBetween()` to retrieve a substring that lies between two strings (salehhashemi1992)
+- Enh #20042: Add empty array check to `ActiveQueryTrait::findWith()` (renkas)
+- Enh #20087: Add custom attributes to script tags (skepticspriggan)
+- Enh #20121: Added `yiisoft/yii2-coding-standards` to composer `require-dev` and lint code to comply with PSR12 (razvanphp)
+- Enh #20134: Raise minimum `PHP` version to `7.3` (@terabytesoftw)
+- Enh #20171: Support JSON columns for MariaDB 10.4 or higher (@terabytesoftw)
+- New #20137: Added `yii\caching\CallbackDependency` to allow using a callback to determine if a cache dependency is still valid (laxity7)
+
+
+2.0.49.2 October 12, 2023
+-------------------------
+
+- Bug #19925: Improved PHP version check when handling MIME types (schmunk42)
+
+
+2.0.49.1 October 05, 2023
+-------------------------
+
+- Bug #19940: File Log writer without newline (terabytesoftw)
+- Bug #19950: Fix `Query::groupBy(null)` causes error for PHP 8.1: `trim(): Passing null to parameter #1 ($string) of type string is deprecated` (uaoleg)
+- Bug #19951: Removed unneeded MIME file tests (schmunk42)
+- Bug #19984: Do not duplicate log messages in memory (lubosdz)
+- Enh #19780: added pcntl to requirements check (schmunk42)
+
+
+2.0.49 August 29, 2023
+----------------------
+
+- Bug #9899: Fix caching a MSSQL query with BLOB data type (terabytesoftw)
+- Bug #16208: Fix `yii\log\FileTarget` to not export empty messages (terabytesoftw)
+- Bug #18859: Fix `yii\web\Controller::bindInjectedParams()` to not throw error when argument of `ReflectionUnionType` type is passed (bizley)
+- Bug #19857: Fix AttributeTypecastBehavior::resetOldAttributes() causes "class has no attribute named" InvalidArgumentException (uaoleg)
+- Bug #19868: Added whitespace sanitation for tests, due to updates in ICU 72 (schmunk42)
+- Bug #19872: Fixed the definition of dirty attributes in AR properties for a non-associative array in case of changing the order of elements (eegusakov)
+- Bug #19899: Fixed `GridView` in some cases calling `Model::generateAttributeLabel()` to generate label values that are never used (PowerGamer1)
+- Bug #19906: Fixed multiline strings in the `\yii\console\widgets\Table` widget (rhertogh)
+- Bug #19908: Fix associative array cell content rendering in Table widget (rhertogh)
+- Bug #19911: Resolved inconsistency in `ActiveRecord::getAttributeLabel()` with regard of overriding in primary model labels for attributes of related model in favor of allowing such overriding for all levels of relation nesting (PowerGamer1)
+- Bug #19914: Fixed `ArrayHelper::keyExists()` and  `::remove()` functions when the key is a float and the value is `null` (rhertogh)
+- Bug #19924: Fix `yii\i18n\Formatter` to not throw error `Unknown named parameter` under PHP 8 (arollmann)
+- Enh #19841: Allow jQuery 3.7 to be installed (wouter90)
+- Enh #19853: Added support for default value for `\yii\helpers\Console::select()` (rhertogh)
+- Enh #19884: Added support Enums in Query Builder (sk1t0n)
+- Enh #19920: Broadened the accepted type of `Cookie::$expire` from `int` to `int|string|\DateTimeInterface|null` (rhertogh)
+
+
 2.0.48.1 May 24, 2023
 ---------------------
 

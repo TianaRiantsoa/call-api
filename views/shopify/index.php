@@ -62,15 +62,12 @@ $this->params['breadcrumbs'][] = $this->title;
                     return Html::a($model->secret_key, ['view', 'id' => $model->id], ['target' => '_blank']);
                 },
             ],
-            [
-                'header' => 'Action',
-                'class' => ActionColumn::className(),
-                'urlCreator' => function ($action, Shopify $model, $key, $index, $column) {
-                    return Url::toRoute([$action, 'id' => $model->id]);
-                }
-            ],
         ],
-    ]); ?>
+        'pager' => [
+            'options' => ['class' => 'pagination justify-content-center'], // Classe Bootstrap
+        ],
+    ]);
+    ?>
 
     <?php Pjax::end(); ?>
 

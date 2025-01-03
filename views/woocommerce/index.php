@@ -1,19 +1,19 @@
 <?php
 
-    use app\models\Woocommerce;
-    use yii\helpers\Html;
-    use yii\helpers\Url;
-    use yii\grid\ActionColumn;
-    use yii\grid\GridView;
-    use yii\widgets\Pjax;
+use app\models\Woocommerce;
+use yii\helpers\Html;
+use yii\helpers\Url;
+use yii\grid\ActionColumn;
+use yii\grid\GridView;
+use yii\widgets\Pjax;
 
-    /** @var yii\web\View $this */
-    /** @var app\models\WoocommerceSearch $searchModel */
-    /** @var yii\data\ActiveDataProvider $dataProvider */
+/** @var yii\web\View $this */
+/** @var app\models\WoocommerceSearch $searchModel */
+/** @var yii\data\ActiveDataProvider $dataProvider */
 
-    $this->title = 'Woocommerce';
-    $this->params['breadcrumbs'][] = $this->title;
-    ?>
+$this->title = 'Woocommerce';
+$this->params['breadcrumbs'][] = $this->title;
+?>
 <div class="woocommerce-index">
 
     <h1><?= Html::encode($this->title) ?></h1>
@@ -53,15 +53,12 @@
                     return Html::a($model->consumer_secret, ['view', 'id' => $model->id], ['target' => '_blank']);
                 },
             ],
-            [
-                'header' => 'Action',
-                'class' => ActionColumn::className(),
-                'urlCreator' => function ($action, Woocommerce $model, $key, $index, $column) {
-                    return Url::toRoute([$action, 'id' => $model->id]);
-                }
-            ],
         ],
-    ]); ?>
+        'pager' => [
+            'options' => ['class' => 'pagination justify-content-center'], // Classe Bootstrap
+        ],
+    ]);
+    ?>
 
     <?php Pjax::end(); ?>
 
