@@ -842,7 +842,7 @@ elseif (
 							if ($model['id_customer'] !== 0) {
 								return Html::a(
 									$model['id_customer'],
-									$url . "/api/groups/{$model['id_customer']}?&ws_key=" . $api,
+									$url . "/api/customers/{$model['id_customer']}?&ws_key=" . $api,
 									['target' => '_blank', 'encode' => false]
 								);
 							}
