@@ -665,7 +665,7 @@ elseif (
 						'value' => function ($model) use ($url, $api) {
 							return Html::a(
 								$model['id'],
-								$url . "/api/combinations/{$model['id']}?&ws_key=" . $api,
+								$url . "/api/combinations/{$model['id']}?ws_key=" . $api,
 								['target' => '_blank', 'encode' => false]
 							);
 						}
@@ -693,7 +693,7 @@ elseif (
 						'value' => function ($model) use ($url, $api) {
 							return Html::a(
 								$model['reference'],
-								$url . "/api/combinations/{$model['id']}?&ws_key=" . $api,
+								$url . "/api/combinations/{$model['id']}?ws_key=" . $api,
 								['target' => '_blank', 'encode' => false]
 							);
 						}
@@ -760,7 +760,7 @@ elseif (
 						'value' => function ($model) use ($url, $api) {
 							return Html::a(
 								$model['id'],
-								$url . "/api/specific_prices/{$model['id']}?&ws_key=" . $api,
+								$url . "/api/specific_prices/{$model['id']}?ws_key=" . $api,
 								['target' => '_blank', 'encode' => false]
 							);
 						}
@@ -772,7 +772,7 @@ elseif (
 						'value' => function ($model) use ($url, $api) {
 							return Html::a(
 								$model['id_product'],
-								$url . "/api/products/{$model['id_product']}?&ws_key=" . $api,
+								$url . "/api/products/{$model['id_product']}?ws_key=" . $api,
 								['target' => '_blank', 'encode' => false]
 							);
 						}
@@ -785,7 +785,7 @@ elseif (
 							if ($model['id_product_attribute'] !== 0) {
 								return Html::a(
 									$model['id_product_attribute'],
-									$url . "/api/combinations/{$model['id_product_attribute']}?&ws_key=" . $api,
+									$url . "/api/combinations/{$model['id_product_attribute']}?ws_key=" . $api,
 									['target' => '_blank', 'encode' => false]
 								);
 							}
@@ -837,7 +837,7 @@ elseif (
 							if ($model['id_group'] !== 0) {
 								return Html::a(
 									$model['id_group'],
-									$url . "/api/groups/{$model['group_id']}?&ws_key=" . $api,
+									$url . "/api/groups/{$model['group_id']}?ws_key=" . $api,
 									['target' => '_blank', 'encode' => false]
 								);
 							}
@@ -851,7 +851,7 @@ elseif (
 							if ($model['id_customer'] !== 0) {
 								return Html::a(
 									$model['id_customer'],
-									$url . "/api/customers/{$model['id_customer']}?&ws_key=" . $api,
+									$url . "/api/customers/{$model['id_customer']}?ws_key=" . $api,
 									['target' => '_blank', 'encode' => false]
 								);
 							}
