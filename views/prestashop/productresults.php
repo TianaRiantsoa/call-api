@@ -113,9 +113,7 @@ if (
 						'name' => (string)$product->name->language,
 						'reference' => (string)$product->reference,
 						'price' => (float)$product->price,
-					];
-
-
+					];		
 
 					$productList[] = $productData;
 				}
@@ -134,7 +132,7 @@ if (
 		/* 
 		TRAITEMENT DES DONNEES
 		*/
-
+		echo '<h3>Détails du Produit</h3>';
 		// Si des produits sont trouvés et valides, afficher le GridView
 		if (!empty($productList)) {
 			echo GridView::widget([
@@ -746,7 +744,6 @@ elseif (
 		}
 
 		echo '<h3>Tarifs spécifiques</h3>';
-		// Si des produits sont trouvés et valides, afficher le GridView
 		if (!empty($tarifList)) {
 			echo GridView::widget([
 				'dataProvider' => new ArrayDataProvider([
