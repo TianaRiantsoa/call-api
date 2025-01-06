@@ -603,11 +603,23 @@ elseif (
 						$tarifXML = $tarif->specific_prices->children();
 
 						foreach ($tarifXML as $tarifItem) {
+							$groupOpt = [
+								'resource' => 'groups',
+								'id' => (int) $tarifItem->id_group,
+								'language' => $languageId,
+							];
+
+							$group = $webService->get($groupOpt);
+							$groupXML = $group->group;
+
+							$groupname = $groupXML->name->language;
+
 							$tarifList[] = [
 								'id' => (int) $tarifItem->id,
 								'id_product' => (int) $tarifItem->id_product,
 								'id_product_attribute' => (int) $tarifItem->id_product_attribute,
-								'id_group' => (int) $tarifItem->id_group,
+								'group_id' => (int) $tarifItem->id_group,
+								'id_group' => (int) $tarifItem->id_group . " (" . $groupname . ")",
 								'id_customer' => (int) $tarifItem->id_customer,
 								'price' => (float) $tarifItem->price,
 								'from' => (string) $tarifItem->from,
@@ -828,7 +840,7 @@ elseif (
 							if ($model['id_group'] !== 0) {
 								return Html::a(
 									$model['id_group'],
-									$url . "/api/groups/{$model['id_group']}?&ws_key=" . $api,
+									$url . "/api/groups/{$model['group_id']}?&ws_key=" . $api,
 									['target' => '_blank', 'encode' => false]
 								);
 							}
