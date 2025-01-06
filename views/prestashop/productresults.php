@@ -662,6 +662,31 @@ elseif (
 			]);
 		}
 
+		// Associer les prix des combinaisons à leurs IDs pour une correspondance rapide
+		$combinationPrices = [];
+		foreach ($combinationList as $combination) {
+			$combinationPrices[$combination['id']] = $combination['price'];
+		}
+
+		// Calculer les différences pour les tarifs spécifiques
+		foreach ($tarifList as &$tarif) {
+			$combinationPrice = $combinationPrices[$tarif['id_product_attribute']] ?? null;
+
+			if ($combinationPrice !== null) {
+				// Calculer les différences
+				$differenceAmount = $tarif['price'] - $combinationPrice;
+				$differencePercentage = $combinationPrice != 0 ? ($differenceAmount / $combinationPrice) * 100 : 0;
+
+				// Ajouter les résultats dans les données
+				$tarif['difference_amount'] = $differenceAmount;
+				$tarif['difference_percentage'] = $differencePercentage;
+			} else {
+				// Si aucune correspondance n'est trouvée
+				$tarif['difference_amount'] = 'N/A';
+				$tarif['difference_percentage'] = 'N/A';
+			}
+		}
+
 		echo '<h3>Tarifs spécifiques</h3>';
 		// Si des produits sont trouvés et valides, afficher le GridView
 		if (!empty($tarifList)) {
@@ -718,10 +743,40 @@ elseif (
 						},
 						'label' => 'Prix',
 					],
+					[
+						'attribute' => 'difference_amount',
+						'label' => 'Différence €',
+						'format' => 'raw',
+						'value' => function ($model) {
+							$value = is_numeric($model['difference_amount'])
+								? Yii::$app->formatter->asCurrency($model['difference_amount'], 'EUR')
+								: $model['difference_amount'];
+
+							// Ajouter le style rouge
+							return "<span style='color: red;'>{$value}</span>";
+						},
+						'contentOptions' => function ($model) {
+							// Applique la couleur rouge uniquement si la différence est un pourcentage valide
+							return ['style' => 'color: red;'];
+						},
+					],
+					[
+						'attribute' => 'difference_percentage',
+						'label' => 'Différence %',
+						'format' => 'raw',
+						'value' => function ($model) {
+							$value = is_numeric($model['difference_percentage'])
+								? Yii::$app->formatter->asPercent($model['difference_percentage'] / 100, 2)
+								: $model['difference_percentage'];
+
+							// Ajouter le style rouge
+							return "<span style='color: red;'>{$value}</span>";
+						},
+					],
 
 					[
 						'attribute' => 'id_group',
-						'label' => 'Groupe client',
+						'label' => 'Groupe de client',
 						'format' => 'raw',
 						'value' => function ($model) use ($url, $api) {
 							if ($model['id_group'] !== 0) {
