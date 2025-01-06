@@ -72,6 +72,56 @@ class PrestashopController extends Controller
      * If creation is successful, the browser will be redirected to the 'view' page.
      * @return string|\yii\web\Response
      */
+    // public function actionCreate()
+    // {
+    //     $model = new Prestashop();
+
+    //     if ($this->request->isPost) {
+    //         if ($model->load($this->request->post())) {
+    //             // Vérifier si des enregistrements existent déjà pour l'URL et la clé API
+    //             $existingUrlRecord = Prestashop::find()->where(['url' => $model->url])->one();
+    //             $existingApiKeyRecord = Prestashop::find()->where(['api_key' => $model->api_key])->one();
+
+    //             // Les deux champs existent : afficher une erreur avec les détails
+    //             if ($existingUrlRecord && $existingApiKeyRecord) {
+    //                 Yii::$app->session->setFlash(
+    //                     'error',
+    //                     "Un enregistrement avec cette URL et cette clé API existe déjà. Détails :<br>" .
+    //                         "ID : {$existingUrlRecord->id}, URL : {$existingUrlRecord->url}, Clé API : {$existingUrlRecord->api_key}."
+    //                 );
+    //             } else {
+    //                 // Sauvegarder la donnée, mais inclure les détails si une des deux valeurs existe déjà
+    //                 if ($model->save()) {
+    //                     if ($existingUrlRecord) {
+    //                         Yii::$app->session->setFlash(
+    //                             'warning',
+    //                             "La donnée a été créée, mais l’URL existe déjà dans un autre enregistrement. Détails :<br>" .
+    //                                 "ID : {$existingUrlRecord->id}, URL : {$existingUrlRecord->url}, Clé API : {$existingUrlRecord->api_key}."
+    //                         );
+    //                     } elseif ($existingApiKeyRecord) {
+    //                         Yii::$app->session->setFlash(
+    //                             'warning',
+    //                             "La donnée a été créée, mais la Clé API existe déjà dans un autre enregistrement. Détails :<br>" .
+    //                                 "ID : {$existingApiKeyRecord->id}, URL : {$existingApiKeyRecord->url}, Clé API : {$existingApiKeyRecord->api_key}."
+    //                         );
+    //                     } else {
+    //                         Yii::$app->session->setFlash('success', 'L’enregistrement a été créé avec succès.');
+    //                     }
+    //                     return $this->redirect(['view', 'id' => $model->id]);
+    //                 } else {
+    //                     Yii::$app->session->setFlash('error', 'Une erreur est survenue lors de la sauvegarde.');
+    //                 }
+    //             }
+    //         }
+    //     } else {
+    //         $model->loadDefaultValues();
+    //     }
+
+    //     return $this->render('create', [
+    //         'model' => $model,
+    //     ]);
+    // }
+
     public function actionCreate()
     {
         $model = new Prestashop();
@@ -89,6 +139,8 @@ class PrestashopController extends Controller
                         "Un enregistrement avec cette URL et cette clé API existe déjà. Détails :<br>" .
                             "ID : {$existingUrlRecord->id}, URL : {$existingUrlRecord->url}, Clé API : {$existingUrlRecord->api_key}."
                     );
+                    // Envoi de la notification Slack pour l'erreur
+                    $this->sendSlackNotification('error', "Un enregistrement avec cette URL et cette clé API existe déjà. Détails : ID : {$existingUrlRecord->id}, URL : {$existingUrlRecord->url}, Clé API : {$existingUrlRecord->api_key}.");
                 } else {
                     // Sauvegarder la donnée, mais inclure les détails si une des deux valeurs existe déjà
                     if ($model->save()) {
@@ -98,18 +150,26 @@ class PrestashopController extends Controller
                                 "La donnée a été créée, mais l’URL existe déjà dans un autre enregistrement. Détails :<br>" .
                                     "ID : {$existingUrlRecord->id}, URL : {$existingUrlRecord->url}, Clé API : {$existingUrlRecord->api_key}."
                             );
+                            // Envoi de la notification Slack pour l'avertissement
+                            $this->sendSlackNotification('warning', "La donnée a été créée, mais l’URL existe déjà dans un autre enregistrement. Détails : ID : {$existingUrlRecord->id}, URL : {$existingUrlRecord->url}, Clé API : {$existingUrlRecord->api_key}.");
                         } elseif ($existingApiKeyRecord) {
                             Yii::$app->session->setFlash(
                                 'warning',
                                 "La donnée a été créée, mais la Clé API existe déjà dans un autre enregistrement. Détails :<br>" .
                                     "ID : {$existingApiKeyRecord->id}, URL : {$existingApiKeyRecord->url}, Clé API : {$existingApiKeyRecord->api_key}."
                             );
+                            // Envoi de la notification Slack pour l'avertissement
+                            $this->sendSlackNotification('warning', "La donnée a été créée, mais la Clé API existe déjà dans un autre enregistrement. Détails : ID : {$existingApiKeyRecord->id}, URL : {$existingApiKeyRecord->url}, Clé API : {$existingApiKeyRecord->api_key}.");
                         } else {
                             Yii::$app->session->setFlash('success', 'L’enregistrement a été créé avec succès.');
+                            // Envoi de la notification Slack pour le succès
+                            $this->sendSlackNotification('success', "L’enregistrement a été créé avec succès. ID : {$model->id}, URL : {$model->url}, API : {$model->api_key}");
                         }
                         return $this->redirect(['view', 'id' => $model->id]);
                     } else {
                         Yii::$app->session->setFlash('error', 'Une erreur est survenue lors de la sauvegarde.');
+                        // Envoi de la notification Slack pour l'erreur
+                        $this->sendSlackNotification('error', 'Une erreur est survenue lors de la sauvegarde.');
                     }
                 }
             }
@@ -184,7 +244,7 @@ class PrestashopController extends Controller
         $mod = new PrestashopProduct();
 
         if ($this->request->isPost && $model->load($this->request->post()) && $mod->load($this->request->post())) {
-            return $this->redirect(['productresults', 'id' => $model->id, 'ref' => $mod->ref, 'type' => $mod->type,'variation_type' => $mod->variation_type]);
+            return $this->redirect(['productresults', 'id' => $model->id, 'ref' => $mod->ref, 'type' => $mod->type, 'variation_type' => $mod->variation_type]);
         }
 
         return $this->render('products', [
@@ -259,5 +319,51 @@ class PrestashopController extends Controller
             'model' => $model,
             'ref' => $ref,
         ]);
+    }
+
+    private function sendSlackNotification($status, $message)
+    {
+        // Définir les éléments à ajouter en fonction du type de message
+        if ($status === 'error') {
+            $emoji = '❌❌❌'; // 3 X rouges pour l'erreur
+            $title = 'ERREUR';
+            $color = 'danger'; // Rouge
+        } elseif ($status === 'warning') {
+            $emoji = '⚠️⚠️⚠️'; // 3 panneaux jaunes pour l'alerte
+            $title = 'ALERTE';
+            $color = 'warning'; // Jaune
+        } elseif ($status === 'success') {
+            $emoji = '✅✅✅'; // 3 carrés verts avec le signe de validation pour le succès
+            $title = 'SUCCÈS';
+            $color = 'good'; // Vert pour succès
+        } else {
+            $emoji = '';
+            $title = 'INCONNU';
+            $color = 'danger'; // Rouge si le statut est inconnu
+        }
+
+        // Construire le message Slack
+        $slackMessage = [
+            'attachments' => [
+                [
+                    'fallback' => $message,
+                    'pretext' => "$emoji $title $emoji", // Ajouter l'icône et le titre
+                    'text' => $message,
+                    'color' => $color,
+                ]
+            ]
+        ];
+
+        // URL de votre webhook Slack
+        $webhookUrl = 'https://hooks.slack.com/services/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'; // Remplacez par votre URL de webhook Slack
+
+        // Utiliser cURL pour envoyer le message à Slack
+        $ch = curl_init($webhookUrl);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($slackMessage));
+        curl_exec($ch);
+        curl_close($ch);
     }
 }
