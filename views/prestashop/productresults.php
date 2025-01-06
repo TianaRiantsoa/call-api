@@ -507,52 +507,78 @@ elseif (
 				// Parcourir les combinaisons
 				foreach ($combinations as $combination) {
 					$combinationData = [
-						'id' => (int)$combination->id,
-						'reference' => (string)$combination->reference,
-						'price' => (float)$combination->price,
+						'id' => (int) $combination->id,
+						'reference' => (string) $combination->reference,
+						'price' => (float) $combination->price,
 						'parent_reference' => 'N/A',
+						'quantity' => 0,
+						'specific_prices' => [],
 					];
 
 					// Récupération du produit parent
 					try {
 						$parentOpt = [
 							'resource' => 'products',
-							'id' => $combination->id_product, // ID du produit parent
-							'language' => $languageId, // Langue si nécessaire
+							'id' => (int) $combination->id_product,
+							'language' => $languageId,
 						];
 
-						// Récupérer le produit parent depuis l'API
 						$parent = $webService->get($parentOpt);
-						$parentXML = $parent->product; // Le produit parent
+						$parentXML = $parent->product;
 
-						// Ajouter la référence parent si elle existe
 						if (isset($parentXML->reference)) {
-							$combinationData['parent_reference'] = (string)$parentXML->reference;
-						}
-						try {
-							$stockOpt = [
-								'resource' => 'stock_availables',
-								'filter[id_product_attribute]' => (int)$combination->id,
-								'display' => 'full',
-							];
-
-							// Récupérer le stock de la déclinaison
-							$stock = $webService->get($stockOpt);
-							$stockXML = $stock->stock_availables->children();
-
-							// Ajouter la référence parent si elle existe
-							foreach ($stockXML as $stocks) {
-								if (isset($stocks->quantity)) {
-									$combinationData['quantity'] = (string)$stocks->quantity;
-								}
-							}
-						} catch (Exception $e) {
-							// En cas d'erreur lors de la récupération du parent
-							$combinationData['quantity'] = 'Erreur lors de la récupération' . $e->getMessage();
+							$combinationData['parent_reference'] = (string) $parentXML->reference;
 						}
 					} catch (Exception $e) {
-						// En cas d'erreur lors de la récupération du parent
 						$combinationData['parent_reference'] = 'Erreur lors de la récupération';
+					}
+
+					// Récupération du stock de la déclinaison
+					try {
+						$stockOpt = [
+							'resource' => 'stock_availables',
+							'filter[id_product_attribute]' => (int) $combination->id,
+							'display' => 'full',
+						];
+
+						$stock = $webService->get($stockOpt);
+						$stockXML = $stock->stock_availables->children();
+
+						foreach ($stockXML as $stockItem) {
+							if (isset($stockItem->quantity)) {
+								$combinationData['quantity'] = (int) $stockItem->quantity;
+								break; // Prendre uniquement le premier stock disponible
+							}
+						}
+					} catch (Exception $e) {
+						$combinationData['quantity'] = 'Erreur : ' . $e->getMessage();
+					}
+
+					// Récupération des tarifs spécifiques
+					try {
+						$tarifOpt = [
+							'resource' => 'specific_prices',
+							'filter[id_product_attribute]' => (int) $combination->id,
+							'display' => 'full',
+						];
+
+						$tarif = $webService->get($tarifOpt);
+						$tarifXML = $tarif->specific_prices->children();
+
+						foreach ($tarifXML as $tarifItem) {
+							$tarifList[] = [
+								'id' => (int) $tarifItem->id,
+								'id_product' => (int) $tarifItem->id_product,
+								'id_product_attribute' => (int) $tarifItem->id_product_attribute,
+								'id_group' => (int) $tarifItem->id_group,
+								'id_customer' => (int) $tarifItem->id_customer,
+								'price' => (float) $tarifItem->price,
+								'from' => (string) $tarifItem->from,
+								'to' => (string) $tarifItem->to,
+							];
+						}
+					} catch (Exception $e) {
+						'Erreur : ' . $e->getMessage();
 					}
 
 					// Ajouter les données de la combinaison à la liste
@@ -568,6 +594,7 @@ elseif (
 			Yii::$app->session->setFlash('error', 'Erreur lors de la récupération des données produit : ' . $e->getMessage());
 			return; // Stopper l'exécution ici
 		}
+
 
 		/* 
 		TRAITEMENT DES DONNEES
@@ -630,6 +657,112 @@ elseif (
 							return Yii::$app->formatter->asCurrency($model['price'], 'EUR');
 						},
 						'label' => 'Prix',
+					],
+				],
+			]);
+		}
+
+		echo '<h3>Tarifs spécifiques</h3>';
+		// Si des produits sont trouvés et valides, afficher le GridView
+		if (!empty($tarifList)) {
+			echo GridView::widget([
+				'dataProvider' => new ArrayDataProvider([
+					'allModels' => $tarifList,
+					'pagination' => [
+						'pageSize' => 1000,
+					],
+				]),
+				'columns' => [
+					[
+						'attribute' => 'id',
+						'label' => 'ID',
+						'format' => 'raw',
+						'value' => function ($model) use ($url, $api) {
+							return Html::a(
+								$model['id'],
+								$url . "/api/specific_prices/{$model['id']}?&ws_key=" . $api,
+								['target' => '_blank', 'encode' => false]
+							);
+						}
+					],
+					[
+						'attribute' => 'id_product',
+						'label' => 'ID du produit',
+						'format' => 'raw',
+						'value' => function ($model) use ($url, $api) {
+							return Html::a(
+								$model['id_product'],
+								$url . "/api/products/{$model['id_product']}?&ws_key=" . $api,
+								['target' => '_blank', 'encode' => false]
+							);
+						}
+					],
+					[
+						'attribute' => 'id_product_attribute',
+						'label' => 'ID de la déclinaison',
+						'format' => 'raw',
+						'value' => function ($model) use ($url, $api) {
+							if ($model['id_product_attribute'] !== 0) {
+								return Html::a(
+									$model['id_product_attribute'],
+									$url . "/api/combinations/{$model['id_product_attribute']}?&ws_key=" . $api,
+									['target' => '_blank', 'encode' => false]
+								);
+							}
+						}
+					],
+					[
+						'attribute' => 'price',
+						'value' => function ($model) {
+							return Yii::$app->formatter->asCurrency($model['price'], 'EUR');
+						},
+						'label' => 'Prix',
+					],
+
+					[
+						'attribute' => 'id_group',
+						'label' => 'Groupe client',
+						'format' => 'raw',
+						'value' => function ($model) use ($url, $api) {
+							if ($model['id_group'] !== 0) {
+								return Html::a(
+									$model['id_group'],
+									$url . "/api/groups/{$model['id_group']}?&ws_key=" . $api,
+									['target' => '_blank', 'encode' => false]
+								);
+							}
+						}
+					],
+					[
+						'attribute' => 'id_customer',
+						'label' => 'Client',
+						'format' => 'raw',
+						'value' => function ($model) use ($url, $api) {
+							if ($model['id_customer'] !== 0) {
+								return Html::a(
+									$model['id_customer'],
+									$url . "/api/groups/{$model['id_customer']}?&ws_key=" . $api,
+									['target' => '_blank', 'encode' => false]
+								);
+							}
+						}
+					],
+
+					[
+						'attribute' => 'from',
+						'label' => 'De',
+						// 'value' => function ($model) {
+						// 	$date = is_array($model) ? $model['from'] : $model->from;
+						// 	return Yii::$app->formatter->asDatetime($date, 'php:d/m/Y H:i:s');
+						// },
+					],
+					[
+						'attribute' => 'to',
+						'label' => 'À',
+						// 'value' => function ($model) {
+						// 	$date = is_array($model) ? $model['to'] : $model->to;
+						// 	return Yii::$app->formatter->asDatetime($date, 'php:d/m/Y H:i:s');
+						// },
 					],
 				],
 			]);
