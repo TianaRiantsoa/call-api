@@ -506,13 +506,48 @@ elseif (
 			if (count($combinations) > 0) {
 				// Parcourir les combinaisons
 				foreach ($combinations as $combination) {
+
+					$optionValues = []; // Tableau pour stocker les options formatées
+					if (isset($combination->associations->product_option_values->product_option_value)) {
+						foreach ($combination->associations->product_option_values->product_option_value as $optionValue) {
+							// Récupérer les détails de l'option
+							$optionValueOpt = [
+								'resource' => 'product_option_values',
+								'id' => $optionValue->id,
+								'language' => $languageId,
+							];
+
+							$optionValueResponse = $webService->get($optionValueOpt);
+							$optionValueXML = $optionValueResponse->product_option_value;
+
+							$value = (string)$optionValueXML->name->language; // Nom de la valeur
+							$id_axe = (int)$optionValueXML->id_attribute_group;
+
+							// Récupérer les détails de l'axe
+							$axeOpt = [
+								'resource' => 'product_options',
+								'id' => $id_axe,
+								'language' => $languageId,
+							];
+
+							$axeResponse = $webService->get($axeOpt);
+							$axeXML = $axeResponse->product_option;
+
+							$axeName = (string)$axeXML->name->language; // Nom de l'axe
+
+							// Ajouter au tableau sous la forme "axeName = Value"
+							$optionValues[] = "{$axeName} = {$value}";
+						}
+					}
+
+					// Ajouter les données collectées à la combinaison
 					$combinationData = [
 						'id' => (int) $combination->id,
 						'reference' => (string) $combination->reference,
 						'price' => (float) $combination->price,
 						'parent_reference' => 'N/A',
 						'quantity' => 0,
-						'specific_prices' => [],
+						'option_values' => implode('<br>', $optionValues), // Ajouter sous forme de texte HTML avec des sauts de ligne
 					];
 
 					// Récupération du produit parent
@@ -528,9 +563,11 @@ elseif (
 
 						if (isset($parentXML->reference)) {
 							$combinationData['parent_reference'] = (string) $parentXML->reference;
+							$combinationData['name'] = (string) $parentXML->name->language;
 						}
 					} catch (Exception $e) {
-						$combinationData['parent_reference'] = 'Erreur lors de la récupération';
+						$combinationData['parent_reference'] = 'N/A';
+						$combinationData['name'] = 'N/A';
 					}
 
 					// Récupération du stock de la déclinaison
@@ -636,7 +673,11 @@ elseif (
 						}
 					],
 					[
-						'attribute' => 'id',
+						'attribute' => 'name',
+						'label' => 'Nom du produit',
+					],
+					[
+						'attribute' => 'reference',
 						'label' => 'Référence',
 						'format' => 'raw',
 						'value' => function ($model) use ($url, $api) {
@@ -657,6 +698,11 @@ elseif (
 							return Yii::$app->formatter->asCurrency($model['price'], 'EUR');
 						},
 						'label' => 'Prix',
+					],
+					[
+						'attribute' => 'option_values',
+						'label' => 'Déclinaison',
+						'format' => 'raw'
 					],
 				],
 			]);
