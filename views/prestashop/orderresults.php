@@ -254,7 +254,7 @@ try {
                     // Gestion des erreurs API
                     $productData['total_price_tax_excl'] = '';
                     $productData['unit_price_tax_excl'] = '';
-                    
+
                     $productData['total_price_tax_incl'] = '';
                     $productData['unit_price_tax_incl'] = '';
 
@@ -549,21 +549,36 @@ echo GridView::widget([
             'label' => 'Nom du produit',
             'format' => 'raw',
             'value' => function ($model) use ($db_id) {
-                // Vérifier si id_product_attribute est 0
+                // Initialiser le titre formaté
+                $formattedName = '';
+
+                // Vérifier si le nom du produit existe
+                if (isset($model['product_name'])) {
+                    // Découper le nom du produit en mots
+                    $words = explode(' ', $model['product_name']);
+
+                    // Regrouper les mots en groupes de 4
+                    $chunks = array_chunk($words, 4);
+
+                    // Rejoindre chaque groupe avec un <br> pour créer un saut de ligne
+                    $formattedName = implode('<br>', array_map(function ($chunk) {
+                        return implode(' ', $chunk);
+                    }, $chunks));
+                }
+
+                // Générer l'URL et le label en fonction de `id_product_attribute`
                 if ($model['id_product_attribute'] == 0) {
                     // Générer l'URL pour le produit simple
                     $url = Url::to([
                         'productresults',
-                        'id' => $db_id,  // Utilisation du $db_id déjà défini
+                        'id' => $db_id,
                         'ref' => $model['product_reference'],
                         'type' => 'simple',
                         'variation_type' => ''
                     ]);
                     $typeLabel = 'Simple';
-                }
-                // Vérifier si id_product_attribute est 1
-                else {
-                    // Générer l'URL pour la variation (type = 'variation', variation_type = 'child')
+                } else {
+                    // Générer l'URL pour la variation
                     $url = Url::to([
                         'productresults',
                         'id' => $db_id,
@@ -574,12 +589,16 @@ echo GridView::widget([
                     $typeLabel = 'Déclinaison';
                 }
 
-                // Afficher la référence produit avec le lien généré
-                return Html::a($model['product_name'] . ' (' . $typeLabel . ')', $url, [
+                // Ajouter le type au nom formaté
+                $formattedNameWithType = $formattedName . ' (' . $typeLabel . ')';
+
+                // Retourner le titre formaté avec le lien
+                return Html::a($formattedNameWithType, $url, [
                     'target' => '_blank',
                     'encode' => false,
                 ]);
-            },
+            }
+
         ],
         [
             'attribute' => 'quantity',
