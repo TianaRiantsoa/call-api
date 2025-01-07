@@ -38,17 +38,35 @@ $ref = Html::encode($ref);
 $db_id = $model->id;
 
 echo yii\widgets\DetailView::widget([
-	'model' => $model,
-	'attributes' => [
-		'url:url',
-		'api_key',
-	],
+    'model' => $model,
+    'attributes' => [
+        'url:url',
+        'api_key',
+    ],
 ]);
 
 
 try {
     // Initialiser la connexion à l'API PrestaShop
     $webService = new PrestaShopWebservice($url, $api, false);
+
+    $languageOpt = [
+        'resource' => 'languages',
+        'filter[iso_code]' => 'fr', // Filtrer par code ISO
+        'display' => 'full',
+    ];
+    $languageXml = $webService->get($languageOpt);
+    $languages = $languageXml->languages->children();
+
+    $languageId = null;
+    foreach ($languages as $language) {
+        $languageId = (int)$language->id; // Récupérer l'ID de la langue française
+        break; // On s'arrête après avoir trouvé une correspondance
+    }
+
+    if (!$languageId) {
+        throw new PrestaShopWebserviceException('Langue française introuvable dans la boutique.');
+    }
 
     // Récupérer la commande spécifique
     $xmlOrders = $webService->get(['resource' => 'orders', 'id' => $ref]);
@@ -181,20 +199,66 @@ try {
                     $orderDetailsOpt = [
                         'resource' => 'order_details',
                         'filter[id]' => $orderRowId, // Filtrer avec l'ID du `order_row`
-                        'display' => 'full'
+                        'display' => 'full',
                     ];
 
                     $orderDetailsXml = $webService->get($orderDetailsOpt);
                     $orderDetails = $orderDetailsXml->order_details->children();
 
                     foreach ($orderDetails as $detail) {
+                        $productData['total_price_tax_excl'] = (float) $detail->total_price_tax_excl;
+                        $productData['unit_price_tax_excl'] = (float) $detail->unit_price_tax_excl;
                         $productData['total_price_tax_incl'] = (float) $detail->total_price_tax_incl;
                         $productData['unit_price_tax_incl'] = (float) $detail->unit_price_tax_incl;
+
+                        // Vérification et récupération de l'ID de la taxe
+                        if (isset($detail->associations->taxes->tax)) {
+                            $taxElement = $detail->associations->taxes->tax;
+
+                            // Vérifier si l'élément `tax` contient un attribut `xlink:href` ou un ID
+                            if (isset($taxElement->attributes()->{'xlink:href'})) {
+                                $taxHref = (string) $taxElement->attributes()->{'xlink:href'};
+                                $taxId = basename($taxHref); // Extraire l'ID de l'URL
+                            } elseif (isset($taxElement->id)) {
+                                $taxId = (int) $taxElement->id; // Si l'ID est directement présent
+                            } else {
+                                $taxId = null; // Pas d'ID de taxe trouvé
+                            }
+
+                            if ($taxId) {
+                                // Récupérer les détails de la taxe via l'API
+                                $taxOpt = [
+                                    'resource' => 'taxes',
+                                    'id' => $taxId,
+                                    'language' => $languageId,
+                                ];
+
+                                try {
+                                    $tax = $webService->get($taxOpt);
+                                    $taxName = (string) $tax->tax->name->language;
+                                    $taxRate = (float) $tax->tax->rate;
+
+                                    $productData['tax'] = $taxRate . "% (" . $taxName . ")";
+                                } catch (Exception $e) {
+                                    // Gérer les erreurs de récupération de la taxe
+                                    $productData['tax'] = 'Erreur lors de la récupération des taxes';
+                                }
+                            } else {
+                                $productData['tax'] = 'Pas de taxe trouvé';
+                            }
+                        } else {
+                            $productData['tax'] = 'Pas de taxe associé';
+                        }
                     }
                 } catch (Exception $e) {
                     // Gestion des erreurs API
-                    $productData['total_price_tax_incl'] = 'N/A';
-                    $productData['unit_price_tax_incl'] = 'N/A';
+                    $productData['total_price_tax_excl'] = '';
+                    $productData['unit_price_tax_excl'] = '';
+                    
+                    $productData['total_price_tax_incl'] = '';
+                    $productData['unit_price_tax_incl'] = '';
+
+                    $productData['tax'] = 'Erreur lors de la récupération des taxes';
                 }
 
                 // Ajouter les données fusionnées dans le tableau des produits
@@ -435,13 +499,13 @@ echo GridView::widget([
             'attribute' => 'order_row',
             'label' => 'ID Order Details',
             'format' => 'raw',
-						'value' => function ($model) use ($url, $api) {
-							return Html::a(
-								$model['order_row'],
-								$url . "/api/order_details/{$model['order_row']}?&ws_key=" . $api,
-								['target' => '_blank', 'encode' => false]
-							);
-						}
+            'value' => function ($model) use ($url, $api) {
+                return Html::a(
+                    $model['order_row'],
+                    $url . "/api/order_details/{$model['order_row']}?&ws_key=" . $api,
+                    ['target' => '_blank', 'encode' => false]
+                );
+            }
         ],
         [
             'attribute' => 'product_reference',
@@ -522,10 +586,28 @@ echo GridView::widget([
             'label' => 'Quantité',  // Nouveau nom de la colonne
         ],
         [
+            'attribute' => 'unit_price_tax_excl',
+            'label' => 'P.U HT',
+            'value' => function ($model) {
+                return Yii::$app->formatter->asCurrency($model['unit_price_tax_excl'], 'EUR');
+            }, // Nouveau nom de la colonne
+        ],
+        [
+            'attribute' => 'tax',
+            'label' => 'TVA',  // Nouveau nom de la colonne
+        ],
+        [
             'attribute' => 'unit_price_tax_incl',
             'label' => 'P.U TTC',
             'value' => function ($model) {
                 return Yii::$app->formatter->asCurrency($model['unit_price_tax_incl'], 'EUR');
+            }, // Nouveau nom de la colonne
+        ],
+        [
+            'attribute' => 'total_price_tax_excl',
+            'label' => 'Total HT',
+            'value' => function ($model) {
+                return Yii::$app->formatter->asCurrency($model['total_price_tax_excl'], 'EUR');
             }, // Nouveau nom de la colonne
         ],
         [
