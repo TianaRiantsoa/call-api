@@ -4,7 +4,7 @@ github_token: <your-personal-github-token>
 # You can generate it here: https://github.com/settings/tokens
 
 # Guest OS timezone
-timezone: Europe/London
+timezone: Europe/Paris
 
 # Are we need check box updates for every 'vagrant up'?
 box_check_update: false
