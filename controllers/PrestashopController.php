@@ -72,55 +72,7 @@ class PrestashopController extends Controller
      * If creation is successful, the browser will be redirected to the 'view' page.
      * @return string|\yii\web\Response
      */
-    // public function actionCreate()
-    // {
-    //     $model = new Prestashop();
 
-    //     if ($this->request->isPost) {
-    //         if ($model->load($this->request->post())) {
-    //             // Vérifier si des enregistrements existent déjà pour l'URL et la clé API
-    //             $existingUrlRecord = Prestashop::find()->where(['url' => $model->url])->one();
-    //             $existingApiKeyRecord = Prestashop::find()->where(['api_key' => $model->api_key])->one();
-
-    //             // Les deux champs existent : afficher une erreur avec les détails
-    //             if ($existingUrlRecord && $existingApiKeyRecord) {
-    //                 Yii::$app->session->setFlash(
-    //                     'error',
-    //                     "Un enregistrement avec cette URL et cette clé API existe déjà. Détails :<br>" .
-    //                         "ID : {$existingUrlRecord->id}, URL : {$existingUrlRecord->url}, Clé API : {$existingUrlRecord->api_key}."
-    //                 );
-    //             } else {
-    //                 // Sauvegarder la donnée, mais inclure les détails si une des deux valeurs existe déjà
-    //                 if ($model->save()) {
-    //                     if ($existingUrlRecord) {
-    //                         Yii::$app->session->setFlash(
-    //                             'warning',
-    //                             "La donnée a été créée, mais l’URL existe déjà dans un autre enregistrement. Détails :<br>" .
-    //                                 "ID : {$existingUrlRecord->id}, URL : {$existingUrlRecord->url}, Clé API : {$existingUrlRecord->api_key}."
-    //                         );
-    //                     } elseif ($existingApiKeyRecord) {
-    //                         Yii::$app->session->setFlash(
-    //                             'warning',
-    //                             "La donnée a été créée, mais la Clé API existe déjà dans un autre enregistrement. Détails :<br>" .
-    //                                 "ID : {$existingApiKeyRecord->id}, URL : {$existingApiKeyRecord->url}, Clé API : {$existingApiKeyRecord->api_key}."
-    //                         );
-    //                     } else {
-    //                         Yii::$app->session->setFlash('success', 'L’enregistrement a été créé avec succès.');
-    //                     }
-    //                     return $this->redirect(['view', 'id' => $model->id]);
-    //                 } else {
-    //                     Yii::$app->session->setFlash('error', 'Une erreur est survenue lors de la sauvegarde.');
-    //                 }
-    //             }
-    //         }
-    //     } else {
-    //         $model->loadDefaultValues();
-    //     }
-
-    //     return $this->render('create', [
-    //         'model' => $model,
-    //     ]);
-    // }
 
     public function actionCreate()
     {
@@ -347,7 +299,7 @@ class PrestashopController extends Controller
             'attachments' => [
                 [
                     'fallback' => $message,
-                    'pretext' => "$emoji $title $emoji", // Ajouter l'icône et le titre
+                    'pretext' => "PrestaShop : " . "$emoji $title $emoji", // Ajouter l'icône et le titre
                     'text' => $message,
                     'color' => $color,
                 ]

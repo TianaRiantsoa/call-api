@@ -69,22 +69,7 @@ class WoocommerceController extends Controller
      * If creation is successful, the browser will be redirected to the 'view' page.
      * @return string|\yii\web\Response
      */
-    // public function actionCreate()
-    // {
-    //     $model = new Woocommerce();
 
-    //     if ($this->request->isPost) {
-    //         if ($model->load($this->request->post()) && $model->save()) {
-    //             return $this->redirect(['view', 'id' => $model->id]);
-    //         }
-    //     } else {
-    //         $model->loadDefaultValues();
-    //     }
-
-    //     return $this->render('create', [
-    //         'model' => $model,
-    //     ]);
-    // }
 
     public function actionCreate()
     {
@@ -104,6 +89,8 @@ class WoocommerceController extends Controller
                         "Un enregistrement avec cette URL et ces clés API existe déjà. Détails :<br>" .
                             "ID : {$existingUrlRecord->id}, URL : {$existingUrlRecord->url}, Clé Client : {$existingUrlRecord->consumer_key}, Clé Secrète : {$existingUrlRecord->consumer_secret}."
                     );
+                    $this->sendSlackNotification('error', "Un enregistrement avec cette URL et ces clés API existe déjà. Détails :<br>" .
+                        "ID : {$existingUrlRecord->id}, URL : {$existingUrlRecord->url}, Clé Client : {$existingUrlRecord->consumer_key}, Clé Secrète : {$existingUrlRecord->consumer_secret}.");
                     return $this->redirect(['create']);
                 }
 
@@ -134,13 +121,19 @@ class WoocommerceController extends Controller
                             'warning',
                             "L’enregistrement a été créé, mais :<br>" . implode('<br>', $warningMessages)
                         );
+                        $this->sendSlackNotification(
+                            'warning',
+                            "L’enregistrement a été créé, mais :<br>" . implode('<br>', $warningMessages)
+                        );
                     } else {
                         Yii::$app->session->setFlash('success', 'L’enregistrement a été créé avec succès.');
+                        $this->sendSlackNotification('success', "L’enregistrement a été créé avec succès. URL : {$model->url}, Clé Client : {$model->consumer_key}, Clé Secrète : {$model->consumer_secret}.");
                     }
 
                     return $this->redirect(['view', 'id' => $model->id]);
                 } else {
                     Yii::$app->session->setFlash('error', 'Une erreur est survenue lors de la sauvegarde.');
+                    $this->sendSlackNotification('error', 'Une erreur est survenue lors de la sauvegarde.');
                 }
             }
         } else {
@@ -283,5 +276,51 @@ class WoocommerceController extends Controller
             'model' => $model,
             'ref' => $ref,
         ]);
+    }
+
+    private function sendSlackNotification($status, $message)
+    {
+        // Définir les éléments à ajouter en fonction du type de message
+        if ($status === 'error') {
+            $emoji = '❌❌❌'; // 3 X rouges pour l'erreur
+            $title = 'ERREUR';
+            $color = 'danger'; // Rouge
+        } elseif ($status === 'warning') {
+            $emoji = '⚠️⚠️⚠️'; // 3 panneaux jaunes pour l'alerte
+            $title = 'ALERTE';
+            $color = 'warning'; // Jaune
+        } elseif ($status === 'success') {
+            $emoji = '✅✅✅'; // 3 carrés verts avec le signe de validation pour le succès
+            $title = 'SUCCÈS';
+            $color = 'good'; // Vert pour succès
+        } else {
+            $emoji = '';
+            $title = 'INCONNU';
+            $color = 'danger'; // Rouge si le statut est inconnu
+        }
+
+        // Construire le message Slack
+        $slackMessage = [
+            'attachments' => [
+                [
+                    'fallback' => $message,
+                    'pretext' => "WooCommerce : " . "$emoji $title $emoji", // Ajouter l'icône et le titre
+                    'text' => $message,
+                    'color' => $color,
+                ]
+            ]
+        ];
+
+        // URL de votre webhook Slack
+        $webhookUrl = 'https://hooks.slack.com/services/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'; // Remplacez par votre URL de webhook Slack
+
+        // Utiliser cURL pour envoyer le message à Slack
+        $ch = curl_init($webhookUrl);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($slackMessage));
+        curl_exec($ch);
+        curl_close($ch);
     }
 }

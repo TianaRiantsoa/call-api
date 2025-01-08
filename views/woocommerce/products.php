@@ -15,10 +15,10 @@ $this->params['breadcrumbs'][] = 'Recherche de produit';
 <div class="prestashop-products-form">
     <?php $form = ActiveForm::begin(); ?>
 
-    <?= $form->field($model, 'url')->textInput(['maxlength' => true])->hiddenInput() ?>
+    <?= $form->field($model, 'url')->textInput(['maxlength' => true])->hiddenInput()->label(false) ?>
 
-    <?= $form->field($model, 'consumer_key')->textInput(['maxlength' => true])->hiddenInput() ?>
-    <?= $form->field($model, 'consumer_secret')->textInput(['maxlength' => true])->hiddenInput() ?>
+    <?= $form->field($model, 'consumer_key')->textInput(['maxlength' => true])->hiddenInput()->label(false) ?>
+    <?= $form->field($model, 'consumer_secret')->textInput(['maxlength' => true])->hiddenInput()->label(false) ?>
 
     <?= $form->field($mod, 'ref')->textInput(['maxlength' => true, 'placeholder' => 'Exemple : AR00000'])->hint('<small>Renseignez ici la référence du produit à rechercher</small>') ?>
 
