@@ -113,7 +113,7 @@ if (
 						'name' => (string)$product->name->language,
 						'reference' => (string)$product->reference,
 						'price' => (float)$product->price,
-					];		
+					];
 
 					$productList[] = $productData;
 				}
