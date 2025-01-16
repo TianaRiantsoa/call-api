@@ -39,10 +39,10 @@ if (isset($type) && $type == 'court') {
 echo yii\widgets\DetailView::widget([
   'model' => $model,
   'attributes' => [
-      'url',
-      'api_key',
-      'password',
-      'secret_key',
+    'url',
+    'api_key',
+    'password',
+    'secret_key',
   ],
 ]);
 
@@ -74,6 +74,11 @@ $query = <<<QUERY
           }
           shippingLine {
             title
+            price
+            taxLines {
+            price
+            rate
+            }
           }
           billingAddress {
             firstName
@@ -142,6 +147,8 @@ $gridDataLineItems = [];
 foreach ($orders as $orderEdge) {
   $order = $orderEdge['node'];
 
+  
+
   // Commandes
   $gridDataOrders[] = [
     'id' => getId($order['id']),
@@ -155,7 +162,20 @@ foreach ($orders as $orderEdge) {
     'totalDiscounts' => $order['totalDiscounts'],
     'totalTax' => $order['totalTax'],
     'transporteur' => $order['shippingLine']['title'],
+    'frais' => $order['shippingLine']['price'],
   ];
+
+  if (!empty($order['shippingLine']['taxLines']['price'])) {
+    $gridDataOrders[] = [
+      'carrier_tax' => $order['shippingLine']['taxLines']['price'],
+      'carrier_tax_rate' => $order['shippingLine']['taxLines']['rate'],
+    ];
+  }
+
+  // echo "<pre>";
+  // print_r($gridDataOrders);
+  // echo "</pre>";
+  // exit;
 
   // Clients
   if (!empty($order['customer'])) {
@@ -270,6 +290,13 @@ $lineItemProvider = new ArrayDataProvider(['allModels' => $gridDataLineItems]);
       'label' => 'Sous-total',
       'value' => function ($model) {
         return Yii::$app->formatter->asCurrency($model['subtotal'], 'EUR');
+      },
+    ],
+    [
+      'attribute' => 'frais',
+      'label' => 'Frais de port',
+      'value' => function ($model) {
+        return Yii::$app->formatter->asCurrency($model['frais'], 'EUR');
       },
     ],
     [
