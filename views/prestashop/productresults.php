@@ -85,6 +85,7 @@ if (
 			'display' => 'full',
 		];
 
+		//Dans le cas de produit simple
 		try {
 			// Récupérer les produits depuis l'API PrestaShop
 			$xml = $webService->get($opt);
