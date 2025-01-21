@@ -343,7 +343,7 @@ elseif (
 						'value' => function ($model) use ($url, $api) {
 							return Html::a(
 								$model['id'],
-								$url . "/api/products/{$model['id']}?&ws_key=" . $api,
+								$url . "/api/products/{$model['id']}?ws_key=" . $api,
 								['target' => '_blank', 'encode' => false]
 							);
 						}
@@ -355,7 +355,7 @@ elseif (
 						'value' => function ($model) use ($url, $api) {
 							return Html::a(
 								$model['reference'],
-								$url . "/api/products/{$model['id']}?&ws_key=" . $api,
+								$url . "/api/products/{$model['id']}?ws_key=" . $api,
 								['target' => '_blank', 'encode' => false]
 							);
 						}
@@ -367,7 +367,7 @@ elseif (
 						'value' => function ($model) use ($url, $api) {
 							return Html::a(
 								$model['name'],
-								$url . "/api/products/{$model['id']}?&ws_key=" . $api,
+								$url . "/api/products/{$model['id']}?ws_key=" . $api,
 								['target' => '_blank', 'encode' => false]
 							);
 						}
