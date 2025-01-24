@@ -17,6 +17,8 @@ function curl_get($url)
     return $get;
 }
 
+
+
 //Récupérer la langue française
 function getLang($url, $api)
 {

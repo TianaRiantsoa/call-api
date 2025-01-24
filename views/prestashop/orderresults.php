@@ -37,6 +37,8 @@ $api = Html::encode($model->api_key);
 $ref = Html::encode($ref);
 $db_id = $model->id;
 
+echo 'URL de la requête : <a href=' . $url . '/api/orders/' . $ref . '?ws_key=' . $api . ' target=_blank>' . $url . '/api/orders/' . $ref . '?ws_key=' . $api . '</a>';
+
 echo yii\widgets\DetailView::widget([
     'model' => $model,
     'attributes' => [
@@ -56,13 +58,16 @@ try {
         'display' => 'full',
     ];
     $languageXml = $webService->get($languageOpt);
+
     $languages = $languageXml->languages->children();
 
     $languageId = null;
     foreach ($languages as $language) {
+
         $languageId = (int)$language->id; // Récupérer l'ID de la langue française
         break; // On s'arrête après avoir trouvé une correspondance
     }
+
 
     if (!$languageId) {
         throw new PrestaShopWebserviceException('Langue française introuvable dans la boutique.');
@@ -87,6 +92,7 @@ try {
 
         $state = $order->current_state;
         $xmlState = $webService->get(['resource' => 'order_states', 'id' => $state]);
+
         $stateName = (string) $xmlState->order_state->name->language;
 
 
@@ -103,6 +109,7 @@ try {
             'date_add' => (string) $order->date_add,
             'date_upd' => (string) $order->date_upd,
         ];
+
 
         // Traiter les informations du client
         $customerId = (string) $order->id_customer;
@@ -293,11 +300,35 @@ try {
         'pagination' => ['pageSize' => 10],
     ]);
 } catch (PrestaShopWebserviceException $e) {
-    echo 'Erreur : ' . $e->getMessage();
+    // Yii::$app->session->setFlash('error', 'Erreur : ' . $e->getMessage());
+    // return;
+
+    $rawResponse = $webService->getRawResponse();
+
+    echo '<span style="color:red">Erreur détectée : ' . $e->getMessage() . PHP_EOL . '</span><br>';
+
+    if ($rawResponse) {
+        echo '<span style="color:red">Réponse brute : '  . PHP_EOL . $rawResponse . '</span>';
+        // Tenter de parser ou analyser manuellement
+        if (strpos($rawResponse, '<!DOCTYPE html>') !== false) {
+            echo 'Erreur HTML détectée' . PHP_EOL;
+        } elseif (strpos($rawResponse, '<?xml') === 0) {
+            // Parser le XML manuellement
+            $xml = simplexml_load_string($rawResponse);
+            if ($xml !== false) {
+                print_r($xml);
+            } else {
+                Yii::$app->session->setFlash('error', 'Erreur lors du parsing XML.' . PHP_EOL);
+            }
+        } else {
+            Yii::$app->session->setFlash('error', 'Format de réponse inconnu.' . PHP_EOL);
+        }
+    } else {
+        Yii::$app->session->setFlash('error', 'Aucune réponse brute disponible.' . PHP_EOL);
+    }
+    return;
 }
 
-// $site = $url . '/api/orders/' . $ref . '?ws_key=' . $api;
-// echo Html::a('Afficher le XML de la commande', $site, ['class' => 'btn btn-success', 'target' => '_blank']);
 ?>
 <h3>Détails des Commandes</h3>
 <?php
@@ -489,6 +520,8 @@ echo GridView::widget([
         ],
     ],
 ]);
+
+
 
 // Afficher les produits commandés
 echo '<h3>Détails des Produits Commandés</h3>';

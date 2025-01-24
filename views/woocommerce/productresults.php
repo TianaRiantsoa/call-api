@@ -7,7 +7,7 @@ use yii\helpers\Html;
 $this->title = 'Produits | ' . Html::encode($ref) . ' | ' . Html::encode($model->url);
 $this->params['breadcrumbs'][] = ['label' => 'Woocommerce', 'url' => ['index']];
 $this->params['breadcrumbs'][] = ['label' => $model->url, 'url' => ['view', 'id' => $model->id]];
-$this->params['breadcrumbs'][] = ['label' => 'Recherche de produit', 'url' => ['orders', 'id' => $model->id]];
+$this->params['breadcrumbs'][] = ['label' => 'Recherche de produit', 'url' => ['products', 'id' => $model->id]];
 $this->params['breadcrumbs'][] = ['label' => Html::encode($ref)];
 \yii\web\YiiAsset::register($this);
 

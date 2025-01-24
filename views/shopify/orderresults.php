@@ -1,6 +1,8 @@
 <?php
 
+use PhpParser\Node\Stmt\TryCatch;
 use Shopify\ApiVersion;
+use Shopify\Exception\ShopifyException;
 use yii\grid\GridView;
 use yii\data\ArrayDataProvider;
 use yii\helpers\ArrayHelper;
@@ -24,29 +26,32 @@ $ref = Html::encode($ref);
 
 require('function.php');
 
-$init = InitShopify($url, $api, $pwd, $sct);
+try {
 
-$n = count(str_split($ref));
 
-if (isset($type) && $type == 'court') {
-	$q = "name:$ref";
-} elseif (isset($type) && $type == 'long') {
-	$q = "id:$ref";
-} else {
-	echo 'Erreur sur ne numéro saisi';
-}
+	$init = InitShopify($url, $api, $pwd, $sct);
 
-echo yii\widgets\DetailView::widget([
-	'model' => $model,
-	'attributes' => [
-		'url',
-		'api_key',
-		'password',
-		'secret_key',
-	],
-]);
+	$n = count(str_split($ref));
 
-$query = <<<QUERY
+	if (isset($type) && $type == 'court') {
+		$q = "name:$ref";
+	} elseif (isset($type) && $type == 'long') {
+		$q = "id:$ref";
+	} else {
+		echo 'Erreur sur ne numéro saisi';
+	}
+
+	echo yii\widgets\DetailView::widget([
+		'model' => $model,
+		'attributes' => [
+			'url',
+			'api_key',
+			'password',
+			'secret_key',
+		],
+	]);
+
+	$query = <<<QUERY
   query {
     orders(query: "$q", first: 10) {
       edges {
@@ -125,121 +130,128 @@ $query = <<<QUERY
   }
 QUERY;
 
-$response = $init->query(["query" => $query]);
+	$response = $init->query(["query" => $query]);
 
-$contents = $response->getBody()->getContents();
+	$contents = $response->getBody()->getContents();
 
-$data = json_decode($contents, true);
+	$data = json_decode($contents, true);
 
-$orders = ArrayHelper::getValue($data, 'data.orders.edges', []);
+	//$orders = ArrayHelper::getValue($data, 'data.orders.edges', []);
 
-// echo '<pre>';
-// print_r($orders);
-// echo '<pre>';
-// exit;
-
-$orders = $data['data']['orders']['edges'];
-$gridDataOrders = [];
-$gridDataCustomers = [];
-$gridDataAddresses = [];
-$gridDataLineItems = [];
-
-foreach ($orders as $orderEdge) {
-	$order = $orderEdge['node'];
-
-
-
-	// Commandes
-	$gridDataOrders[] = [
-		'id' => getId($order['id']),
-		'name' => $order['name'],
-		'createdAt' => formatDateTime($order['createdAt']),
-		'updatedAt' => formatDateTime($order['updatedAt']),
-		'payment_method' => $order['paymentGatewayNames'][0],
-		'status_payment' => $order['displayFinancialStatus'],
-		'status_fulfillment' => $order['displayFulfillmentStatus'],
-		'subtotal' => $order['subtotalPrice'],
-		'totalDiscounts' => $order['totalDiscounts'],
-		'totalTax' => $order['totalTax'],
-		'transporteur' => $order['shippingLine']['title'],
-		'frais' => $order['shippingLine']['price'],
-	];
-
-	if (!empty($order['shippingLine']['taxLines']['price'])) {
-		$gridDataOrders[] = [
-			'carrier_tax' => $order['shippingLine']['taxLines']['price'],
-			'carrier_tax_rate' => $order['shippingLine']['taxLines']['rate'],
-		];
-	}
-
-	// echo "<pre>";
-	// print_r($gridDataOrders);
-	// echo "</pre>";
+	// echo '<pre>';
+	// print_r($orders);
+	// echo '<pre>';
 	// exit;
 
-	// Clients
-	if (!empty($order['customer'])) {
-		$gridDataCustomers[] = [
-			'id' => getId($order['customer']['id']),
-			'firstName' => $order['customer']['firstName'],
-			'lastName' => $order['customer']['lastName'],
-			'email' => $order['customer']['email'],
-			'phone' => $order['customer']['phone'],
-			'createdAt' => formatDateTime($order['customer']['createdAt']),
-			'updatedAt' => formatDateTime($order['customer']['updatedAt']),
+	$orders = $data['data']['orders']['edges'];
+	$gridDataOrders = [];
+	$gridDataCustomers = [];
+	$gridDataAddresses = [];
+	$gridDataLineItems = [];
+
+	foreach ($orders as $orderEdge) {
+		$order = $orderEdge['node'];
+		// Commandes
+		$gridDataOrders[] = [
+			'id' => getId($order['id']),
+			'name' => $order['name'],
+			'createdAt' => formatDateTime($order['createdAt']),
+			'updatedAt' => formatDateTime($order['updatedAt']),
+			'payment_method' => !empty($order['paymentGatewayNames'][0]) ? $order['paymentGatewayNames'][0] : '', // Vérifie si l'élément existe
+			'status_payment' => $order['displayFinancialStatus'],
+			'status_fulfillment' => $order['displayFulfillmentStatus'],
+			'subtotal' => $order['subtotalPrice'],
+			'totalDiscounts' => $order['totalDiscounts'],
+			'totalTax' => $order['totalTax'],
+			'transporteur' => $order['shippingLine']['title'],
+			'frais' => $order['shippingLine']['price'],
 		];
-	}
 
-	// Adresses
-	foreach (['billingAddress' => 'Facturation', 'shippingAddress' => 'Livraison'] as $addressKey => $type) {
-		if (!empty($order[$addressKey])) {
-			$address = $order[$addressKey];
+		if (!empty($order['shippingLine']['taxLines']['price'])) {
+			$gridDataOrders[] = [
+				'carrier_tax' => $order['shippingLine']['taxLines']['price'],
+				'carrier_tax_rate' => $order['shippingLine']['taxLines']['rate'],
+			];
+		}
 
-			$fullAddress = (string) $address['address1'];
-			if (!empty($address['address2'])) {
-				$fullAddress .= ', ' . (string) $address['address2'];
+		// echo "<pre>";
+		// print_r($gridDataOrders);
+		// echo "</pre>";
+		// exit;
+
+		// Clients
+		if (!empty($order['customer'])) {
+			$gridDataCustomers[] = [
+				'id' => getId($order['customer']['id']),
+				'firstName' => $order['customer']['firstName'],
+				'lastName' => $order['customer']['lastName'],
+				'email' => $order['customer']['email'],
+				'phone' => $order['customer']['phone'],
+				'createdAt' => formatDateTime($order['customer']['createdAt']),
+				'updatedAt' => formatDateTime($order['customer']['updatedAt']),
+			];
+		}
+
+		// Adresses
+		foreach (['billingAddress' => 'Facturation', 'shippingAddress' => 'Livraison'] as $addressKey => $type) {
+			if (!empty($order[$addressKey])) {
+				$address = $order[$addressKey];
+
+				$fullAddress = (string) $address['address1'];
+				if (!empty($address['address2'])) {
+					$fullAddress .= ', ' . (string) $address['address2'];
+				}
+				$fullAddress .= ', ' . (string) $address['zip'] . ' ' . (string) $address['city'] . ', ' . $address['countryCode'];
+
+				$gridDataAddresses[] = [
+					'type' => $type,
+					'firstName' => $address['firstName'],
+					'lastName' => $address['lastName'],
+					'phone' => $address['phone'],
+					'address' => $fullAddress,
+				];
 			}
-			$fullAddress .= ', ' . (string) $address['zip'] . ' ' . (string) $address['city'] . ', ' . $address['countryCode'];
+		}
 
-			$gridDataAddresses[] = [
-				'type' => $type,
-				'firstName' => $address['firstName'],
-				'lastName' => $address['lastName'],
-				'phone' => $address['phone'],
-				'address' => $fullAddress,
-			];
+		// Produits commandés
+		if (!empty($order['lineItems']['edges'])) {
+			foreach ($order['lineItems']['edges'] as $lineItemEdge) {
+				$lineItem = $lineItemEdge['node'];
+				$gridDataLineItems[] = [
+					'product_id' => getId($lineItem['product']['id']),
+					'variant_id' => getId($lineItem['variant']['id']),
+					'sku' => $lineItem['sku'],
+					'name' => $lineItem['name'],
+					'quantity' => $lineItem['quantity'],
+					'originalUnitPrice' => $lineItem['originalUnitPrice'],
+					'discountedUnitPrice' => $lineItem['discountedUnitPrice'],
+					'originalTotal' => $lineItem['originalTotal'],
+					'discountedTotal' => $lineItem['discountedTotal'],
+					'taxable' => $lineItem['taxable'] ? 'Oui' : 'Non',
+				];
+			}
 		}
 	}
 
-	// Produits commandés
-	if (!empty($order['lineItems']['edges'])) {
-		foreach ($order['lineItems']['edges'] as $lineItemEdge) {
-			$lineItem = $lineItemEdge['node'];
-			$gridDataLineItems[] = [
-				'product_id' => getId($lineItem['product']['id']),
-				'variant_id' => getId($lineItem['variant']['id']),
-				'sku' => $lineItem['sku'],
-				'name' => $lineItem['name'],
-				'quantity' => $lineItem['quantity'],
-				'originalUnitPrice' => $lineItem['originalUnitPrice'],
-				'discountedUnitPrice' => $lineItem['discountedUnitPrice'],
-				'originalTotal' => $lineItem['originalTotal'],
-				'discountedTotal' => $lineItem['discountedTotal'],
-				'taxable' => $lineItem['taxable'] ? 'Oui' : 'Non',
-			];
-		}
-	}
+
+	// Data Providers
+	$orderProvider = new ArrayDataProvider(['allModels' => $gridDataOrders]);
+	$customerProvider = new ArrayDataProvider(['allModels' => $gridDataCustomers]);
+	$addressProvider = new ArrayDataProvider(['allModels' => $gridDataAddresses]);
+	$lineItemProvider = new ArrayDataProvider(['allModels' => $gridDataLineItems]);
+} catch (ShopifyException $e) {
+	// En cas d'erreur, afficher un message d'erreur
+	Yii::$app->session->setFlash('error', 'Erreur API : ' . $e->getMessage());
 }
 
 
-// Data Providers
-$orderProvider = new ArrayDataProvider(['allModels' => $gridDataOrders]);
-$customerProvider = new ArrayDataProvider(['allModels' => $gridDataCustomers]);
-$addressProvider = new ArrayDataProvider(['allModels' => $gridDataAddresses]);
-$lineItemProvider = new ArrayDataProvider(['allModels' => $gridDataLineItems]);
+
+// Tableau 1 : Détail de la commande
+
+
+
 
 ?>
-
 <!-- Commandes -->
 <h3>Détail de la commande</h3>
 <?= GridView::widget([
