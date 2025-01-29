@@ -171,6 +171,8 @@ QUERY;
 			$gridDataOrders[] = [
 				'carrier_tax' => $order['shippingLine']['taxLines']['price'],
 				'carrier_tax_rate' => $order['shippingLine']['taxLines']['rate'],
+				'transporteur' => $order['shippingLine']['title'],
+				'frais' => $order['shippingLine']['price'],
 			];
 		}
 
