@@ -175,7 +175,18 @@ class PrestaShopWebservice
      */
     protected function executeRequest($url, $curl_params = array())
     {
-        $defaultParams = $this->getCurlDefaultParams();
+        //$defaultParams = $this->getCurlDefaultParams();
+
+        $defaultParams = [
+            CURLOPT_HEADER => TRUE,
+            CURLOPT_RETURNTRANSFER => TRUE,
+            CURLINFO_HEADER_OUT => TRUE,
+            CURLOPT_USERAGENT => 'Vaisonet e-connecteur',
+            CURLOPT_HTTPAUTH => CURLAUTH_BASIC,
+            CURLOPT_USERPWD => $this->key.':',
+            CURLOPT_TIMEOUT => 300,
+            CURLOPT_HTTPHEADER => ['Expect:'],
+        ];
 
         $session = curl_init($url);
 

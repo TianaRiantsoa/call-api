@@ -163,8 +163,8 @@ QUERY;
 			'subtotal' => $order['subtotalPrice'],
 			'totalDiscounts' => $order['totalDiscounts'],
 			'totalTax' => $order['totalTax'],
-			'transporteur' => $order['shippingLine']['title'],
-			'frais' => $order['shippingLine']['price'],
+			//'transporteur' => $order['shippingLine']['title'],
+			//'frais' => $order['shippingLine']['price'],
 		];
 
 		if (!empty($order['shippingLine']['taxLines']['price'])) {
@@ -308,7 +308,7 @@ QUERY;
 			'attribute' => 'frais',
 			'label' => 'Frais de port',
 			'value' => function ($model) {
-				return Yii::$app->formatter->asCurrency($model['frais'], 'EUR');
+				//return Yii::$app->formatter->asCurrency(/$model['frais'], 'EUR');
 			},
 		],
 		[
