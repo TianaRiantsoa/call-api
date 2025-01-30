@@ -47,7 +47,7 @@ echo yii\widgets\DetailView::widget([
 	],
 ]);
 
-echo '<h2>Résultat de la recherche sur le produit rérérence : ' . $ref . ' du site ' . $url . '</h2><br><br>';
+echo '<br><h2>Résultat de la recherche sur le produit rérérence : ' . $ref . ' du site ' . $url . '</h2><br>';
 
 //Produit simple
 if (
@@ -758,27 +758,30 @@ elseif (
 			$combinationPrices[$combination['id']] = $combination['price'];
 		}
 
-		// Calculer les différences pour les tarifs spécifiques
-		foreach ($tarifList as &$tarif) {
-			$combinationPrice = $combinationPrices[$tarif['id_product_attribute']] ?? null;
+		if (isset($tarifList)) {
+			// Calculer les différences pour les tarifs spécifiques
+			foreach ($tarifList as &$tarif) {
+				$combinationPrice = $combinationPrices[$tarif['id_product_attribute']] ?? null;
 
-			if ($combinationPrice !== null) {
-				// Calculer les différences
-				$differenceAmount = $tarif['price'] - $combinationPrice;
-				$differencePercentage = $combinationPrice != 0 ? ($differenceAmount / $combinationPrice) * 100 : 0;
+				if ($combinationPrice !== null) {
+					// Calculer les différences
+					$differenceAmount = $tarif['price'] - $combinationPrice;
+					$differencePercentage = $combinationPrice != 0 ? ($differenceAmount / $combinationPrice) * 100 : 0;
 
-				// Ajouter les résultats dans les données
-				$tarif['difference_amount'] = $differenceAmount;
-				$tarif['difference_percentage'] = $differencePercentage;
-			} else {
-				// Si aucune correspondance n'est trouvée
-				$tarif['difference_amount'] = 'N/A';
-				$tarif['difference_percentage'] = 'N/A';
+					// Ajouter les résultats dans les données
+					$tarif['difference_amount'] = $differenceAmount;
+					$tarif['difference_percentage'] = $differencePercentage;
+				} else {
+					// Si aucune correspondance n'est trouvée
+					$tarif['difference_amount'] = 'N/A';
+					$tarif['difference_percentage'] = 'N/A';
+				}
 			}
+		} else {
 		}
+		if (isset($tarifList)) {
+			echo '<h3>Tarifs spécifiques</h3>';
 
-		echo '<h3>Tarifs spécifiques</h3>';
-		if (!empty($tarifList)) {
 			echo GridView::widget([
 				'dataProvider' => new ArrayDataProvider([
 					'allModels' => $tarifList,
@@ -910,6 +913,7 @@ elseif (
 					],
 				],
 			]);
+		} else {
 		}
 	} catch (\Exception $e) {
 		// En cas d'erreur, afficher un message d'erreur
