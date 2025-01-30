@@ -47,7 +47,7 @@ echo yii\widgets\DetailView::widget([
 	],
 ]);
 
-echo '<h2>Résultat de la recherche sur le produit rérérence : ' . $ref . ' du site ' . $url . '</h2>';
+echo '<h2>Résultat de la recherche sur le produit rérérence : ' . $ref . ' du site ' . $url . '</h2><br><br>';
 
 //Produit simple
 if (
@@ -144,9 +144,42 @@ if (
 					],
 				]),
 				'columns' => [
-					'id',
-					'name',
-					'reference',
+					[
+						'attribute' => 'id',
+						'label' => 'ID',
+						'format' => 'raw',
+						'value' => function ($model) use ($url, $api) {
+							return Html::a(
+								$model['id'],
+								$url . "/api/products/{$model['id']}?ws_key=" . $api,
+								['target' => '_blank', 'encode' => false]
+							);
+						}
+					],
+					[
+						'attribute' => 'name',
+						'label' => 'Nom',
+						'format' => 'raw',
+						'value' => function ($model) use ($url, $api) {
+							return Html::a(
+								$model['name'],
+								$url . "/api/products/{$model['id']}?ws_key=" . $api,
+								['target' => '_blank', 'encode' => false]
+							);
+						}
+					],
+					[
+						'attribute' => 'reference',
+						'label' => 'Référence',
+						'format' => 'raw',
+						'value' => function ($model) use ($url, $api) {
+							return Html::a(
+								$model['reference'],
+								$url . "/api/products/{$model['id']}?ws_key=" . $api,
+								['target' => '_blank', 'encode' => false]
+							);
+						}
+					],
 					[
 						'attribute' => 'price',
 						'value' => function ($model) {
