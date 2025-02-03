@@ -1,9 +1,9 @@
-name: Envoi FTP InfinityFree
+name: Deploy to InfinityFree FTP
 
 on:
   push:
     branches:
-      - main # Change selon ta branche
+      - main  # Change selon ta branche principale
 
 jobs:
   ftp-deploy:
@@ -20,5 +20,5 @@ jobs:
           username: ${{ secrets.FTP_USER }}
           password: ${{ secrets.FTP_PASS }}
           local-dir: ./
-          server-dir: /htdocs/ # Dossier de ton site
-          
+          server-dir: /htdocs/  # Dossier de ton site
+          passive: false  # Désactive le mode passif
