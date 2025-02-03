@@ -21,3 +21,4 @@ jobs:
           password: ${{ secrets.FTP_PASS }}
           local-dir: ./
           server-dir: /htdocs/ # Dossier de ton site
+          
