@@ -916,7 +916,32 @@ elseif (
 		} else {
 		}
 	} catch (\Exception $e) {
-		// En cas d'erreur, afficher un message d'erreur
-		Yii::$app->session->setFlash('error', 'Erreur API : ' . $e->getMessage());
+		// Yii::$app->session->setFlash('error', 'Erreur : ' . $e->getMessage());
+		// return;
+
+		$rawResponse = $webService->getRawResponse();
+
+		echo '<span style="color:red">Erreur détectée : ' . $e->getMessage() . PHP_EOL . '</span><br>';
+
+		if ($rawResponse) {
+			echo '<span style="color:red">Réponse brute : '  . PHP_EOL . $rawResponse . '</span>';
+			// Tenter de parser ou analyser manuellement
+			if (strpos($rawResponse, '<!DOCTYPE html>') !== false) {
+				echo 'Erreur HTML détectée' . PHP_EOL;
+			} elseif (strpos($rawResponse, '<?xml') === 0) {
+				// Parser le XML manuellement
+				$xml = simplexml_load_string($rawResponse);
+				if ($xml !== false) {
+					print_r($xml);
+				} else {
+					Yii::$app->session->setFlash('error', 'Erreur lors du parsing XML.' . PHP_EOL);
+				}
+			} else {
+				Yii::$app->session->setFlash('error', 'Format de réponse inconnu.' . PHP_EOL);
+			}
+		} else {
+			Yii::$app->session->setFlash('error', 'Aucune réponse brute disponible.' . PHP_EOL);
+		}
+		return;
 	}
 }

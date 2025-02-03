@@ -183,7 +183,7 @@ class PrestaShopWebservice
             CURLINFO_HEADER_OUT => TRUE,
             CURLOPT_USERAGENT => 'Vaisonet e-connecteur',
             CURLOPT_HTTPAUTH => CURLAUTH_BASIC,
-            CURLOPT_USERPWD => $this->key.':',
+            CURLOPT_USERPWD => $this->key . ':',
             CURLOPT_TIMEOUT => 300,
             CURLOPT_HTTPHEADER => ['Expect:'],
         ];
@@ -205,7 +205,17 @@ class PrestaShopWebservice
         }
 
         curl_setopt_array($session, $curl_options);
+
         $response = curl_exec($session);
+
+        /** 
+
+        $response = file_get_contents('view-source:' . $url.'&ws_key='.$this->key);
+        if ($response === false) {
+            throw new PrestaShopWebserviceException('Erreur lors de la récupération du XML');
+        }
+         */
+
         $this->rawResponse = $response; // Enregistrer la réponse brute
 
 
