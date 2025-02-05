@@ -19,10 +19,7 @@ $this->params['breadcrumbs'][] = ['label' => Html::encode($ref)];
 
 $url = Html::encode($model->url);
 
-if (strpos($url, 'localhost') !== false) {
-    // Forcer HTTP pour localhost
-    $url = "http://" . $url;
-} else {
+
     // Vérifier si le site est accessible en HTTP
     $headers = @get_headers("http://" . $url);
     if ($headers && strpos($headers[0], '200') !== false) {
@@ -30,13 +27,13 @@ if (strpos($url, 'localhost') !== false) {
     } else {
         $url = "https://" . $url;
     }
-}
+
 
 $consumer_key = Html::encode($model->consumer_key);
 $consumer_secret = Html::encode($model->consumer_secret);
 $ref = Html::encode($ref);
 
-$client = new Client($url, $consumer_key, $consumer_secret, ['version' => 'wc/v3']);
+$client = new Client($url, $consumer_key, $consumer_secret, ['version' => 'wc/v3', 'verify_ssl' => false]);
 
 
 try {
@@ -136,6 +133,7 @@ try {
     }
 
     Yii::$app->session->setFlash('error', $message);
+    print_r($response);
 
     // Arrêter l'exécution si critique
     $orderDetails = [];
