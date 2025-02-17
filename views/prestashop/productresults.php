@@ -55,6 +55,8 @@ if (
 	&& isset($type) && $type === 'simple'
 	&& isset($variation_type) && $variation_type == null
 ) {
+	$urlweb = $url . '/api/products/?filter[reference]=' . $ref . '&ws_key=' . $api;
+	echo '<a href="' . $urlweb . '" target=_blank>' . $urlweb . '</a>';
 	try {
 		// Connexion à l'API PrestaShop
 		$webService = new PrestaShopWebservice($url, $api, false);
@@ -778,6 +780,7 @@ elseif (
 				}
 			}
 		} else {
+			echo '<h3>Ce produit ne possède pas des tarifs spécifiques</h3>';
 		}
 		if (isset($tarifList)) {
 			echo '<h3>Tarifs spécifiques</h3>';
