@@ -133,25 +133,25 @@ class SiteController extends Controller
     }
 
     public function actionGet()
-{
-    \Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
+    {
+        \Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
 
-    $search = Yii::$app->request->post('search');
-    
-    // Créer la requête pour MySQL avec la connexion 'dbMysql'
-    $query = (new \yii\db\Query())
-        ->select('*')
-        ->from('migrationOF');
+        $search = Yii::$app->request->post('search');
 
-    // Appliquer le filtre sur l'URL si une recherche est envoyée
-    if (!empty($search)) {
-        $query->where(['like', 'URL', $search]);
+        // Créer la requête pour MySQL avec la connexion 'dbMysql'
+        $query = (new \yii\db\Query())
+            ->select('*')
+            ->from('migrationOF');
+
+        // Appliquer le filtre sur l'URL si une recherche est envoyée
+        if (!empty($search)) {
+            $query->where(['like', 'URL', $search]);
+        }
+
+        // Utiliser le bon composant de base de données pour exécuter la requête sur MySQL
+        $command = $query->createCommand(Yii::$app->mysql); // Utilisation du bon composant
+        $rows = $command->queryAll(); // Exécution de la requête et récupération des résultats
+
+        return $rows;
     }
-
-    // Utiliser le bon composant de base de données pour exécuter la requête sur MySQL
-    $command = $query->createCommand(Yii::$app->mysql); // Utilisation du bon composant
-    $rows = $command->queryAll(); // Exécution de la requête et récupération des résultats
-
-    return $rows;
-}
 }

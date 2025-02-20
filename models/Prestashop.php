@@ -13,6 +13,15 @@ use Yii;
  */
 class Prestashop extends \yii\db\ActiveRecord
 {
+    // Déclare les propriétés dynamiques
+    public $config;
+    public $erp;
+    public $type;
+    public $serial_id;
+    public $slug;
+    public $client;
+    public $ctsage;
+
     /**
      * {@inheritdoc}
      */
@@ -29,6 +38,7 @@ class Prestashop extends \yii\db\ActiveRecord
         return [
             [['url', 'api_key'], 'required'],
             [['url', 'api_key'], 'string', 'max' => 255],
+            [['config', 'erp', 'type', 'serial_id', 'slug', 'client', 'ctsage'], 'safe'], // "safe" pour les propriétés non liées à la base de données
         ];
     }
 
@@ -41,6 +51,13 @@ class Prestashop extends \yii\db\ActiveRecord
             'id' => 'ID',
             'url' => 'URL',
             'api_key' => 'Clé API',
+            'config' => 'Configuration',
+            'erp' => 'ERP',
+            'type' => 'Type',
+            'serial_id' => 'Serial ID',
+            'slug' => 'Slug',
+            'client' => 'Client',
+            'ctsage' => 'Code Tiers Sage',
         ];
     }
 

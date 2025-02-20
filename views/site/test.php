@@ -34,92 +34,119 @@ $this->title = 'Tableau Dynamique MySQL';
 
 <script>
     $(document).ready(function() {
-        function loadData(search = "") {
-            $.post("<?= Url::to(['site/get-data']) ?>", {
-                search: search
-            }, function(data) {
-                let tbody = $("#data-table tbody");
-                let thead = $("#table-headers");
-                let checkboxes = $("#columns-toggle");
+    // Tableau pour suivre l'état de visibilité des colonnes
+    let columnVisibility = {};
 
-                tbody.empty();
-                thead.empty();
-                checkboxes.empty();
+    function loadData(search = "") {
+        $.post("<?= Url::to(['site/get']) ?>", { search: search }, function(data) {
+            let tbody = $("#data-table tbody");
+            let thead = $("#table-headers");
+            let checkboxes = $("#columns-toggle");
 
-                if (data.length === 0) {
-                    tbody.append("<tr><td colspan='100%' class='text-center'>Aucune donnée trouvée</td></tr>");
-                    return;
-                }
+            tbody.empty();
+            thead.empty();
+            checkboxes.empty();
 
-                let columns = Object.keys(data[0]);
+            if (data.length === 0) {
+                tbody.append("<tr><td colspan='100%' class='text-center'>Aucune donnée trouvée</td></tr>");
+                return;
+            }
 
-                // Générer les en-têtes et les cases à cocher
-                columns.forEach(col => {
-                    thead.append(`<th data-col='${col}' class="sortable">${col.charAt(0).toUpperCase() + col.slice(1)}</th>`);
-                    checkboxes.append(`
+            let columns = Object.keys(data[0]);
+
+            // Générer les en-têtes et les cases à cocher
+            columns.forEach(col => {
+                // Créer les en-têtes de colonne
+                thead.append(`<th data-col='${col}' class="sortable">${col.charAt(0).toUpperCase() + col.slice(1)}</th>`);
+
+                // Créer les cases à cocher pour afficher/masquer les colonnes
+                checkboxes.append(`
                     <div class="form-check form-check-inline">
                         <input type="checkbox" class="form-check-input col-toggle" data-col="${col}" checked>
                         <label class="form-check-label">${col}</label>
                     </div>
                 `);
-                });
 
-                // Générer les lignes
-                data.forEach(row => {
-                    let tr = $("<tr>");
-                    columns.forEach(col => {
-                        tr.append(`<td data-col="${col}">${row[col]}</td>`);
-                    });
-                    tbody.append(tr);
-                });
-
-                // Réactiver les événements
-                $(".col-toggle").on("change", function() {
-                    let col = $(this).data("col");
-                    let isChecked = $(this).is(":checked");
-
-                    // Masquer/afficher les colonnes
-                    $(`[data-col='${col}']`).toggle(isChecked);
-                });
-
-                // Tri des colonnes
-                $(".sortable").on("click", function() {
-                    let table = $(this).parents("table").eq(0);
-                    let rows = table.find("tbody tr").toArray();
-                    let index = $(this).index();
-                    let ascending = $(this).data("asc") || false;
-
-                    rows.sort(function(a, b) {
-                        let valA = $(a).children("td").eq(index).text();
-                        let valB = $(b).children("td").eq(index).text();
-                        return ascending ? valA.localeCompare(valB) : valB.localeCompare(valA);
-                    });
-
-                    $(this).data("asc", !ascending);
-                    table.children("tbody").empty().append(rows);
-                });
+                // Initialiser l'état des colonnes à "visible" par défaut
+                columnVisibility[col] = true;
             });
-        }
 
-        // Recherche dynamique
-        $("#search").on("keyup", function() {
-            let searchValue = $(this).val().trim();
-            loadData(searchValue);
+            // Générer les lignes de la table
+            data.forEach(row => {
+                let tr = $("<tr>");
+                columns.forEach(col => {
+                    tr.append(`<td data-col="${col}">${row[col]}</td>`);
+                });
+                tbody.append(tr);
+            });
+
+            // Afficher/masquer les colonnes selon l'état des cases à cocher
+            $(".col-toggle").on("change", function() {
+                let col = $(this).data("col");
+                let isChecked = $(this).is(":checked");
+
+                // Mémoriser l'état de visibilité de la colonne
+                columnVisibility[col] = isChecked;
+
+                // Appliquer l'affichage/masquage de la colonne
+                $(`[data-col='${col}']`).toggle(isChecked);
+            });
+
+            // Tri des colonnes
+            $(".sortable").on("click", function() {
+                let table = $(this).parents("table").eq(0);
+                let rows = table.find("tbody tr").toArray();
+                let index = $(this).index();
+                let ascending = $(this).data("asc") || false;
+
+                rows.sort(function(a, b) {
+                    let valA = $(a).children("td").eq(index).text();
+                    let valB = $(b).children("td").eq(index).text();
+                    return ascending ? valA.localeCompare(valB) : valB.localeCompare(valA);
+                });
+
+                $(this).data("asc", !ascending);
+                table.children("tbody").empty().append(rows);
+            });
         });
+    }
 
-        loadData(); // Chargement initial
-
-        // Maintenir l'état des cases à cocher après chaque chargement
-        $(document).on('change', '.col-toggle', function() {
-            let col = $(this).data('col');
-            let isChecked = $(this).prop('checked');
-
-            // Gérer l'affichage des colonnes selon l'état des cases
-            if (isChecked) {
-                $(`[data-col="${col}"]`).show();
-            } else {
-                $(`[data-col="${col}"]`).hide();
-            }
-        });
+    // Recherche dynamique
+    $("#search").on("keyup", function() {
+        let searchValue = $(this).val().trim();
+        loadData(searchValue);
     });
+
+    loadData(); // Chargement initial
+
+    // Réinitialiser les états des cases à cocher et appliquer l'affichage des colonnes
+    $(document).on('change', '.col-toggle', function() {
+        let col = $(this).data('col');
+        let isChecked = $(this).prop('checked');
+
+        // Gérer l'affichage des colonnes selon l'état des cases
+        if (isChecked) {
+            $(`[data-col="${col}"]`).show();
+        } else {
+            $(`[data-col="${col}"]`).hide();
+        }
+    });
+
+    // Appliquer l'affichage des colonnes selon les états enregistrés
+    $(document).on('change', '.col-toggle', function() {
+        let col = $(this).data('col');
+        let isChecked = $(this).prop('checked');
+
+        // Mettre à jour l'état de la colonne dans le tableau
+        columnVisibility[col] = isChecked;
+
+        // Appliquer l'affichage/mise en masquage
+        if (isChecked) {
+            $(`[data-col="${col}"]`).show();
+        } else {
+            $(`[data-col="${col}"]`).hide();
+        }
+    });
+});
+
 </script>
