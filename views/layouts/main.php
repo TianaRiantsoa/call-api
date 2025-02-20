@@ -18,6 +18,21 @@ $this->registerMetaTag(['name' => 'viewport', 'content' => 'width=device-width, 
 $this->registerMetaTag(['name' => 'description', 'content' => $this->params['meta_description'] ?? '']);
 $this->registerMetaTag(['name' => 'keywords', 'content' => $this->params['meta_keywords'] ?? '']);
 $this->registerLinkTag(['rel' => 'icon', 'type' => 'image/x-icon', 'href' => Yii::getAlias('@web/favicon.ico')]);
+$this->registerJsFile('https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js', ['position' => \yii\web\View::POS_END]);
+$this->registerJs("
+    // Assurez-vous que Bootstrap et ses plugins sont bien initialisés
+    var myAccordion = document.getElementById('accordionTest');
+    if (myAccordion) {
+        var collapseElements = myAccordion.querySelectorAll('.accordion-button');
+        collapseElements.forEach(function (element) {
+            element.addEventListener('click', function() {
+                var targetId = this.getAttribute('data-bs-target');
+                var targetCollapse = document.querySelector(targetId);
+                targetCollapse.classList.toggle('show');
+            });
+        });
+    }
+", \yii\web\View::POS_READY);
 //$this->registerLinkTag(['rel' => 'stylesheet', 'href' => Yii::getAlias('@web/css/main.css')]);
 ?>
 <?php $this->beginPage() ?>
@@ -40,6 +55,7 @@ $this->registerLinkTag(['rel' => 'icon', 'type' => 'image/x-icon', 'href' => Yii
     <link rel="stylesheet" href="https://d11lu0htm9h2oc.cloudfront.net/back/v2/css/v1.17.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
 </head>
 
 <body class="d-flex flex-column h-100">

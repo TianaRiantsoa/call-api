@@ -204,6 +204,37 @@ class ShopifyController extends Controller
     protected function findModel($id)
     {
         if (($model = Shopify::findOne(['id' => $id])) !== null) {
+            // Récupérer l'URL depuis le modèle SQLite
+            $url = $model->url;
+
+            // Récupérer toutes les lignes correspondantes à l'URL depuis MySQL
+            $mysqlConnection = Yii::$app->mysql; // Connexion MySQL
+            $data = $mysqlConnection->createCommand('SELECT * FROM migrationOF WHERE url=:url')
+                ->bindValue(':url', $url)
+                ->queryAll(); // Utiliser queryAll() pour récupérer plusieurs lignes
+
+            if ($data !== false) {
+                // Boucler sur les résultats MySQL et les ajouter dynamiquement au modèle
+                foreach ($data as $row) {
+                    $model->config[] = $row['config'];
+                    $model->erp[] = $row['erp'];
+                    $model->type[] = $row['type'];
+                    $model->serial_id[] = $row['serial_id'];
+                    $model->slug[] = $row['slug'];
+                    $model->client[] = $row['client'];
+                    $model->ctsage[] = $row['ctsage'];
+                }
+            } else {
+                // Si aucune donnée n'est trouvée dans MySQL, on peut gérer ce cas
+                $model->config = null;
+                $model->erp = null;
+                $model->type = null;
+                $model->serial_id = null;
+                $model->slug = null;
+                $model->client = null;
+                $model->ctsage = null;
+            }
+
             return $model;
         }
 
