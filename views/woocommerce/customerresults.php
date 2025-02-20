@@ -42,51 +42,47 @@ try {
 
 
     // 1. Supprimer tous les produits et leurs variations
-    // $page = 1;
-    // do {
-    //     // Récupérer tous les produits
-    //     $products = $woocommerce->get('products', [
-    //         'per_page' => 100,
-    //         'page' => $page,
-    //     ]);
-
-    //     foreach ($products as $product) {
-    //         // Supprimer les variations du produit si c'est un produit variable
-    //         if ($product->type === 'variable') {
-    //             $variations = $woocommerce->get("products/{$product->id}/variations");
-    //             foreach ($variations as $variation) {
-    //                 //$woocommerce->delete("products/{$product->id}/variations/{$variation->id}", ['force' => true]);
-    //                 echo "Variation supprimée : ID {$variation->id}, Produit Parent : {$product->name}<br>";
-    //             }
-    //         }
-
-    //         // Supprimer le produit principal
-    //         //$woocommerce->delete("products/{$product->id}", ['force' => true]);
-    //         echo "Produit supprimé : ID {$product->id}, Nom : {$product->name}<br>";
-    //     }
-
-    //     $page++;
-    // } while (count($products) > 0);
-
-    // 2. Supprimer toutes les catégories
     $page = 1;
-    do {
-        // Récupérer toutes les catégories
-        $categories = $woocommerce->get('products/attributes/3/terms', [
+        // Récupérer tous les produits
+        $products = $woocommerce->get('products/12825', [
             'per_page' => 100,
             'page' => $page,
         ]);
 
-        foreach ($categories as $category) {
-            // Supprimer la catégorie
-            $woocommerce->delete("products/attributes/3/terms/{$category->id}", ['force' => true]);
-            echo "Catégorie supprimée : ID {$category->id}, Nom : {$category->name}<br>";
-        }
+        
+            // Supprimer les variations du produit si c'est un produit variable
+            if ($products->type === 'variable') {
+                $variations = $woocommerce->get("products/12825/variations");
+                foreach ($variations as $variation) {
+                    $woocommerce->delete("products/{$products->id}/variations/{$variation->id}", ['force' => true]);
+                    echo "Variation supprimée : ID {$variation->id}, Produit Parent : {$products->name}<br>";
+                }
+            }
+
+            // Supprimer le produit principal
+            $woocommerce->delete("products/{$products->id}", ['force' => true]);
+            echo "Produit supprimé : ID {$products->id}, Nom : {$products->name}<br>";
+        
 
         $page++;
-    } while (count($categories) > 0);
 
-    echo "Tous les produits, variations et catégories ont été supprimés.<br>";
+    // // 2. Supprimer toutes les catégories
+    // $page = 1;
+    // do {
+    //     // Récupérer toutes les catégories
+    //     $categories = $woocommerce->get('products/attributes/3/terms', [
+    //         'per_page' => 100,
+    //         'page' => $page,
+    //     ]);
+
+    //     foreach ($categories as $category) {
+    //         // Supprimer la catégorie
+    //         $woocommerce->delete("products/attributes/3/terms/{$category->id}", ['force' => true]);
+    //         echo "Catégorie supprimée : ID {$category->id}, Nom : {$category->name}<br>";
+    //     }
+
+    //     $page++;
+    // } while (count($categories) > 0);
 } catch (Exception $e) {
     echo 'Erreur : ' . $e->getMessage() . "\n";
 }

@@ -2,6 +2,7 @@
 
 $params = require __DIR__ . '/params.php';
 $db = require __DIR__ . '/db.php';
+$mysql = require __DIR__ . '/mysql.php';
 
 $config = [
     'id' => 'advanced',
@@ -42,6 +43,7 @@ $config = [
             ],
         ],
         'db' => $db,
+        'mysql' => $mysql,
 
         'urlManager' => [
             'enablePrettyUrl' => true,
