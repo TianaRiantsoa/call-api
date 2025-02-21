@@ -39,74 +39,127 @@ $this->params['breadcrumbs'][] = $this->title;
         <?= Html::a('Recherche de client', ['customers', 'id' => $model->id], ['class' => 'btn btn-outline-primary btn-sm mx-3']) ?>
     </div>
 
-    <div>
+    <br><br>
+    <?php if ($model->erp != null) { ?>
+        <div style="display: flex; justify-content: center; gap: 20px;">
+            <h2>ERP : <?= $model->erp[0] ?></h2>
+            <h2>CMS : <?= $model->type[0] ?></h2>
+            <h2>Code tiers Sage : <?= $model->ctsage[0] ?></h2>
+        </div>
+        <br><br>
+        <h1>Configuration :</h1>
 
-        <h1>Détails du Shopify</h1>
+        <div class="accordion" id="accordionExample">
+            <?php if (!empty($model->config)) {
+                foreach ($model->config as $index => $config) {
+                    $c = json_decode($config, true);
 
-        <!-- Tableau des résultats récupérés depuis MySQL -->
-        <table class="table">
-            <thead>
-                <tr>
-                    <th>Configuration</th>
-                    <th>ERP</th>
-                    <th>Type</th>
-                    <th>Serial ID</th>
-                    <th>Slug</th>
-                    <th>Client</th>
-                    <th>CTSage</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php if (!empty($model->config)): ?>
-                    <?php foreach ($model->config as $index => $config): ?>
-                        <tr>
-                            <td>
-                                <!-- Accordéon pour chaque ligne -->
-                                <div class="accordion" id="accordionExample<?= $index ?>">
-                                    <div class="accordion-item">
-                                        <!-- Entête personnalisé avec serial_id et slug -->
-                                        <h2 class="accordion-header" id="heading<?= $index ?>">
-                                            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse<?= $index ?>" aria-expanded="false" aria-controls="collapse<?= $index ?>">
-                                                Plannif.exe --key <?= $model->serial_id[$index] ?> --configuration <?= $model->slug[$index] ?>
-                                            </button>
-                                        </h2>
-                                        <!-- Corps de l'accordéon avec le JSON formaté -->
-                                        <div id="collapse<?= $index ?>" class="accordion-collapse collapse" aria-labelledby="heading<?= $index ?>" data-bs-parent="#accordionExample<?= $index ?>">
-                                            <div class="accordion-body">
-                                                <?php
-                                                // Décoder le JSON pour le formater
-                                                $decodedConfig = json_decode($config, true); // true pour obtenir un tableau associatif
+                    $grid[] = $c;
+            ?>
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="heading<?= $model->slug[$index] ?>">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse<?= $model->slug[$index] ?>" aria-expanded="false" aria-controls="collapse<?= $model->slug[$index] ?>">
+                                <p>Configuration <?= $model->slug[$index] ?></p>
+                            </button>
+                        </h2>
+                        <!-- Par défaut, la classe 'collapse' est utilisée sans 'show' pour qu'il soit replié -->
+                        <div id="collapse<?= $model->slug[$index] ?>" class="accordion-collapse collapse" aria-labelledby="heading<?= $model->slug[$index] ?>" data-bs-parent="#accordionExample">
+                            <div class="accordion-body">
+                                <?php
+                                // Vérifier si la décodification a réussi
+                                if (json_last_error() === JSON_ERROR_NONE) {
+                                    // Utiliser json_encode avec JSON_PRETTY_PRINT pour formater le JSON                                
+                                ?>
+                                    <p>Plannif.exe --key <?= $model->serial_id[$index] ?> --configuration <?= $model->slug[$index] ?></p>
+                                    <table class="table table-striped table-bordered">
+                                        <thead>
+                                            <tr>
+                                                <th>Paramètre</th>
+                                                <th>Produits</th>
+                                                <th>Champs</th>
+                                                <th>Commandes</th>
+                                                <th>PRO</th>
+                                                <th>B2B</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr data-key="1">
+                                                <!-- Paramètre -->
+                                                <td>
+                                                    URL : <?= $c['site:url'] ?><br>
+                                                    Sous dossier : <?= $c['param:api_path'] ?><br>
+                                                    Clé API : <?= $c['param:api_key'] ?><br>
+                                                    Jeton de L'API : <?= $c['param:SHOPIFY_PASSWORD'] ?><br>
+                                                    Clé Secrète : <?= $c['param:SHOPIFY_SHARED_SECRET'] ?><br>
+                                                    <?php if ($c['site:erp'] === 'ebpsdk') { ?>
+                                                        Dossier EBP : <?= $c['erp:ebp_dossier']['folder'] ?><br>
+                                                        Utilisateur EBP : <?= $c['erp:ebp_user'] ?><br>
+                                                        Mot de passe EBP : <?= $c['erp:ebp_pass'] ?><br>
+                                                        Utilisateur SQL : <?= $c['param:ebpsdk_uid'] ?><br>
+                                                        Mot de passe SQL : <?= $c['param:ebpsdk_password'] ?><br>
+                                                    <?php } elseif ($c['site:erp'] === 'sage') { ?>
+                                                        Dossier SAGE : <?= $c['erp:sage_gc_fic']['folder'] ?><br>
+                                                        Utilisateur SAGE : <?= $c['erp:sage_gc_user'] ?><br>
+                                                        Mot de passe SAGE : <?= $c['erp:sage_gc_pass'] ?><br>
+                                                        Utilisateur SQL : <?= $c['sage:uid'] ?><br>
+                                                        Mot de passe SQL : <?= $c['sage:password'] ?><br>
+                                                    <?php } ?>
+                                                </td>
 
-                                                // Vérifier si la décodification a réussi
-                                                if (json_last_error() === JSON_ERROR_NONE) {
-                                                    // Utiliser json_encode avec JSON_PRETTY_PRINT pour formater le JSON
-                                                    // echo $decodedConfig['site:url'];
-                                                    echo '<pre>' . json_encode($decodedConfig, JSON_PRETTY_PRINT) . '</pre>';
-                                                } else {
-                                                    echo 'Erreur dans le format du JSON';
-                                                }
-                                                ?>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </td>
-                            <td><?= $model->erp[$index] ?></td>
-                            <td><?= $model->type[$index] ?></td>
-                            <td><?= $model->serial_id[$index] ?></td>
-                            <td><?= $model->slug[$index] ?></td>
-                            <td><?= $model->client[$index] ?></td>
-                            <td><?= $model->ctsage[$index] ?></td>
-                        </tr>
-                    <?php endforeach; ?>
-                <?php else: ?>
-                    <tr>
-                        <td colspan="7">Aucune donnée trouvée pour cette URL.</td>
-                    </tr>
-                <?php endif; ?>
-            </tbody>
-        </table>
+                                                <!-- Produit -->
+                                                <td>
+                                                    Flux Produits : <?= $c['ecommerce:product'] ?><br>
+                                                    Création Produit : <?= $c['ecommerce:insert_product'] ?><br>
+                                                    Ne pas mettre à jour un Produit : <?= $c['ecommerce:no_update_product'] ?><br>
 
-    </div>
+                                                </td>
+                                                <!-- Champs -->
+                                                <td>
+                                                    Nom : <?= $c['champs:nom'] ?><br>
+                                                    TVA : <?= $c['champs:tva'] ?><br>
+                                                    Publier sur le Web : <?= $c['champs:enventesurleweb'] ?>
+                                                </td>
 
+                                                <!-- Commandes -->
+                                                <td>
+                                                    Flux Commandes : <?= $c['erp:commande'] ?><br>
+                                                </td>
+
+                                                <!-- PRO -->
+                                                <td>
+                                                    Gestion des gammes : <?= $c['erp:gamme'] ?><br>
+                                                    Mise à jour des déclinaisons / variations : <?= $c['ecommerce:option'] ?><br>
+                                                    Mettre à jour à la fois produit et gamme : <?= $c['ecommerce:option_et_produit'] ?><br>
+                                                </td>
+
+                                                <!-- B2B -->
+                                                <td>
+                                                    Flux clients : <?= $c['B2B:clients'] ?><br>
+                                                    Grilles de prix : <?= $c['B2B:grilles'] ?><br>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                <?php
+                                    // echo '<pre>' . json_encode($c, JSON_PRETTY_PRINT) . '</pre>';
+                                } else {
+                                    echo 'Erreur dans le format du JSON';
+                                }
+                                ?>
+                            </div>
+                        </div>
+                    </div>
+                <?php }
+            } else { ?>
+                <h2>
+                    Aucune configuration V7 n'a été détectée pour ce client. <br>
+                    Cela peut signifier soit qu'aucune configuration en ligne n'a été créée,
+                    soit qu'il utilise un développement sur mesure intégré au cœur du logiciel E-connecteur.
+                </h2>
+            <?php } ?>
+        </div>
+
+    <?php } else { ?>
+        <p style="color:red">Ce client n'apparaît pas dans la liste des clients en V7. Il est possible qu'aucune licence ne soit associée à cette URL.</p>
+    <?php } ?>
 </div>
