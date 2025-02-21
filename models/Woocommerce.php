@@ -14,6 +14,16 @@ use Yii;
  */
 class Woocommerce extends \yii\db\ActiveRecord
 {
+    // Déclare les propriétés dynamiques
+    public $config;
+    public $erp;
+    public $type;
+    public $serial_id;
+    public $slug;
+    public $client;
+    public $ctsage;
+    public $idconfig;
+
     /**
      * {@inheritdoc}
      */
@@ -30,6 +40,7 @@ class Woocommerce extends \yii\db\ActiveRecord
         return [
             [['url', 'consumer_key', 'consumer_secret'], 'required'],
             [['url', 'consumer_key', 'consumer_secret'], 'string', 'max' => 255],
+            [['config', 'erp', 'type', 'serial_id', 'slug', 'client', 'ctsage'], 'safe'], // "safe" pour les propriétés non liées à la base de données
         ];
     }
 
@@ -43,6 +54,13 @@ class Woocommerce extends \yii\db\ActiveRecord
             'url' => 'URL',
             'consumer_key' => 'Clé Client',
             'consumer_secret' => 'Clé Secrète',
+            'config' => 'Configuration',
+            'erp' => 'ERP',
+            'type' => 'Type',
+            'serial_id' => 'Serial ID',
+            'slug' => 'Slug',
+            'client' => 'Client',
+            'ctsage' => 'Code Tiers Sage',
         ];
     }
 

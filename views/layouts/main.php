@@ -18,21 +18,6 @@ $this->registerMetaTag(['name' => 'viewport', 'content' => 'width=device-width, 
 $this->registerMetaTag(['name' => 'description', 'content' => $this->params['meta_description'] ?? '']);
 $this->registerMetaTag(['name' => 'keywords', 'content' => $this->params['meta_keywords'] ?? '']);
 $this->registerLinkTag(['rel' => 'icon', 'type' => 'image/x-icon', 'href' => Yii::getAlias('@web/favicon.ico')]);
-$this->registerJsFile('https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js', ['position' => \yii\web\View::POS_END]);
-$this->registerJs("
-    // Assurez-vous que Bootstrap et ses plugins sont bien initialisés
-    var myAccordion = document.getElementById('accordionTest');
-    if (myAccordion) {
-        var collapseElements = myAccordion.querySelectorAll('.accordion-button');
-        collapseElements.forEach(function (element) {
-            element.addEventListener('click', function() {
-                var targetId = this.getAttribute('data-bs-target');
-                var targetCollapse = document.querySelector(targetId);
-                targetCollapse.classList.toggle('show');
-            });
-        });
-    }
-", \yii\web\View::POS_READY);
 //$this->registerLinkTag(['rel' => 'stylesheet', 'href' => Yii::getAlias('@web/css/main.css')]);
 ?>
 <?php $this->beginPage() ?>
@@ -149,6 +134,18 @@ $this->registerJs("
     <?php $this->endBody() ?>
 </body>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // On s'assure que Bootstrap a bien été initialisé
+    var accordions = document.querySelectorAll('.accordion-button');
+    
+    accordions.forEach(function (accordion) {
+      accordion.addEventListener('click', function() {
+        console.log("Accordéon cliqué : ", this);
+      });
+    });
+  });
+</script>
 
 </html>
 <?php $this->endPage() ?>
