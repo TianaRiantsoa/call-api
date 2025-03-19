@@ -159,27 +159,7 @@ QUERY;
     foreach ($orders as $orderEdge) {
         $order = $orderEdge['node'];
 
-        $location = $order['fulfillments'][0]['location']['id'];
 
-        $queryLocation = <<<QUERY
-            query {
-            location(id: "$location") {
-                id
-                name
-            }
-            }
-            QUERY;
-
-        $res = $init->query(["query" => $queryLocation]);
-        $get = $res->getBody()->getContents();
-        $rep = json_decode($get, true);
-
-        //     echo '<pre>';
-        // print_r($rep);
-        // echo '<pre>';
-        // exit;
-
-        $loc = $rep['data']['location']['name'];
 
         $statut = 'OPEN';
 
@@ -203,8 +183,38 @@ QUERY;
             'subtotal' => $order['subtotalPrice'],
             'totalDiscounts' => $order['totalDiscounts'],
             'totalTax' => $order['totalTax'],
-            'location' => getId($order['fulfillments'][0]['location']['id']) . '<br>' . htmlspecialchars($loc), // ID en haut, Name en dessous
+
         ];
+
+        $ful = $order['fulfillments'];
+
+        if ($ful) {
+            $location = $ful[0]['location']['id'];
+
+            $queryLocation = <<<QUERY
+            query {
+            location(id: "$location") {
+                id
+                name
+                }
+            }
+            QUERY;
+
+            $res = $init->query(["query" => $queryLocation]);
+            $get = $res->getBody()->getContents();
+            $rep = json_decode($get, true);
+            $loc = $rep['data']['location']['name'];
+
+
+            //     echo '<pre>';
+            // print_r($rep);
+            // echo '<pre>';
+            // exit;
+
+            $gridDataOrders[] = [
+                'location' => getId($order['fulfillments'][0]['location']['id']) . '<br>' . htmlspecialchars($loc), // ID en haut, Name en dessous
+            ];
+        }
 
         // Clients
         if (!empty($order['customer'])) {
@@ -266,6 +276,11 @@ QUERY;
     $customerProvider = new ArrayDataProvider(['allModels' => $gridDataCustomers]);
     $addressProvider = new ArrayDataProvider(['allModels' => $gridDataAddresses]);
     $lineItemProvider = new ArrayDataProvider(['allModels' => $gridDataLineItems]);
+
+    // echo '<pre>';
+    // print_r($gridDataOrders);
+    // echo '<pre>';
+    // exit;
 } catch (ShopifyException $e) {
     // En cas d'erreur, afficher un message d'erreur
     Yii::$app->session->setFlash('error', 'Erreur API : ' . $e->getMessage());

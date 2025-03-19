@@ -344,7 +344,7 @@ class WoocommerceController extends Controller
         ];
 
         // URL de votre webhook Slack
-        $webhookUrl = 'https://hooks.slack.com/services/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'; // Remplacez par votre URL de webhook Slack
+        $webhookUrl = 'https://hooks.slack.com/services/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'; // Remplacez par votre URL de webhook Slack
 
         // Utiliser cURL pour envoyer le message à Slack
         $ch = curl_init($webhookUrl);
