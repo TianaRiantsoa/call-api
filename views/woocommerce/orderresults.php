@@ -20,13 +20,13 @@ $this->params['breadcrumbs'][] = ['label' => Html::encode($ref)];
 $url = Html::encode($model->url);
 
 
-    // Vérifier si le site est accessible en HTTP
-    $headers = @get_headers("http://" . $url);
-    if ($headers && strpos($headers[0], '200') !== false) {
-        $url = "https://" . $url;
-    } else {
-        $url = "https://" . $url;
-    }
+// Vérifier si le site est accessible en HTTP
+$headers = @get_headers("http://" . $url);
+if ($headers && strpos($headers[0], '200') !== false) {
+    $url = "https://" . $url;
+} else {
+    $url = "https://" . $url;
+}
 
 
 $consumer_key = Html::encode($model->consumer_key);
@@ -232,7 +232,7 @@ echo GridView::widget([
         ['attribute' => 'quantity', 'label' => 'Quantité'],
         ['attribute' => 'total', 'value' => function ($model) {
             return Yii::$app->formatter->asCurrency($model['total'], 'EUR');
-        }, 'label' => 'Total TTC'],
+        }, 'label' => 'Total HT'],
         ['attribute' => 'total_tax', 'value' => function ($model) {
             return Yii::$app->formatter->asCurrency($model['total_tax'], 'EUR');
         }, 'label' => 'Taxes'],

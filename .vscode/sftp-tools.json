@@ -1,0 +1,13 @@
+{
+  "servers": [
+    {
+      "name": "Magento",
+      "host": "infra18.srv01.vaisonet.com",
+      "port": 220,
+      "username": "magewsvt",
+      "password": "Ohrahyohsh6uefe1Aigug4aewooti",
+      "localPath": "/",
+      "remotePath": "/"
+    }
+  ]
+}
