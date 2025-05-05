@@ -82,7 +82,9 @@ try {
                     address2
                     zip
                     city
+                    country
                     countryCode
+                    countryCodeV2
                 }
                 shippingLine {
                     title
@@ -100,7 +102,9 @@ try {
                     address2
                     zip
                     city
+                    country
                     countryCode
+                    countryCodeV2
                 }
                 customer {
                     id
@@ -159,8 +163,6 @@ QUERY;
     foreach ($orders as $orderEdge) {
         $order = $orderEdge['node'];
 
-
-
         $statut = 'OPEN';
 
         if (!empty($order['cancelledAt'])) {
@@ -170,51 +172,49 @@ QUERY;
         } elseif ($order['displayFinancialStatus'] === 'PAID' && $order['displayFulfillmentStatus'] === 'FULFILLED') {
             $statut = 'ARCHIVED';
         }
-        // Commandes
-        $gridDataOrders[] = [
+
+        // Initialisation de la commande
+        $gridOrder = [
             'id' => getId($order['id']),
             'name' => $order['name'],
             'createdAt' => formatDateTime($order['createdAt']),
             'updatedAt' => formatDateTime($order['updatedAt']),
-            'payment_method' => !empty($order['paymentGatewayNames'][0]) ? $order['paymentGatewayNames'][0] : '', // Vérifie si l'élément existe
+            'payment_method' => !empty($order['paymentGatewayNames'][0]) ? $order['paymentGatewayNames'][0] : '',
             'status' => $statut,
             'status_payment' => $order['displayFinancialStatus'],
             'status_fulfillment' => $order['displayFulfillmentStatus'],
             'subtotal' => $order['subtotalPrice'],
             'totalDiscounts' => $order['totalDiscounts'],
             'totalTax' => $order['totalTax'],
-
+            'location' => '', // Par défaut vide
         ];
 
-        $ful = $order['fulfillments'];
-
-        if ($ful) {
-            $location = $ful[0]['location']['id'];
+        // Récupération du location ID si fulfillment existe
+        if (!empty($order['fulfillments']) && !empty($order['fulfillments'][0]['location']['id'])) {
+            $locationId = $order['fulfillments'][0]['location']['id'];
 
             $queryLocation = <<<QUERY
-            query {
-            location(id: "$location") {
-                id
-                name
-                }
-            }
-            QUERY;
+                            query {
+                                location(id: "$locationId") {
+                                    id
+                                    name
+                                }
+                            }
+                            QUERY;
 
             $res = $init->query(["query" => $queryLocation]);
             $get = $res->getBody()->getContents();
             $rep = json_decode($get, true);
-            $loc = $rep['data']['location']['name'];
 
-
-            //     echo '<pre>';
-            // print_r($rep);
-            // echo '<pre>';
-            // exit;
-
-            $gridDataOrders[] = [
-                'location' => getId($order['fulfillments'][0]['location']['id']) . '<br>' . htmlspecialchars($loc), // ID en haut, Name en dessous
-            ];
+            if (!empty($rep['data']['location'])) {
+                $locName = htmlspecialchars($rep['data']['location']['name']);
+                $gridOrder['location'] = getId($locationId) . '<br>' . $locName; // ID + nom
+            }
         }
+
+        // Ajouter une seule entrée à $gridDataOrders
+        $gridDataOrders[] = $gridOrder;
+
 
         // Clients
         if (!empty($order['customer'])) {
@@ -238,7 +238,7 @@ QUERY;
                 if (!empty($address['address2'])) {
                     $fullAddress .= ', ' . (string) $address['address2'];
                 }
-                $fullAddress .= ', ' . (string) $address['zip'] . ' ' . (string) $address['city'] . ', ' . $address['countryCode'];
+                $fullAddress .= ', ' . (string) $address['zip'] . ' ' . (string) $address['city'] . ', ' . (string) $address['country'] . ', ' . $address['countryCode'];
 
                 $gridDataAddresses[] = [
                     'type' => $type,
@@ -262,6 +262,8 @@ QUERY;
                     'quantity' => $lineItem['quantity'],
                     'originalUnitPrice' => $lineItem['originalUnitPrice'],
                     'discountedUnitPrice' => $lineItem['discountedUnitPrice'],
+                    'remise' => $lineItem['originalUnitPrice'] > 0 ? number_format((($lineItem['originalUnitPrice'] - $lineItem['discountedUnitPrice']) / $lineItem['originalUnitPrice']) * 100, 2, '.', '') . ' %' : '0 %',
+
                     'originalTotal' => $lineItem['originalTotal'],
                     'discountedTotal' => $lineItem['discountedTotal'],
                     'taxable' => $lineItem['taxable'] ? 'Oui' : 'Non',
@@ -278,7 +280,7 @@ QUERY;
     $lineItemProvider = new ArrayDataProvider(['allModels' => $gridDataLineItems]);
 
     // echo '<pre>';
-    // print_r($gridDataOrders);
+    // print_r($orderProvider->getModels());
     // echo '<pre>';
     // exit;
 } catch (ShopifyException $e) {
@@ -304,11 +306,15 @@ QUERY;
             'label' => 'ID Long',
             'format' => 'raw',
             'value' => function ($model) use ($url, $api, $pwd) {
-                return Html::a(
-                    $model['id'],
-                    "https://" . $api . ":" . $pwd . "@" . $url . "/admin/api/" . ApiVersion::LATEST . "/orders/{$model['id']}.json",
-                    ['target' => '_blank', 'encode' => false]
-                );
+                if (isset($model['id'])) {
+                    return Html::a(
+                        $model['id'],
+                        "https://" . urlencode($api) . ":" . urlencode($pwd) . "@" . urlencode($url) . "/admin/api/" . ApiVersion::LATEST . "/orders/{$model['id']}.json",
+                        ['target' => '_blank', 'encode' => false]
+                    );
+                } else {
+                    return 'ID non disponible'; // Message si l'ID est manquant
+                }
             }
         ],
         [
@@ -316,11 +322,15 @@ QUERY;
             'label' => 'ID Court',
             'format' => 'raw',
             'value' => function ($model) use ($url, $api, $pwd) {
-                return Html::a(
-                    $model['name'],
-                    "https://" . $api . ":" . $pwd . "@" . $url . "/admin/api/" . ApiVersion::LATEST . "/orders/{$model['id']}.json",
-                    ['target' => '_blank', 'encode' => false]
-                );
+                if (isset($model['name'])) {
+                    return Html::a(
+                        $model['name'],
+                        "https://" . urlencode($api) . ":" . urlencode($pwd) . "@" . urlencode($url) . "/admin/api/" . ApiVersion::LATEST . "/orders/{$model['id']}.json",
+                        ['target' => '_blank', 'encode' => false]
+                    );
+                } else {
+                    return 'Nom non disponible'; // Message si le nom est manquant
+                }
             }
         ],
         [
@@ -348,21 +358,27 @@ QUERY;
             'attribute' => 'subtotal',
             'label' => 'Sous-total',
             'value' => function ($model) {
-                return Yii::$app->formatter->asCurrency($model['subtotal'], 'EUR');
+                return isset($model['subtotal']) && is_numeric($model['subtotal'])
+                    ? Yii::$app->formatter->asCurrency($model['subtotal'], 'EUR')
+                    : 'Non disponible';
             },
         ],
         [
             'attribute' => 'totalDiscounts',
             'label' => 'Réductions totales',
             'value' => function ($model) {
-                return Yii::$app->formatter->asCurrency($model['totalDiscounts'], 'EUR');
+                return isset($model['totalDiscounts']) && is_numeric($model['totalDiscounts'])
+                    ? Yii::$app->formatter->asCurrency($model['totalDiscounts'], 'EUR')
+                    : 'Non disponible';
             },
         ],
         [
             'attribute' => 'totalTax',
             'label' => 'Taxes totales',
             'value' => function ($model) {
-                return Yii::$app->formatter->asCurrency($model['totalTax'], 'EUR');
+                return isset($model['totalTax']) && is_numeric($model['totalTax'])
+                    ? Yii::$app->formatter->asCurrency($model['totalTax'], 'EUR')
+                    : 'Non disponible';
             },
         ],
         [
@@ -374,7 +390,9 @@ QUERY;
             'label' => 'Mis à jour'
         ],
     ],
-]); ?>
+]);
+
+?>
 
 <!-- Clients -->
 <h3>Détail du clients</h3>
@@ -543,6 +561,13 @@ QUERY;
             'value' => function ($model) {
                 return Yii::$app->formatter->asCurrency($model['discountedUnitPrice'], 'EUR');
             },
+        ],
+        [
+            'attribute' => 'remise',
+            'label' => '% remise',
+            // 'value' => function ($model) {
+            //     return Yii::$app->formatter->asPercent($model['remise']);
+            // },
         ],
         [
             'attribute' => 'originalTotal',

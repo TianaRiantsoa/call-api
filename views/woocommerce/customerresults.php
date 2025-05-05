@@ -41,48 +41,35 @@ try {
     );
 
 
-    // 1. Supprimer tous les produits et leurs variations
+    // URL de l’image à utiliser pour tous les produits
+    $image_url = 'https://www.vaisonet.com/wp-content/uploads/2024/02/IMAGE-PRODUIT.webp';
+
+    // Récupérer tous les produits (par lots si nécessaire)
     $page = 1;
-        // Récupérer tous les produits
-        $products = $woocommerce->get('products/12825', [
-            'per_page' => 100,
-            'page' => $page,
+    $per_page = 100; // Ajuster selon vos besoins
+
+    do {
+        $products = $woocommerce->get('products', [
+            'per_page' => $per_page,
+            'page'     => $page,
         ]);
 
-        
-            // Supprimer les variations du produit si c'est un produit variable
-            if ($products->type === 'variable') {
-                $variations = $woocommerce->get("products/12825/variations");
-                foreach ($variations as $variation) {
-                    $woocommerce->delete("products/{$products->id}/variations/{$variation->id}", ['force' => true]);
-                    echo "Variation supprimée : ID {$variation->id}, Produit Parent : {$products->name}<br>";
-                }
-            }
+        foreach ($products as $product) {
+            // Mettre à jour l'image du produit
+            $data = [
+                'images' => [
+                    ['src' => $image_url]
+                ]
+            ];
 
-            // Supprimer le produit principal
-            $woocommerce->delete("products/{$products->id}", ['force' => true]);
-            echo "Produit supprimé : ID {$products->id}, Nom : {$products->name}<br>";
-        
+            $woocommerce->put('products/' . $product->id, $data);
+            echo "Produit ID " . $product->id . " mis à jour avec la nouvelle image.\n";
+        }
 
         $page++;
+    } while (!empty($products));
 
-    // // 2. Supprimer toutes les catégories
-    // $page = 1;
-    // do {
-    //     // Récupérer toutes les catégories
-    //     $categories = $woocommerce->get('products/attributes/3/terms', [
-    //         'per_page' => 100,
-    //         'page' => $page,
-    //     ]);
-
-    //     foreach ($categories as $category) {
-    //         // Supprimer la catégorie
-    //         $woocommerce->delete("products/attributes/3/terms/{$category->id}", ['force' => true]);
-    //         echo "Catégorie supprimée : ID {$category->id}, Nom : {$category->name}<br>";
-    //     }
-
-    //     $page++;
-    // } while (count($categories) > 0);
+    echo "Mise à jour terminée !";
 } catch (Exception $e) {
     echo 'Erreur : ' . $e->getMessage() . "\n";
 }

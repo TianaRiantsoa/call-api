@@ -142,7 +142,7 @@ if (
 				'dataProvider' => new ArrayDataProvider([
 					'allModels' => $productList,
 					'pagination' => [
-						'pageSize' => 10,
+						'pageSize' => 200,
 					],
 				]),
 				'columns' => [
@@ -367,7 +367,7 @@ elseif (
 				'dataProvider' => new ArrayDataProvider([
 					'allModels' => $productList,
 					'pagination' => [
-						'pageSize' => 10,
+						'pageSize' => 200,
 					],
 				]),
 				'columns' => [
@@ -452,7 +452,7 @@ elseif (
 				'dataProvider' => new ArrayDataProvider([
 					'allModels' => $combinationList,
 					'pagination' => [
-						'pageSize' => 10,
+						'pageSize' => 200,
 					],
 				]),
 				'columns' => [

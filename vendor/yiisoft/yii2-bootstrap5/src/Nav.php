@@ -273,35 +273,45 @@ class Nav extends Widget
      * @throws Exception
      */
     protected function isItemActive(array $item): bool
-    {
-        if (!$this->activateItems) {
-            return false;
-        }
-        if (isset($item['active'])) {
-            return ArrayHelper::getValue($item, 'active', false);
-        }
-        if (isset($item['url']) && is_array($item['url']) && isset($item['url'][0])) {
-            $route = $item['url'][0];
-            if ($route[0] !== '/' && Yii::$app->controller) {
-                $route = Yii::$app->controller->module->getUniqueId() . '/' . $route;
-            }
-            if (ltrim($route, '/') !== $this->route) {
-                return false;
-            }
-            unset($item['url']['#']);
-            if (count($item['url']) > 1) {
-                $params = $item['url'];
-                unset($params[0]);
-                foreach ($params as $name => $value) {
-                    if ($value !== null && (!isset($this->params[$name]) || $this->params[$name] != $value)) {
-                        return false;
-                    }
-                }
-            }
-
-            return true;
-        }
-
+{
+    if (!$this->activateItems) {
         return false;
     }
+    if (isset($item['active'])) {
+        return ArrayHelper::getValue($item, 'active', false);
+    }
+    if (isset($item['url']) && is_array($item['url']) && isset($item['url'][0])) {
+        $route = $item['url'][0];
+        if ($route[0] !== '/' && Yii::$app->controller) {
+            $route = Yii::$app->controller->module->getUniqueId() . '/' . $route;
+        }
+
+        // Récupération uniquement du contrôleur depuis la route actuelle
+        $currentController = explode('/', Yii::$app->controller->getUniqueId())[0];
+
+        // Récupération du contrôleur depuis l'URL de l'élément du menu
+        $itemController = explode('/', ltrim($route, '/'))[0];
+
+        // Vérification si l'élément du menu correspond au contrôleur actuel
+        if ($currentController !== $itemController) {
+            return false;
+        }
+
+        unset($item['url']['#']);
+        if (count($item['url']) > 1) {
+            $params = $item['url'];
+            unset($params[0]);
+            foreach ($params as $name => $value) {
+                if ($value !== null && (!isset($this->params[$name]) || $this->params[$name] != $value)) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    return false;
+}
+
 }
