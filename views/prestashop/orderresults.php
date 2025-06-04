@@ -256,6 +256,64 @@ try {
                         } else {
                             $productData['tax'] = 'Pas de taxe associé';
                         }
+
+                        // Debug pour Grossiste Led
+
+                        // // Conversion des valeurs en float pour éviter les erreurs de type
+                        // $originalPrice = (float)$detail->original_product_price; // Prix original du produit
+                        // $ecoTax = (float)$detail->ecotax; // Écotaxe appliquée
+                        // $reductionPercent = (float)$detail->reduction_percent; // Pourcentage de réduction
+                        // $reductionAmount = (float)$detail->reduction_amount_tax_excl; // Montant de réduction (hors taxes)
+                        // $productPrice = (float)$detail->product_price; // Prix du produit après réduction
+                        // $totalPriceTaxExcl = (float)$detail->total_price_tax_excl; // Prix total hors taxes
+                        // $productQuantity = (float)$detail->product_quantity; // Quantité de produits
+                        // $retrocompat = 1; // Variable pour rétrocompatibilité (non utilisée dans les calculs ici)
+
+                        // // Calcul du prix net en tenant compte de l'écotaxe et de la réduction en pourcentage
+                        // $prixNet = $ecoTax + ($originalPrice - $ecoTax) * (100 - $reductionPercent) / 100;
+
+                        // // Détermination des prix finaux et de la remise appliquée
+                        // if (round($prixNet, 4) !== round($originalPrice, 4) && $reductionPercent > 0) {
+                        //     // Cas où une réduction en pourcentage est appliquée
+                        //     $finalPrice0 = $originalPrice; // Prix final sans déduction de l'écotaxe
+                        //     $finalPrice1 = $originalPrice - $ecoTax; // Prix final avec déduction de l'écotaxe
+                        //     $finalDiscount = round($originalPrice - $prixNet, 4); // Montant de la remise
+                        // } elseif ($reductionAmount > 0) {
+                        //     // Cas où une réduction en montant fixe est appliquée
+                        //     $finalPrice0 = $originalPrice;
+                        //     $finalPrice1 = $originalPrice - $ecoTax;
+                        //     $finalDiscount = $reductionAmount;
+                        // } else {
+                        //     // Cas par défaut (aucune réduction explicite)
+                        //     $finalPrice0 = $productPrice;
+                        //     $finalPrice1 = $productPrice - $ecoTax;
+                        //     $finalDiscount = round($productPrice - $totalPriceTaxExcl / $productQuantity, 4);
+                        // }
+
+                        // // Affichage des résultats pour le débogage
+                        // echo "<pre>";
+                        // print_r([
+                        //     "==== Résultats ====",
+                        //     "Prix original           : $originalPrice",
+                        //     "Écotaxe                : $ecoTax",
+                        //     "Pourcentage de remise  : $reductionPercent",
+                        //     "Montant de remise      : $reductionAmount",
+                        //     "Prix produit           : $productPrice",
+                        //     "Total HT              : $totalPriceTaxExcl",
+                        //     "Quantité produit      : $productQuantity",
+                        //     "Prix net calculé      : $prixNet",
+                        //     "Montant final remise  : $finalDiscount",
+                        //     "\n-- Résultat avec retrocompat = 0 --",
+                        //     "Prix final (sans écotaxe déduite) : $finalPrice0",
+                        //     "Remise appliquée                  : $finalDiscount",
+                        //     "\n-- Résultat avec retrocompat = 1 --",
+                        //     "Prix final (avec écotaxe déduite) : $finalPrice1",
+                        //     "Remise appliquée                  : $finalDiscount",
+                        // ]);
+                        // echo "</pre>";
+
+                        // // Arrêt du script après affichage des résultats
+                        // exit;
                     }
                 } catch (Exception $e) {
                     // Gestion des erreurs API
@@ -297,7 +355,7 @@ try {
 
     $productDataProvider = new ArrayDataProvider([
         'allModels' => $products,
-        'pagination' => ['pageSize' => 10],
+        'pagination' => ['pageSize' => 1000],
     ]);
 } catch (PrestaShopWebserviceException $e) {
     // Yii::$app->session->setFlash('error', 'Erreur : ' . $e->getMessage());
