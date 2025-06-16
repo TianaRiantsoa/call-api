@@ -104,7 +104,7 @@ if (
 					$productTypeCheck = (string)$product->product_type;
 
 					// Vérifier si le produit n'est pas de type "simple" ou de type "combinations"
-					if ($productType !== 'simple' || $productTypeCheck === 'combinations') {
+					if ($productType !== 'simple' && $productTypeCheck === 'combinations' && $productType === 'virtual') {
 						// Ajouter un message flash spécifique
 						Yii::$app->session->setFlash('error', 'Le produit n\'est pas de type "simple". Veuillez vérifier et choisir "Produit déclinaison" dans le formulaire.');
 						return; // Stopper l'exécution ici

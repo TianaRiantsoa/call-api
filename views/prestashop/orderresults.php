@@ -199,6 +199,7 @@ try {
                     'product_name' => (string) $product->product_name,
                     'quantity' => (string) $product->product_quantity,
                     'total' => (string) $product->unit_price_tax_incl,
+                    
                 ];
 
                 // Récupérer les détails supplémentaires de `order_details`
@@ -217,6 +218,7 @@ try {
                         $productData['unit_price_tax_excl'] = (float) $detail->unit_price_tax_excl;
                         $productData['total_price_tax_incl'] = (float) $detail->total_price_tax_incl;
                         $productData['unit_price_tax_incl'] = (float) $detail->unit_price_tax_incl;
+                        $productData['ecotax'] = (float) $detail->ecotax;
 
                         // Vérification et récupération de l'ID de la taxe
                         if (isset($detail->associations->taxes->tax)) {
@@ -725,6 +727,13 @@ echo GridView::widget([
             'label' => 'Total TTC',
             'value' => function ($model) {
                 return Yii::$app->formatter->asCurrency($model['total_price_tax_incl'], 'EUR');
+            }, // Nouveau nom de la colonne
+        ],
+        [
+            'attribute' => 'ecotax',
+            'label' => 'EcoTaxe HT',
+            'value' => function ($model) {
+                return Yii::$app->formatter->asCurrency($model['ecotax'], 'EUR');
             }, // Nouveau nom de la colonne
         ],
         // [
