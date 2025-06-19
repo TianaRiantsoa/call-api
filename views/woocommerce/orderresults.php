@@ -98,6 +98,7 @@ function prepareOrderDetails($order)
         'total_tax' => $order->total_tax,
         'total_ht' => $order->total - $order->total_tax,
         'payment_method_title' => $order->payment_method_title,
+        'carrier' => $order->shipping_lines[0]->method_title ?? 'N/A',
     ]];
 }
 
@@ -185,6 +186,7 @@ function renderOrderDetails($orderDetails, $url, $consumer_key, $consumer_secret
             ['attribute' => 'total_tax', 'value' => fn($model) => formatCurrency($model['total_tax']), 'label' => 'Taxes'],
             ['attribute' => 'total', 'value' => fn($model) => formatCurrency($model['total']), 'label' => 'Total TTC'],
             ['attribute' => 'payment_method_title', 'label' => 'Méthode de paiement'],
+            ['attribute' => 'carrier', 'label' => 'Transporteur'],
         ],
     ]);
 }
