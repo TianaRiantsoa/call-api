@@ -46,6 +46,8 @@ class PrestaShopWebservice
     /** @var string PS version */
     protected $version;
 
+    public $rawResponse;
+
     /** @var string Minimal version of PrestaShop to use with this library */
     const psCompatibleVersionsMin = '1.4.0.0';
     /** @var string Maximal version of PrestaShop to use with this library */
