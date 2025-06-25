@@ -38,6 +38,8 @@ if (strpos($url, 'localhost') !== false) {
 $api = Html::encode($model->api_key);
 $ref = Html::encode($ref);
 
+
+
 echo 'URL de la requête : <a href=' . $url . '/api/customers/?filter[email]=' . $ref . '&ws_key=' . $api . ' target=_blank>' . $url . '/api/customers/?filter[email]=' . $ref . '&ws_key=' . $api . '</a>';
 
 echo yii\widgets\DetailView::widget([
