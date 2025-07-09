@@ -46,9 +46,12 @@ echo yii\widgets\DetailView::widget([
         'api_key',
     ],
 ]);
-
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
+libxml_use_internal_errors(true);
 
 try {
+    
     // Initialiser la connexion à l'API PrestaShop
     $webService = new PrestaShopWebservice($url, $api, false);
 
