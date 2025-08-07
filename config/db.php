@@ -38,8 +38,12 @@
 
 //Base de données MySQL Free SQL DataBase https://www.freesqldatabase.com
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 
 /**
+=======
+/*
+>>>>>>> Stashed changes
 =======
 /*
 >>>>>>> Stashed changes
@@ -56,9 +60,13 @@ return [
     //'schemaCacheDuration' => 60,
     //'schemaCache' => 'cache',
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 ];
 
 */
+=======
+];*/
+>>>>>>> Stashed changes
 =======
 ];*/
 >>>>>>> Stashed changes
