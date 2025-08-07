@@ -37,19 +37,28 @@
 // Si tu souhaites utiliser une base de données MySQL, tu peux décommenter et modifier la section suivante :$
 
 //Base de données MySQL Free SQL DataBase https://www.freesqldatabase.com
+<<<<<<< Updated upstream
 
 /**
+=======
+/*
+>>>>>>> Stashed changes
 return [
     'class' => 'yii\db\Connection',
     'dsn' => 'mysql:host=sql7.freesqldatabase.com;dbname=sql7786037',
     'username' => 'sql7786037',
     'password' => 'yKiXXJtIK1',
     'charset' => 'utf8mb4',
+	
 
     // Si nécessaire, tu peux activer le cache de schéma pour améliorer la performance
     //'enableSchemaCache' => true,
     //'schemaCacheDuration' => 60,
     //'schemaCache' => 'cache',
+<<<<<<< Updated upstream
 ];
 
 */
+=======
+];*/
+>>>>>>> Stashed changes
