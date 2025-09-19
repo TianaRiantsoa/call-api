@@ -21,6 +21,7 @@ class Prestashop extends \yii\db\ActiveRecord
     public $slug;
     public $client;
     public $ctsage;
+    public $language;
 
     /**
      * {@inheritdoc}
@@ -38,7 +39,8 @@ class Prestashop extends \yii\db\ActiveRecord
         return [
             [['url', 'api_key'], 'required'],
             [['url', 'api_key'], 'string', 'max' => 255],
-            [['config', 'erp', 'type', 'serial_id', 'slug', 'client', 'ctsage'], 'safe'], // "safe" pour les propriétés non liées à la base de données
+            [['config', 'erp', 'type', 'serial_id', 'slug', 'client', 'ctsage','language'], 'safe'], // "safe" pour les propriétés non liées à la base de données
+            [['language'], 'required'],
         ];
     }
 
@@ -58,6 +60,7 @@ class Prestashop extends \yii\db\ActiveRecord
             'slug' => 'Slug',
             'client' => 'Client',
             'ctsage' => 'Code Tiers Sage',
+            'language' => 'Langue',
         ];
     }
 

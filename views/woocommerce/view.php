@@ -1,5 +1,6 @@
 <?php
 
+
 use yii\helpers\Html;
 use yii\widgets\DetailView;
 use yii\grid\GridView;
@@ -12,6 +13,7 @@ $this->title = $model->url;
 $this->params['breadcrumbs'][] = ['label' => 'Woocommerces', 'url' => ['index']];
 $this->params['breadcrumbs'][] = $this->title;
 \yii\web\YiiAsset::register($this);
+
 ?>
 <div class="woocommerce-view">
     <p>

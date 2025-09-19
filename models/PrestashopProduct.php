@@ -11,6 +11,7 @@ class PrestashopProduct extends Model
     public $type;
     public $variation_type;
     public $ref;
+    public $language;
 
     public function rules()
     {
@@ -21,6 +22,7 @@ class PrestashopProduct extends Model
             }, 'whenClient' => "function (attribute, value) {
                 return $('.product-type-radio:checked').val() === 'variation';
             }"],
+            [['language'], 'safe'],
         ];
     }
 
@@ -36,6 +38,7 @@ class PrestashopProduct extends Model
             'type' => 'Type de produit',
             'variation_type' => 'Parent ou Enfant',
             'ref' => 'Référence',
+            'language' => 'Langue',
         ];
     }
 }

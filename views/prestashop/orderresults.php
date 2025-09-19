@@ -27,7 +27,7 @@ if (strpos($url, 'localhost') !== false) {
     // Vérifier si le site est accessible en HTTP
     $headers = @get_headers("http://" . $url);
     if ($headers && strpos($headers[0], '200') !== false) {
-        $url = "https://" . $url;
+        $url = "http://" . $url;
     } else {
         $url = "https://" . $url;
     }
@@ -51,9 +51,9 @@ error_reporting(E_ALL);
 libxml_use_internal_errors(true);
 
 try {
-    
+
     // Initialiser la connexion à l'API PrestaShop
-    $webService = new PrestaShopWebservice($url, $api, false);
+    $webService = new PrestaShopWebservice($url, $api, true);
 
     $languageOpt = [
         'resource' => 'languages',
@@ -98,6 +98,19 @@ try {
 
         $stateName = (string) $xmlState->order_state->name->language;
 
+        $xmlPayments = $webService->get([
+            'resource' => 'order_payments',
+            'filter[order_reference]' => (string) $order->reference,
+            'display' => 'full'
+        ]);
+
+        $transaction_id = $xmlPayments->order_payments->order_payment->transaction_id;
+
+        // echo '<pre>';
+        // print_r($transaction_id);
+        // echo '</pre>';
+        // exit;
+
 
         $orders[] = [
             'id' => (string) $order->id,
@@ -109,6 +122,7 @@ try {
             'id_address_delivery' => (string) $order->id_address_delivery,
             'payment' => (string) $order->payment,
             'reference' => (string) $order->reference,
+            'transaction_id' => (string) $transaction_id,
             'date_add' => (string) $order->date_add,
             'date_upd' => (string) $order->date_upd,
         ];
@@ -202,7 +216,7 @@ try {
                     'product_name' => (string) $product->product_name,
                     'quantity' => (string) $product->product_quantity,
                     'total' => (string) $product->unit_price_tax_incl,
-                    
+
                 ];
 
                 // Récupérer les détails supplémentaires de `order_details`
@@ -242,7 +256,7 @@ try {
                                 $taxOpt = [
                                     'resource' => 'taxes',
                                     'id' => $taxId,
-                                    'language' => $languageId,
+                                    // 'language' => $languageId,
                                 ];
 
                                 try {
@@ -426,6 +440,10 @@ echo GridView::widget([
         [
             'attribute' => 'reference',
             'label' => 'Référence',  // Nouveau nom de la colonne
+        ],
+        [
+            'attribute' => 'transaction_id',
+            'label' => 'ID de la transaction',  // Nouveau nom de la colonne
         ],
         [
             'attribute' => 'total_paid',

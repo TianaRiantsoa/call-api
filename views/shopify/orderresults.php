@@ -187,6 +187,7 @@ QUERY;
             'totalDiscounts' => $order['totalDiscounts'],
             'totalTax' => $order['totalTax'],
             'location' => '', // Par défaut vide
+            'transporter' => !empty($order['shippingLine']['title']) ? $order['shippingLine']['title'] : 'Non spécifié',
         ];
 
         // Récupération du location ID si fulfillment existe
@@ -336,6 +337,10 @@ QUERY;
         [
             'attribute' => 'payment_method',
             'label' => 'Mode de paiement'
+        ],
+        [
+            'attribute'=> 'transporter',
+            'label'=> 'Transporteur'
         ],
         [
             'attribute' => 'location',

@@ -228,7 +228,7 @@ class PrestashopController extends Controller
         $mod = new PrestashopProduct();
 
         if ($this->request->isPost && $model->load($this->request->post()) && $mod->load($this->request->post())) {
-            return $this->redirect(['productresults', 'id' => $model->id, 'ref' => $mod->ref, 'type' => $mod->type, 'variation_type' => $mod->variation_type]);
+            return $this->redirect(['productresults', 'id' => $model->id, 'ref' => $mod->ref, 'type' => $mod->type, 'variation_type' => $mod->variation_type, 'language' => $model->language]);
         }
 
         return $this->render('products', [
@@ -248,6 +248,22 @@ class PrestashopController extends Controller
         }
 
         return $this->render('orders', [
+            'model' => $model,
+            'mod' => $mod,
+        ]);
+    }
+
+    public function actionOrderhistories($id)
+    {
+        $model = $this->findModel($id);
+
+        $mod = new PrestashopOrder();
+
+        if ($this->request->isPost && $model->load($this->request->post()) && $mod->load($this->request->post())) {
+            return $this->redirect(['orderhistoriesresults', 'id' => $model->id, 'ref' => $mod->ref]);
+        }
+
+        return $this->render('orderhistories', [
             'model' => $model,
             'mod' => $mod,
         ]);
@@ -290,6 +306,16 @@ class PrestashopController extends Controller
         $model = $this->findModel($id);
 
         return $this->render('orderresults', [
+            'model' => $model,
+            'ref' => $ref,
+        ]);
+    }
+
+    public function actionOrderhistoriesresults($id, $ref)
+    {
+        $model = $this->findModel($id);
+
+        return $this->render('orderhistoriesresults', [
             'model' => $model,
             'ref' => $ref,
         ]);

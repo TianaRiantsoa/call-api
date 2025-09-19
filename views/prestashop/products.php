@@ -1,5 +1,7 @@
 <?php
 
+use prestashop\PrestaShopWebservice;
+use prestashop\PrestaShopWebserviceException;
 use yii\helpers\Html;
 use yii\widgets\ActiveForm;
 
@@ -12,12 +14,41 @@ $this->params['breadcrumbs'][] = ['label' => $model->url, 'url' => ['view', 'id'
 $this->params['breadcrumbs'][] = 'Recherche de produit';
 \yii\web\YiiAsset::register($this);
 
+$url = Html::encode($model->url);
+
+if (strpos($url, 'localhost') !== false) {
+    $url = "http://" . $url;
+} else {
+    $headers = @get_headers("http://" . $url);
+    if ($headers && strpos($headers[0], '200') !== false) {
+        $url = "http://" . $url;
+    } else {
+        $url = "https://" . $url;
+    }
+}
+
+$api = Html::encode($model->api_key);
+
+$webService = new PrestaShopWebservice($url, $api, false);
+
+// Récupération des langues disponibles
+$xmlLang = $webService->get(['resource' => 'languages', 'display' => 'full']);
+$languages = $xmlLang->languages->language;
+
+// Transformer en tableau [iso_code => name]
+$langOptions = [];
+foreach ($languages as $lang) {
+    $iso = (string)$lang->iso_code;
+    $name = (string)$lang->name;
+    $langOptions[$iso] = $name;
+}
+
 echo yii\widgets\DetailView::widget([
-	'model' => $model,
-	'attributes' => [
-		'url',
-		'api_key',
-	],
+    'model' => $model,
+    'attributes' => [
+        'url',
+        'api_key',
+    ],
 ]);
 ?>
 <div class="prestashop-products-form">
@@ -68,6 +99,11 @@ echo yii\widgets\DetailView::widget([
     </div>
 
     <?= $form->field($mod, 'ref')->textInput(['maxlength' => true, 'placeholder' => 'Exemple : AR00000'])->hint('<small>Renseignez ici la référence du produit à rechercher</small>') ?>
+
+    <?= $form->field($model, 'language')->dropDownList(
+        $langOptions,
+        ['prompt' => 'Choisissez une langue...']
+    ) ?>
 
     <?= Html::submitButton('Rechercher', ['class' => 'btn btn-success btn-sm']) ?>
 
