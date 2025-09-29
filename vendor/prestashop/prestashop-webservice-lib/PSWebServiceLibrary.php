@@ -76,7 +76,7 @@ class PrestaShopWebservice
      *
      * @throws PrestaShopWebserviceException if curl is not loaded
      */
-    function __construct($url, $key, $debug = true)
+    function __construct($url, $key, $debug = false)
     {
         if (!extension_loaded('curl')) {
             throw new PrestaShopWebserviceException(

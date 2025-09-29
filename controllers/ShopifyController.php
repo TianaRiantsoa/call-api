@@ -87,77 +87,77 @@ class ShopifyController extends Controller
     // }
 
     public function actionCreate()
-{
-    $model = new Shopify();
+    {
+        $model = new Shopify();
 
-    if ($this->request->isPost) {
-        if ($model->load($this->request->post())) {
-            // Vérifier si des enregistrements existent déjà pour l'URL, la clé API, la clé secrète et le mot de passe
-            $existingUrlRecord = Shopify::find()->where(['url' => $model->url])->one();
-            $existingApiKeyRecord = Shopify::find()->where(['api_key' => $model->api_key])->one();
-            $existingSecretKeyRecord = Shopify::find()->where(['secret_key' => $model->secret_key])->one();
-            $existingPasswordRecord = Shopify::find()->where(['password' => $model->password])->one();
+        if ($this->request->isPost) {
+            if ($model->load($this->request->post())) {
+                // Vérifier si des enregistrements existent déjà pour l'URL, la clé API, la clé secrète et le mot de passe
+                $existingUrlRecord = Shopify::find()->where(['url' => $model->url])->one();
+                $existingApiKeyRecord = Shopify::find()->where(['api_key' => $model->api_key])->one();
+                $existingSecretKeyRecord = Shopify::find()->where(['secret_key' => $model->secret_key])->one();
+                $existingPasswordRecord = Shopify::find()->where(['password' => $model->password])->one();
 
-            // Les quatre champs existent : afficher une erreur et empêcher la création
-            if ($existingUrlRecord && $existingApiKeyRecord && $existingSecretKeyRecord && $existingPasswordRecord) {
-                Yii::$app->session->setFlash(
-                    'error',
-                    "Un enregistrement avec cette URL et ces clés API existe déjà. Détails :<br>" .
-                    "ID : {$existingUrlRecord->id}, URL : {$existingUrlRecord->url}, Clé API : {$existingUrlRecord->api_key}, Clé Secrète : {$existingUrlRecord->secret_key}, Mot de passe : {$existingUrlRecord->password}."
-                );
-                return $this->redirect(['create']);
-            }
-
-            // Sauvegarder la donnée et afficher un message adapté
-            if ($model->save()) {
-                if ($existingUrlRecord || $existingApiKeyRecord || $existingSecretKeyRecord || $existingPasswordRecord) {
-                    $warningMessages = [];
-
-                    if ($existingUrlRecord) {
-                        $warningMessages[] =
-                            "URL déjà existante dans un autre enregistrement. Détails :<br>" .
-                            "ID : {$existingUrlRecord->id}, URL : {$existingUrlRecord->url}, Clé API : {$existingUrlRecord->api_key}, Clé Secrète : {$existingUrlRecord->secret_key}, Mot de passe : {$existingUrlRecord->password}.";
-                    }
-
-                    if ($existingApiKeyRecord) {
-                        $warningMessages[] =
-                            "Clé API déjà existante dans un autre enregistrement. Détails :<br>" .
-                            "ID : {$existingApiKeyRecord->id}, URL : {$existingApiKeyRecord->url}, Clé API : {$existingApiKeyRecord->api_key}, Clé Secrète : {$existingApiKeyRecord->secret_key}, Mot de passe : {$existingApiKeyRecord->password}.";
-                    }
-
-                    if ($existingSecretKeyRecord) {
-                        $warningMessages[] =
-                            "Clé Secrète déjà existante dans un autre enregistrement. Détails :<br>" .
-                            "ID : {$existingSecretKeyRecord->id}, URL : {$existingSecretKeyRecord->url}, Clé API : {$existingSecretKeyRecord->api_key}, Clé Secrète : {$existingSecretKeyRecord->secret_key}, Mot de passe : {$existingSecretKeyRecord->password}.";
-                    }
-
-                    if ($existingPasswordRecord) {
-                        $warningMessages[] =
-                            "Mot de passe déjà existant dans un autre enregistrement. Détails :<br>" .
-                            "ID : {$existingPasswordRecord->id}, URL : {$existingPasswordRecord->url}, Clé API : {$existingPasswordRecord->api_key}, Clé Secrète : {$existingPasswordRecord->secret_key}, Mot de passe : {$existingPasswordRecord->password}.";
-                    }
-
+                // Les quatre champs existent : afficher une erreur et empêcher la création
+                if ($existingUrlRecord && $existingApiKeyRecord && $existingSecretKeyRecord && $existingPasswordRecord) {
                     Yii::$app->session->setFlash(
-                        'warning',
-                        "L’enregistrement a été créé, mais :<br>" . implode('<br>', $warningMessages)
+                        'error',
+                        "Un enregistrement avec cette URL et ces clés API existe déjà. Détails :<br>" .
+                            "ID : {$existingUrlRecord->id}, URL : {$existingUrlRecord->url}, Clé API : {$existingUrlRecord->api_key}, Clé Secrète : {$existingUrlRecord->secret_key}, Mot de passe : {$existingUrlRecord->password}."
                     );
-                } else {
-                    Yii::$app->session->setFlash('success', 'L’enregistrement a été créé avec succès.');
+                    return $this->redirect(['create']);
                 }
 
-                return $this->redirect(['view', 'id' => $model->id]);
-            } else {
-                Yii::$app->session->setFlash('error', 'Une erreur est survenue lors de la sauvegarde.');
-            }
-        }
-    } else {
-        $model->loadDefaultValues();
-    }
+                // Sauvegarder la donnée et afficher un message adapté
+                if ($model->save()) {
+                    if ($existingUrlRecord || $existingApiKeyRecord || $existingSecretKeyRecord || $existingPasswordRecord) {
+                        $warningMessages = [];
 
-    return $this->render('create', [
-        'model' => $model,
-    ]);
-}
+                        if ($existingUrlRecord) {
+                            $warningMessages[] =
+                                "URL déjà existante dans un autre enregistrement. Détails :<br>" .
+                                "ID : {$existingUrlRecord->id}, URL : {$existingUrlRecord->url}, Clé API : {$existingUrlRecord->api_key}, Clé Secrète : {$existingUrlRecord->secret_key}, Mot de passe : {$existingUrlRecord->password}.";
+                        }
+
+                        if ($existingApiKeyRecord) {
+                            $warningMessages[] =
+                                "Clé API déjà existante dans un autre enregistrement. Détails :<br>" .
+                                "ID : {$existingApiKeyRecord->id}, URL : {$existingApiKeyRecord->url}, Clé API : {$existingApiKeyRecord->api_key}, Clé Secrète : {$existingApiKeyRecord->secret_key}, Mot de passe : {$existingApiKeyRecord->password}.";
+                        }
+
+                        if ($existingSecretKeyRecord) {
+                            $warningMessages[] =
+                                "Clé Secrète déjà existante dans un autre enregistrement. Détails :<br>" .
+                                "ID : {$existingSecretKeyRecord->id}, URL : {$existingSecretKeyRecord->url}, Clé API : {$existingSecretKeyRecord->api_key}, Clé Secrète : {$existingSecretKeyRecord->secret_key}, Mot de passe : {$existingSecretKeyRecord->password}.";
+                        }
+
+                        if ($existingPasswordRecord) {
+                            $warningMessages[] =
+                                "Mot de passe déjà existant dans un autre enregistrement. Détails :<br>" .
+                                "ID : {$existingPasswordRecord->id}, URL : {$existingPasswordRecord->url}, Clé API : {$existingPasswordRecord->api_key}, Clé Secrète : {$existingPasswordRecord->secret_key}, Mot de passe : {$existingPasswordRecord->password}.";
+                        }
+
+                        Yii::$app->session->setFlash(
+                            'warning',
+                            "L’enregistrement a été créé, mais :<br>" . implode('<br>', $warningMessages)
+                        );
+                    } else {
+                        Yii::$app->session->setFlash('success', 'L’enregistrement a été créé avec succès.');
+                    }
+
+                    return $this->redirect(['view', 'id' => $model->id]);
+                } else {
+                    Yii::$app->session->setFlash('error', 'Une erreur est survenue lors de la sauvegarde.');
+                }
+            }
+        } else {
+            $model->loadDefaultValues();
+        }
+
+        return $this->render('create', [
+            'model' => $model,
+        ]);
+    }
 
 
     /**
@@ -205,35 +205,35 @@ class ShopifyController extends Controller
     {
         if (($model = Shopify::findOne(['id' => $id])) !== null) {
             // Récupérer l'URL depuis le modèle SQLite
-            $url = $model->url;
+            // $url = $model->url;
 
-            // Récupérer toutes les lignes correspondantes à l'URL depuis MySQL
-            $mysqlConnection = Yii::$app->mysql; // Connexion MySQL
-            $data = $mysqlConnection->createCommand('SELECT * FROM migrationOF WHERE url=:url')
-                ->bindValue(':url', $url)
-                ->queryAll(); // Utiliser queryAll() pour récupérer plusieurs lignes
+            // // Récupérer toutes les lignes correspondantes à l'URL depuis MySQL
+            // $mysqlConnection = Yii::$app->mysql; // Connexion MySQL
+            // $data = $mysqlConnection->createCommand('SELECT * FROM migrationOF WHERE url=:url')
+            //     ->bindValue(':url', $url)
+            //     ->queryAll(); // Utiliser queryAll() pour récupérer plusieurs lignes
 
-            if ($data !== false) {
-                // Boucler sur les résultats MySQL et les ajouter dynamiquement au modèle
-                foreach ($data as $row) {
-                    $model->config[] = $row['config'];
-                    $model->erp[] = $row['erp'];
-                    $model->type[] = $row['type'];
-                    $model->serial_id[] = $row['serial_id'];
-                    $model->slug[] = $row['slug'];
-                    $model->client[] = $row['client'];
-                    $model->ctsage[] = $row['ctsage'];
-                }
-            } else {
-                // Si aucune donnée n'est trouvée dans MySQL, on peut gérer ce cas
-                $model->config = null;
-                $model->erp = null;
-                $model->type = null;
-                $model->serial_id = null;
-                $model->slug = null;
-                $model->client = null;
-                $model->ctsage = null;
-            }
+            // if ($data !== false) {
+            //     // Boucler sur les résultats MySQL et les ajouter dynamiquement au modèle
+            //     foreach ($data as $row) {
+            //         $model->config[] = $row['config'];
+            //         $model->erp[] = $row['erp'];
+            //         $model->type[] = $row['type'];
+            //         $model->serial_id[] = $row['serial_id'];
+            //         $model->slug[] = $row['slug'];
+            //         $model->client[] = $row['client'];
+            //         $model->ctsage[] = $row['ctsage'];
+            //     }
+            // } else {
+            //     // Si aucune donnée n'est trouvée dans MySQL, on peut gérer ce cas
+            //     $model->config = null;
+            //     $model->erp = null;
+            //     $model->type = null;
+            //     $model->serial_id = null;
+            //     $model->slug = null;
+            //     $model->client = null;
+            //     $model->ctsage = null;
+            // }
 
             return $model;
         }
