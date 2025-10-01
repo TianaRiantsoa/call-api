@@ -1,5 +1,5 @@
 <?php
 
 // @codeCoverageIgnoreStart
-return '5.8.1';
+return '5.11.0';
 // @codeCoverageIgnoreEnd

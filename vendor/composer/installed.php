@@ -1,9 +1,9 @@
 <?php return array(
     'root' => array(
         'name' => 'yiisoft/yii2-app-basic',
-        'pretty_version' => '1.0.0+no-version-set',
-        'version' => '1.0.0.0',
-        'reference' => NULL,
+        'pretty_version' => 'dev-main',
+        'version' => 'dev-main',
+        'reference' => '8d0fb7f84defededa6f8b1ebada44e8b1e7438c1',
         'type' => 'project',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -667,9 +667,9 @@
             'dev_requirement' => true,
         ),
         'shopify/shopify-api' => array(
-            'pretty_version' => 'v5.8.1',
-            'version' => '5.8.1.0',
-            'reference' => '04dff050e8769b110881be20f8f799d8ece7d7d4',
+            'pretty_version' => 'v5.11.0',
+            'version' => '5.11.0.0',
+            'reference' => 'ed1c9cd01b68a0beb89ad770123ebc926bb7a98c',
             'type' => 'library',
             'install_path' => __DIR__ . '/../shopify/shopify-api',
             'aliases' => array(),
@@ -871,9 +871,9 @@
             'dev_requirement' => false,
         ),
         'yiisoft/yii2-app-basic' => array(
-            'pretty_version' => '1.0.0+no-version-set',
-            'version' => '1.0.0.0',
-            'reference' => NULL,
+            'pretty_version' => 'dev-main',
+            'version' => 'dev-main',
+            'reference' => '8d0fb7f84defededa6f8b1ebada44e8b1e7438c1',
             'type' => 'project',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),

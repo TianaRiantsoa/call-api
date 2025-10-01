@@ -63,7 +63,7 @@ class OAuth
             throw new InvalidArgumentException("Invalid shop domain: $shop");
         }
 
-        $redirectPath = trim(strtolower($redirectPath));
+        $redirectPath = trim($redirectPath);
         $redirectPath = ($redirectPath[0] == '/') ? $redirectPath : '/' . $redirectPath;
 
         $state = Uuid::uuid4()->toString();
@@ -152,7 +152,7 @@ class OAuth
             );
         }
 
-        $sessionExpiration = ($session->getExpires() ? (int)$session->getExpires()->format('U') : null);
+        $sessionExpiration = ($session->getExpires() ? (int)$session->getExpires()->format('U') : 0);
         $cookieSet = self::setSessionIdCookie(
             $setCookieFunction,
             $session->getId(),

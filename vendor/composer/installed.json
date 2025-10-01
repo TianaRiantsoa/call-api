@@ -4333,17 +4333,17 @@
         },
         {
             "name": "shopify/shopify-api",
-            "version": "v5.8.1",
-            "version_normalized": "5.8.1.0",
+            "version": "v5.11.0",
+            "version_normalized": "5.11.0.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/Shopify/shopify-api-php.git",
-                "reference": "04dff050e8769b110881be20f8f799d8ece7d7d4"
+                "reference": "ed1c9cd01b68a0beb89ad770123ebc926bb7a98c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Shopify/shopify-api-php/zipball/04dff050e8769b110881be20f8f799d8ece7d7d4",
-                "reference": "04dff050e8769b110881be20f8f799d8ece7d7d4",
+                "url": "https://api.github.com/repos/Shopify/shopify-api-php/zipball/ed1c9cd01b68a0beb89ad770123ebc926bb7a98c",
+                "reference": "ed1c9cd01b68a0beb89ad770123ebc926bb7a98c",
                 "shasum": ""
             },
             "require": {
@@ -4372,7 +4372,7 @@
             "suggest": {
                 "ext-apcu": "Log fewer API deprecation warnings"
             },
-            "time": "2024-11-13T19:30:20+00:00",
+            "time": "2025-07-11T14:07:16+00:00",
             "type": "library",
             "installation-source": "dist",
             "autoload": {
@@ -4404,7 +4404,7 @@
             ],
             "support": {
                 "issues": "https://github.com/Shopify/shopify-api-php/issues",
-                "source": "https://github.com/Shopify/shopify-api-php/tree/v5.8.1"
+                "source": "https://github.com/Shopify/shopify-api-php/tree/v5.11.0"
             },
             "install-path": "../shopify/shopify-api"
         },

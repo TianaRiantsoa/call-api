@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "3eb36aad8c9cfe19838224e7d5251733",
+    "content-hash": "cdedf5d5ed727c9b4f38eda06a6cc87d",
     "packages": [
         {
             "name": "automattic/woocommerce",
@@ -1590,16 +1590,16 @@
         },
         {
             "name": "shopify/shopify-api",
-            "version": "v5.8.1",
+            "version": "v5.11.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/Shopify/shopify-api-php.git",
-                "reference": "04dff050e8769b110881be20f8f799d8ece7d7d4"
+                "reference": "ed1c9cd01b68a0beb89ad770123ebc926bb7a98c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Shopify/shopify-api-php/zipball/04dff050e8769b110881be20f8f799d8ece7d7d4",
-                "reference": "04dff050e8769b110881be20f8f799d8ece7d7d4",
+                "url": "https://api.github.com/repos/Shopify/shopify-api-php/zipball/ed1c9cd01b68a0beb89ad770123ebc926bb7a98c",
+                "reference": "ed1c9cd01b68a0beb89ad770123ebc926bb7a98c",
                 "shasum": ""
             },
             "require": {
@@ -1658,9 +1658,9 @@
             ],
             "support": {
                 "issues": "https://github.com/Shopify/shopify-api-php/issues",
-                "source": "https://github.com/Shopify/shopify-api-php/tree/v5.8.1"
+                "source": "https://github.com/Shopify/shopify-api-php/tree/v5.11.0"
             },
-            "time": "2024-11-13T19:30:20+00:00"
+            "time": "2025-07-11T14:07:16+00:00"
         },
         {
             "name": "symfony/deprecation-contracts",
