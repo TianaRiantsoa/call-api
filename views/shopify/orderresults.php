@@ -941,7 +941,7 @@ QUERY;
     <div class="order-header">
         <h1>📦 Détails de la commande Shopify</h1>
         <div class="order-reference">Référence : <strong><?= !empty($gridDataOrders) ? $gridDataOrders[0]['name'] : $ref ?></strong></div>
-<!-- 
+        <!-- 
         <div class="quick-actions">
             <?php if (!empty($gridDataOrders)): ?>
                 <a href="https://<?= $api ?>:<?= $pwd ?>@<?= $url ?>/admin/api/<?= ApiVersion::LATEST ?>/orders/<?= $gridDataOrders[0]['id'] ?>.json" target="_blank" class="action-btn">
@@ -987,7 +987,11 @@ QUERY;
             <?php if (!empty($gridDataOrders)): ?>
                 <div class="data-item">
                     <div class="data-item-label">ID Commande</div>
-                    <div class="data-item-value">#<?= $gridDataOrders[0]['id'] ?></div>
+                    <div class="data-item-value">
+                        <a href="https://<?= $api ?>:<?= $pwd ?>@<?= $url ?>/admin/api/<?= ApiVersion::LATEST ?>/orders/<?= $gridDataOrders[0]['id'] ?>.json" target="_blank" style="color: var(--primary-color); text-decoration: none;">
+                            #<?= $gridDataOrders[0]['id'] ?>
+                        </a>
+                    </div>
                 </div>
                 <div class="data-item">
                     <div class="data-item-label">Statut</div>
