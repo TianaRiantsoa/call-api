@@ -129,7 +129,7 @@ $this->registerLinkTag(['rel' => 'icon', 'type' => 'image/x-icon', 'href' => Yii
         }
 
         .table thead th a {
-            color: white !important;
+            color: #5c5c5c !important;
             text-decoration: none !important;
         }
         
