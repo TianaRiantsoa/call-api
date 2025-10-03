@@ -33,26 +33,26 @@ $this->registerLinkTag(['rel' => 'icon', 'type' => 'image/x-icon', 'href' => Yii
             background-color: #f6f4f0 !important;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-        
+
         nav.bg-dark {
             background-color: #5c5c5c !important;
         }
-        
+
         .navbar-brand img {
             width: 100px !important;
             height: auto !important;
             max-height: 40px !important;
             transition: transform 0.3s ease;
         }
-        
+
         .navbar-brand {
             padding: 0.5rem 1rem !important;
         }
-        
+
         .navbar-brand img:hover {
             transform: scale(1.05);
         }
-        
+
         .nav-link {
             color: #ffffff !important;
             font-weight: 500;
@@ -61,13 +61,13 @@ $this->registerLinkTag(['rel' => 'icon', 'type' => 'image/x-icon', 'href' => Yii
             margin: 0 0.25rem;
             transition: all 0.3s ease;
         }
-        
+
         .nav-link:hover {
             color: #f1ac16 !important;
             background-color: rgba(241, 172, 22, 0.1) !important;
             border-radius: 4px;
         }
-        
+
         .nav-link::after {
             content: '';
             position: absolute;
@@ -78,42 +78,42 @@ $this->registerLinkTag(['rel' => 'icon', 'type' => 'image/x-icon', 'href' => Yii
             background-color: #f1ac16;
             transition: all 0.3s ease;
         }
-        
+
         .nav-link:hover::after {
             width: 70%;
             left: 15%;
         }
-        
+
         .container-fluid {
             background-color: #f6f4f0 !important;
         }
-        
+
         .breadcrumb {
             background-color: rgba(246, 244, 240, 0.8) !important;
             border-radius: 8px;
             padding: 0.75rem 1rem;
         }
-        
+
         /* FOOTER STYLES - RENOMMÉ POUR ÉVITER LES CONFLITS */
         .custom-footer {
             background-color: #5c5c5c !important;
             color: white !important;
             margin-top: auto;
         }
-        
+
         .custom-footer a {
             color: #f1ac16 !important;
         }
-        
+
         .custom-footer a:hover {
             color: #e69500 !important;
         }
-        
+
         .alert {
             border-radius: 8px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
-        
+
         /* STYLES POUR LES ENTÊTES DE TABLEAU */
         .table thead th {
             background: linear-gradient(145deg, #f1ac16, #e69500) !important;
@@ -132,7 +132,7 @@ $this->registerLinkTag(['rel' => 'icon', 'type' => 'image/x-icon', 'href' => Yii
             color: #5c5c5c !important;
             text-decoration: none !important;
         }
-        
+
         .table thead th::after {
             content: '';
             position: absolute;
@@ -142,15 +142,15 @@ $this->registerLinkTag(['rel' => 'icon', 'type' => 'image/x-icon', 'href' => Yii
             height: 2px;
             background: linear-gradient(90deg, transparent, #5c5c5c, transparent);
         }
-        
+
         .table thead th:first-child {
             border-top-left-radius: 8px !important;
         }
-        
+
         .table thead th:last-child {
             border-top-right-radius: 8px !important;
         }
-        
+
         .table-hover tbody tr:hover {
             background-color: rgba(241, 172, 22, 0.05) !important;
         }
@@ -245,15 +245,23 @@ $this->registerLinkTag(['rel' => 'icon', 'type' => 'image/x-icon', 'href' => Yii
     <footer id="footer" class="custom-footer mt-auto py-4">
         <div class="container">
             <div class="row text-center text-md-start">
-                <div class="col-md-6 mb-3 mb-md-0">
-                    <h5 class="text-white mb-3"><i class="fas fa-copyright me-2"></i>Vaisonet</h5>
-                    <p class="text-light mb-0">© <?= date('Y') ?> Tous droits réservés</p>
+                <div class="col-md-4 mb-3 mb-md-0">
+                    <h5 class="text-white mb-3"></i>Vaisonet</h5>
+                    <p class="text-light mb-0"><i class="fas fa-copyright me-2"></i> <?= date('Y') ?> Tous droits réservés</p>
                 </div>
-                <div class="col-md-6">
-                    <h5 class="text-white mb-3">Contact</h5>
+                <div class="col-md-4 mb-3 mb-md-0">
+                    <h5 class="text-white mb-3"><i class="fas fa-map-marker-alt me-2"></i>Adresse</h5>
                     <p class="text-light mb-0">
-                        <i class="fas fa-envelope me-2"></i>contact@vaisonet.com<br>
-                        <i class="fas fa-phone me-2"></i>+33 (0)4 65 02 08 20
+                        35 rue Des Ormeaux<br>
+                        84110 Vaison-la-Romaine<br>
+                        France
+                    </p>
+                </div>
+                <div class="col-md-4">
+                    <h5 class="text-white mb-3"><i class="fas fa-envelope me-2"></i>Contact</h5>
+                    <p class="text-light mb-0">
+                        <i class="fas fa-envelope me-2 d-none d-md-inline"></i>contact@vaisonet.com<br>
+                        <i class="fas fa-phone me-2 d-none d-md-inline"></i>+33 (0)4 65 02 08 20
                     </p>
                 </div>
             </div>
@@ -272,13 +280,15 @@ $this->registerLinkTag(['rel' => 'icon', 'type' => 'image/x-icon', 'href' => Yii
 <script>
     $(document).ready(function() {
         // Animation au chargement
-        $('main').css('opacity', '0').animate({opacity: 1}, 500);
-        
+        $('main').css('opacity', '0').animate({
+            opacity: 1
+        }, 500);
+
         // Smooth scrolling pour les liens internes
         $('a[href^="#"]').on('click', function(e) {
             e.preventDefault();
             var target = $($(this).attr('href'));
-            if(target.length) {
+            if (target.length) {
                 $('html, body').animate({
                     scrollTop: target.offset().top - 70
                 }, 800);
