@@ -134,8 +134,16 @@ $languageIso = Yii::$app->request->get('language', 'fr'); // Valeur par défaut
                 // Initialisation du service PrestaShop
                 $prestaShopService = new PrestaShopProductService($model->url, $model->api_key);
 
-                $urlweb = $prestaShopService->getUrl() . '/api/products/?filter[reference]=' . $ref . '&ws_key=' . $prestaShopService->getApiKey();
-                
+                // Génération de l'URL selon le type de recherche
+                if ($type === 'simple' || ($type === 'variation' && $variation_type === 'parent')) {
+                    $urlweb = $prestaShopService->getUrl() . '/api/products/?filter[reference]=' . $ref . '&ws_key=' . $prestaShopService->getApiKey();
+                } elseif ($type === 'variation' && $variation_type === 'child') {
+                    $urlweb = $prestaShopService->getUrl() . '/api/combinations/?filter[reference]=' . $ref . '&ws_key=' . $prestaShopService->getApiKey();
+                } else {
+                    // Cas par défaut ou type inconnu
+                    $urlweb = $prestaShopService->getUrl() . '/api/products/?filter[reference]=' . $ref . '&ws_key=' . $prestaShopService->getApiKey();
+                }
+
                 echo '<div class="alert alert-info mb-4">';
                 echo '<h5 class="alert-heading"><i class="fas fa-info-circle me-2"></i>URL de l\'API</h5>';
                 echo '<p class="mb-0">Résultat de la recherche sur le produit référence : <strong>' . $ref . '</strong> du site <strong>' . $prestaShopService->getUrl() . '</strong></p>';
@@ -177,47 +185,47 @@ $languageIso = Yii::$app->request->get('language', 'fr'); // Valeur par défaut
     .prestashop-products-results .card {
         border-radius: 10px;
         overflow: hidden;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
     }
-    
+
     .prestashop-products-results .card-header {
         border-radius: 10px 10px 0 0 !important;
     }
-    
+
     .prestashop-products-results .btn {
         border-radius: 20px;
         padding: 0.375rem 1rem;
         font-size: 0.875rem;
         transition: all 0.3s ease;
     }
-    
+
     .prestashop-products-results .btn:hover {
         transform: translateY(-2px);
         box-shadow: 0 4px 12px rgba(241, 172, 22, 0.3);
     }
-    
+
     .prestashop-products-results .input-group-text {
         border-radius: 8px 0 0 8px;
         border-right: none;
     }
-    
+
     .prestashop-products-results .input-group .form-control {
         border-radius: 0 8px 8px 0;
     }
-    
+
     .prestashop-products-results .detail-view th {
         font-weight: 600;
         color: #5c5c5c;
     }
-    
+
     .prestashop-products-results .detail-view td {
         color: #495057;
     }
-    
+
     .prestashop-products-results .alert {
         border-radius: 8px;
     }
-    
+
     .prestashop-products-results .table thead th {
         background: linear-gradient(145deg, #5c5c5c, #4a4a4a) !important;
         color: white !important;
@@ -229,7 +237,7 @@ $languageIso = Yii::$app->request->get('language', 'fr'); // Valeur par défaut
         padding: 1rem 1.25rem !important;
         position: relative !important;
     }
-    
+
     .prestashop-products-results .table thead th::after {
         content: '';
         position: absolute;
@@ -239,29 +247,35 @@ $languageIso = Yii::$app->request->get('language', 'fr'); // Valeur par défaut
         height: 3px;
         background: linear-gradient(90deg, transparent, #f1ac16, transparent);
     }
-    
+
     .prestashop-products-results .table-hover tbody tr:hover {
         background-color: rgba(241, 172, 22, 0.05) !important;
     }
 </style>
 
 <script>
-$(document).ready(function() {
-    // Animation au chargement
-    $('.prestashop-products-results .card').each(function(index) {
-        $(this).css('opacity', '0').delay(200 * index).animate({opacity: 1}, 600);
+    $(document).ready(function() {
+        // Animation au chargement
+        $('.prestashop-products-results .card').each(function(index) {
+            $(this).css('opacity', '0').delay(200 * index).animate({
+                opacity: 1
+            }, 600);
+        });
+
+        // Animation pour les boutons
+        $('.prestashop-products-results .btn').hover(
+            function() {
+                $(this).animate({
+                    fontSize: '1.05rem'
+                }, 100);
+            },
+            function() {
+                $(this).animate({
+                    fontSize: '1rem'
+                }, 100);
+            }
+        );
     });
-    
-    // Animation pour les boutons
-    $('.prestashop-products-results .btn').hover(
-        function() {
-            $(this).animate({fontSize: '1.05rem'}, 100);
-        },
-        function() {
-            $(this).animate({fontSize: '1rem'}, 100);
-        }
-    );
-});
 </script>
 
 <?php
@@ -371,7 +385,7 @@ function handleChildProductError($e, $prestaShopService)
     echo '<div class="alert alert-danger">';
     echo '<h5 class="alert-heading"><i class="fas fa-exclamation-triangle me-2"></i>Erreur détectée</h5>';
     echo '<p class="mb-0">' . $e->getMessage() . '</p>';
-    
+
     if ($rawResponse) {
         echo '<hr>';
         echo '<p class="mb-0">Réponse brute : ' . PHP_EOL . htmlspecialchars($rawResponse) . '</p>';
