@@ -4,7 +4,7 @@ use yii\helpers\Html;
 use yii\widgets\ActiveForm;
 
 /** @var yii\web\View $this */
-/** @var app\models\ShopifyProduct $model */
+/** @var app\models\Shopify $model */
 
 $this->title = 'Produits | ' . $model->url;
 $this->params['breadcrumbs'][] = ['label' => 'Shopify', 'url' => ['index']];

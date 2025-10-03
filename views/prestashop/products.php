@@ -7,7 +7,7 @@ use yii\widgets\ActiveForm;
 use yii\widgets\DetailView;
 
 /** @var yii\web\View $this */
-/** @var app\models\PrestashopProduct $model */
+/** @var app\models\Prestashop $model */
 
 $this->title = 'Produits | ' . $model->url;
 $this->params['breadcrumbs'][] = ['label' => 'Prestashop', 'url' => ['index']];

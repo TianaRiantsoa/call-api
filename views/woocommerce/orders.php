@@ -4,7 +4,7 @@ use yii\helpers\Html;
 use yii\widgets\ActiveForm;
 
 /** @var yii\web\View $this */
-/** @var app\models\Prestashop $model */
+/** @var app\models\Woocommerce $model */
 
 $this->title = 'Commandes | ' . $model->url;
 $this->params['breadcrumbs'][] = ['label' => 'Woocommerce', 'url' => ['index']];
