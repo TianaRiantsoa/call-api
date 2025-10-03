@@ -18,9 +18,6 @@ $this->registerMetaTag(['name' => 'viewport', 'content' => 'width=device-width, 
 $this->registerMetaTag(['name' => 'description', 'content' => $this->params['meta_description'] ?? '']);
 $this->registerMetaTag(['name' => 'keywords', 'content' => $this->params['meta_keywords'] ?? '']);
 $this->registerLinkTag(['rel' => 'icon', 'type' => 'image/x-icon', 'href' => Yii::getAlias('@web/favicon.ico')]);
-$this->registerJsFile('https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js', ['position' => \yii\web\View::POS_END]);
-$this->registerJsFile('https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js', ['position' => \yii\web\View::POS_END]);
-//$this->registerLinkTag(['rel' => 'stylesheet', 'href' => Yii::getAlias('@web/css/main.css')]);
 ?>
 <?php $this->beginPage() ?>
 <!DOCTYPE html>
@@ -32,17 +29,135 @@ $this->registerJsFile('https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquer
     </title>
     <?php $this->head() ?>
     <style>
-        .navbar_brand img {
-            width: 120px !important;
+        body {
+            background-color: #f6f4f0 !important;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-        nav.bg-dark{
+        
+        nav.bg-dark {
             background-color: #5c5c5c !important;
         }
+        
+        .navbar-brand img {
+            width: 100px !important;
+            height: auto !important;
+            max-height: 40px !important;
+            transition: transform 0.3s ease;
+        }
+        
+        .navbar-brand {
+            padding: 0.5rem 1rem !important;
+        }
+        
+        .navbar-brand img:hover {
+            transform: scale(1.05);
+        }
+        
+        .nav-link {
+            color: #ffffff !important;
+            font-weight: 500;
+            position: relative;
+            padding: 0.5rem 1rem !important;
+            margin: 0 0.25rem;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-link:hover {
+            color: #f1ac16 !important;
+            background-color: rgba(241, 172, 22, 0.1) !important;
+            border-radius: 4px;
+        }
+        
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: 0;
+            left: 50%;
+            background-color: #f1ac16;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-link:hover::after {
+            width: 70%;
+            left: 15%;
+        }
+        
+        .container-fluid {
+            background-color: #f6f4f0 !important;
+        }
+        
+        .breadcrumb {
+            background-color: rgba(246, 244, 240, 0.8) !important;
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+        }
+        
+        /* FOOTER STYLES - RENOMMÉ POUR ÉVITER LES CONFLITS */
+        .custom-footer {
+            background-color: #5c5c5c !important;
+            color: white !important;
+            margin-top: auto;
+        }
+        
+        .custom-footer a {
+            color: #f1ac16 !important;
+        }
+        
+        .custom-footer a:hover {
+            color: #e69500 !important;
+        }
+        
+        .alert {
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* STYLES POUR LES ENTÊTES DE TABLEAU */
+        .table thead th {
+            background: linear-gradient(145deg, #f1ac16, #e69500) !important;
+            color: white !important;
+            font-weight: 600 !important;
+            text-transform: uppercase !important;
+            font-size: 0.85rem !important;
+            letter-spacing: 0.5px !important;
+            border: none !important;
+            padding: 1rem 1.25rem !important;
+            position: relative !important;
+            box-shadow: 0 2px 4px rgba(241, 172, 22, 0.3) !important;
+        }
+
+        .table thead th a {
+            color: white !important;
+            text-decoration: none !important;
+        }
+        
+        .table thead th::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #5c5c5c, transparent);
+        }
+        
+        .table thead th:first-child {
+            border-top-left-radius: 8px !important;
+        }
+        
+        .table thead th:last-child {
+            border-top-right-radius: 8px !important;
+        }
+        
+        .table-hover tbody tr:hover {
+            background-color: rgba(241, 172, 22, 0.05) !important;
+        }
     </style>
-    <link rel="stylesheet" href="https://d11lu0htm9h2oc.cloudfront.net/back/v2/css/v1.17.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    
 </head>
 
 <body class="d-flex flex-column h-100">
@@ -52,7 +167,11 @@ $this->registerJsFile('https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquer
         Swal.fire({
             icon: 'error',
             title: 'Erreur',
-            text: '" . Yii::$app->session->getFlash('error') . "',
+            text: '" . addslashes(Yii::$app->session->getFlash('error')) . "',
+            confirmButtonColor: '#dc3545',
+            customClass: {
+                popup: 'rounded-swal'
+            }
         });
     ");
         ?>
@@ -62,7 +181,11 @@ $this->registerJsFile('https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquer
         Swal.fire({
             icon: 'warning',
             title: 'Alerte',
-            text: '" . Yii::$app->session->getFlash('warning') . "',
+            text: '" . addslashes(Yii::$app->session->getFlash('warning')) . "',
+            confirmButtonColor: '#ffc107',
+            customClass: {
+                popup: 'rounded-swal'
+            }
         });
     ");
         ?>
@@ -72,7 +195,11 @@ $this->registerJsFile('https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquer
         Swal.fire({
             icon: 'success',
             title: 'Succès',
-            text: '" . Yii::$app->session->getFlash('success') . "',
+            text: '" . addslashes(Yii::$app->session->getFlash('success')) . "',
+            confirmButtonColor: '#28a745',
+            customClass: {
+                popup: 'rounded-swal'
+            }
         });
     ");
         ?>
@@ -85,50 +212,56 @@ $this->registerJsFile('https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquer
             'brandLabel' => Yii::$app->name,
             'brandUrl' => Yii::$app->homeUrl,
             'brandImage' => "@web/vaisonet.webp",
-            'brandOptions' => ['width' => '150px !important', 'alt' => 'Vaisonet'],
-            'options' => ['class' => 'navbar-expand-md navbar-dark bg-dark fixed-top']
+            'brandOptions' => ['width' => '180px', 'class' => 'navbar-brand'],
+            'options' => ['class' => 'navbar-expand-md navbar-dark bg-dark fixed-top shadow-sm']
         ]);
         echo Nav::widget([
-            'options' => ['class' => 'navbar-nav'],
+            'options' => ['class' => 'navbar-nav ms-auto'],
             'items' => [
-                ['label' => 'PrestaShop', 'url' => ['/prestashop/index']],
-                ['label' => 'WooCommerce', 'url' => ['/woocommerce/index']],
-                ['label' => 'Shopify', 'url' => ['/shopify/index']],
-                // Yii::$app->user->isGuest
-                //     ? ['label' => 'Login', 'url' => ['/site/login']]
-                //     : '<li class="nav-item">'
-                //     . Html::beginForm(['/site/logout'])
-                //     . Html::submitButton(
-                //         'Logout (' . Yii::$app->user->identity->username . ')',
-                //         ['class' => 'nav-link btn btn-link logout']
-                //     )
-                //     . Html::endForm()
-                //     . '</li>'
+                ['label' => '<i class="fas fa-shopping-cart me-1"></i> PrestaShop', 'url' => ['/prestashop/index'], 'encode' => false],
+                ['label' => '<i class="fab fa-wordpress me-1"></i> WooCommerce', 'url' => ['/woocommerce/index'], 'encode' => false],
+                ['label' => '<i class="fas fa-store me-1"></i> Shopify', 'url' => ['/shopify/index'], 'encode' => false],
             ]
         ]);
         NavBar::end();
         ?>
     </header>
 
-
-
     <main id="main" class="flex-shrink-0" role="main">
-        <div class="container-fluid" style="padding-top:5em">
+        <div class="container-fluid py-4" style="padding-top:5em">
             <?php if (!empty($this->params['breadcrumbs'])): ?>
-                <?= Breadcrumbs::widget(['links' => $this->params['breadcrumbs']]) ?>
+                <div class="mb-3">
+                    <?= Breadcrumbs::widget([
+                        'links' => $this->params['breadcrumbs'],
+                        'options' => ['class' => 'breadcrumb']
+                    ]) ?>
+                </div>
             <?php endif ?>
             <?= Alert::widget() ?>
             <?= $content ?>
         </div>
     </main>
 
-    <footer id="footer" class="mt-auto py-3 bg-light">
+    <footer id="footer" class="custom-footer mt-auto py-4">
         <div class="container">
-            <div class="row text-muted">
-                <div class="col-md-6 text-center text-md-start">&copy; Vaisonet
-                    <?= date('Y') ?>
+            <div class="row text-center text-md-start">
+                <div class="col-md-6 mb-3 mb-md-0">
+                    <h5 class="text-white mb-3"><i class="fas fa-copyright me-2"></i>Vaisonet</h5>
+                    <p class="text-light mb-0">© <?= date('Y') ?> Tous droits réservés</p>
                 </div>
-                <div class="col-md-6 text-center text-md-end">Propulsé par Tiana</div>
+                <div class="col-md-6">
+                    <h5 class="text-white mb-3">Contact</h5>
+                    <p class="text-light mb-0">
+                        <i class="fas fa-envelope me-2"></i>contact@vaisonet.com<br>
+                        <i class="fas fa-phone me-2"></i>+33 (0)4 65 02 08 20
+                    </p>
+                </div>
+            </div>
+            <hr class="my-3 bg-secondary">
+            <div class="row">
+                <div class="col-12 text-center">
+                    <p class="text-light mb-0">Propulsé par <span class="text-warning fw-bold">Tiana</span></p>
+                </div>
             </div>
         </div>
     </footer>
@@ -136,6 +269,23 @@ $this->registerJsFile('https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquer
     <?php $this->endBody() ?>
 </body>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    $(document).ready(function() {
+        // Animation au chargement
+        $('main').css('opacity', '0').animate({opacity: 1}, 500);
+        
+        // Smooth scrolling pour les liens internes
+        $('a[href^="#"]').on('click', function(e) {
+            e.preventDefault();
+            var target = $($(this).attr('href'));
+            if(target.length) {
+                $('html, body').animate({
+                    scrollTop: target.offset().top - 70
+                }, 800);
+            }
+        });
+    });
+</script>
 
 </html>
 <?php $this->endPage() ?>

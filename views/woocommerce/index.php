@@ -1,9 +1,6 @@
 <?php
 
-use app\models\Woocommerce;
 use yii\helpers\Html;
-use yii\helpers\Url;
-use yii\grid\ActionColumn;
 use yii\grid\GridView;
 use yii\widgets\Pjax;
 
@@ -11,55 +8,263 @@ use yii\widgets\Pjax;
 /** @var app\models\WoocommerceSearch $searchModel */
 /** @var yii\data\ActiveDataProvider $dataProvider */
 
-$this->title = 'Woocommerce';
+$this->title = 'WooCommerce';
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 <div class="woocommerce-index">
-
-    <h1><?= Html::encode($this->title) ?></h1>
-
-    <p>
-        <?= Html::a('Créer un client Woocommerce', ['create'], ['class' => 'btn btn-success btn-sm']) ?>
-    </p>
-
-    <?php Pjax::begin(); ?>
-    <?php // echo $this->render('_search', ['model' => $searchModel]); 
-    ?>
-
-    <?= GridView::widget([
-        'dataProvider' => $dataProvider,
-        'filterModel' => $searchModel,
-        'columns' => [
-            //['class' => 'yii\grid\SerialColumn'],
-            //'id',
-            [
-                'attribute' => 'url', // Colonne de la table
-                'format' => 'raw', // Permet de rendre le contenu HTML cliquable
-                'value' => function ($model) {
-                    return Html::a($model->url, ['view', 'id' => $model->id], ['target' => '_blank']);
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-white py-3" style="border-bottom: 3px solid #f1ac16;">
+            <div class="d-flex justify-content-between align-items-center">
+                <h1 class="h4 mb-0 text-dark">
+                    <i class="fab fa-wordpress text-warning me-2"></i>
+                    <?= Html::encode($this->title) ?>
+                </h1>
+                <div>
+                    <?= Html::a('<i class="fas fa-plus me-1"></i> Créer un client', ['create'], [
+                        'class' => 'btn btn-primary btn-sm',
+                        'style' => 'background-color: #f1ac16; border-color: #f1ac16; border-radius: 20px;'
+                    ]) ?>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card-body p-0">
+            <?php Pjax::begin(); ?>
+            <?php // echo $this->render('_search', ['model' => $searchModel]); ?>
+            
+            <?= GridView::widget([
+                'dataProvider' => $dataProvider,
+                'filterModel' => $searchModel,
+                'layout' => "{items}\n<div class='card-footer bg-white py-3'>{summary}\n{pager}</div>",
+                'tableOptions' => [
+                    'class' => 'table table-hover mb-0',
+                    'style' => 'margin-bottom: 0;'
+                ],
+                'options' => [
+                    'class' => 'table-responsive'
+                ],
+                'headerRowOptions' => [
+                    'class' => 'table-dark'
+                ],
+                'rowOptions' => function ($model, $key, $index, $grid) {
+                    return [
+                        'class' => $index % 2 == 0 ? 'table-light' : 'table-white',
+                        'style' => 'cursor: pointer; transition: all 0.2s ease;'
+                    ];
                 },
-            ],
-            [
-                'attribute' => 'consumer_key', // Colonne de la table
-                'format' => 'raw', // Permet de rendre le contenu HTML cliquable
-                'value' => function ($model) {
-                    return Html::a($model->consumer_key, ['view', 'id' => $model->id], ['target' => '_blank']);
-                },
-            ],
-            [
-                'attribute' => 'consumer_secret', // Colonne de la table
-                'format' => 'raw', // Permet de rendre le contenu HTML cliquable
-                'value' => function ($model) {
-                    return Html::a($model->consumer_secret, ['view', 'id' => $model->id], ['target' => '_blank']);
-                },
-            ],
-        ],
-        'pager' => [
-            'options' => ['class' => 'pagination justify-content-center'], // Classe Bootstrap
-        ],
-    ]);
-    ?>
-
-    <?php Pjax::end(); ?>
-
+                'columns' => [
+                    [
+                        'attribute' => 'url',
+                        'format' => 'raw',
+                        'headerOptions' => ['class' => 'bg-dark text-white', 'style' => 'border: none;'],
+                        'contentOptions' => ['style' => 'vertical-align: middle;'],
+                        'value' => function ($model) {
+                            return Html::a(
+                                '<i class="fas fa-external-link-alt me-2 text-info"></i>' . Html::encode($model->url),
+                                ['view', 'id' => $model->id],
+                                [
+                                    'target' => '_blank',
+                                    'class' => 'text-decoration-none',
+                                    'data-pjax' => 0
+                                ]
+                            );
+                        },
+                    ],
+                    [
+                        'attribute' => 'consumer_key',
+                        'format' => 'raw',
+                        'headerOptions' => ['class' => 'bg-dark text-white', 'style' => 'border: none;'],
+                        'contentOptions' => ['style' => 'vertical-align: middle;'],
+                        'value' => function ($model) {
+                            $displayKey = strlen($model->consumer_key) > 20 ? 
+                                substr($model->consumer_key, 0, 10) . '...' . substr($model->consumer_key, -10) : 
+                                $model->consumer_key;
+                            
+                            return Html::a(
+                                '<i class="fas fa-key me-2 text-warning"></i>' . Html::encode($model->consumer_key),
+                                ['view', 'id' => $model->id],
+                                [
+                                    'target' => '_blank',
+                                    'class' => 'text-decoration-none',
+                                    'title' => 'Cliquez pour voir les détails',
+                                    'data-pjax' => 0
+                                ]
+                            );
+                        },
+                    ],
+                    [
+                        'attribute' => 'consumer_secret',
+                        'format' => 'raw',
+                        'headerOptions' => ['class' => 'bg-dark text-white', 'style' => 'border: none;'],
+                        'contentOptions' => ['style' => 'vertical-align: middle;'],
+                        'value' => function ($model) {
+                            $displaySecret = strlen($model->consumer_secret) > 20 ? 
+                                substr($model->consumer_secret, 0, 10) . '...' . substr($model->consumer_secret, -10) : 
+                                $model->consumer_secret;
+                            
+                            return Html::a(
+                                '<i class="fas fa-shield-alt me-2 text-danger"></i>' . Html::encode($model->consumer_secret),
+                                ['view', 'id' => $model->id],
+                                [
+                                    'target' => '_blank',
+                                    'class' => 'text-decoration-none',
+                                    'title' => 'Cliquez pour voir les détails',
+                                    'data-pjax' => 0
+                                ]
+                            );
+                        },
+                    ],
+                    // [
+                    //     'class' => 'yii\grid\ActionColumn',
+                    //     'template' => '{view} {update} {delete}',
+                    //     'headerOptions' => ['class' => 'bg-dark text-white', 'style' => 'border: none; width: 120px;'],
+                    //     'contentOptions' => ['class' => 'text-center', 'style' => 'vertical-align: middle;'],
+                    //     'buttons' => [
+                    //         'view' => function ($url, $model) {
+                    //             return Html::a(
+                    //                 '<i class="fas fa-eye text-primary"></i>',
+                    //                 $url,
+                    //                 [
+                    //                     'title' => 'Voir',
+                    //                     'class' => 'me-2',
+                    //                     'data-pjax' => 0
+                    //                 ]
+                    //             );
+                    //         },
+                    //         'update' => function ($url, $model) {
+                    //             return Html::a(
+                    //                 '<i class="fas fa-edit text-success"></i>',
+                    //                 $url,
+                    //                 [
+                    //                     'title' => 'Modifier',
+                    //                     'class' => 'me-2',
+                    //                     'data-pjax' => 0
+                    //                 ]
+                    //             );
+                    //         },
+                    //         'delete' => function ($url, $model) {
+                    //             return Html::a(
+                    //                 '<i class="fas fa-trash text-danger"></i>',
+                    //                 $url,
+                    //                 [
+                    //                     'title' => 'Supprimer',
+                    //                     'data-confirm' => 'Êtes-vous sûr de vouloir supprimer cet élément ?',
+                    //                     'data-method' => 'post',
+                    //                     'data-pjax' => 0
+                    //                 ]
+                    //             );
+                    //         },
+                    //     ],
+                    // ],
+                ],
+                'pager' => [
+                    'options' => [
+                        'class' => 'pagination justify-content-center mb-0',
+                        'style' => 'margin-top: 0; margin-bottom: 0;'
+                    ],
+                    'linkContainerOptions' => [
+                        'class' => 'page-item'
+                    ],
+                    'linkOptions' => [
+                        'class' => 'page-link',
+                        'style' => 'color: #5c5c5c; border-color: #dee2e6;'
+                    ],
+                    'activePageCssClass' => 'active',
+                    'disabledPageCssClass' => 'disabled',
+                    'prevPageLabel' => '<i class="fas fa-chevron-left"></i>',
+                    'nextPageLabel' => '<i class="fas fa-chevron-right"></i>',
+                ],
+            ]); ?>
+            
+            <?php Pjax::end(); ?>
+        </div>
+    </div>
 </div>
+
+<style>
+    .woocommerce-index .card {
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    }
+    
+    .woocommerce-index .table-hover tbody tr:hover {
+        background-color: rgba(241, 172, 22, 0.05) !important;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    .woocommerce-index .table thead th {
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        letter-spacing: 0.5px;
+    }
+    
+    .woocommerce-index .table td, 
+    .woocommerce-index .table th {
+        padding: 1rem 1.25rem;
+        vertical-align: middle;
+    }
+    
+    .woocommerce-index .btn {
+        border-radius: 20px;
+        padding: 0.375rem 1rem;
+        font-size: 0.875rem;
+        transition: all 0.3s ease;
+    }
+    
+    .woocommerce-index .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(241, 172, 22, 0.3);
+    }
+    
+    .woocommerce-index .card-footer {
+        border-top: 1px solid #e9ecef !important;
+    }
+    
+    .woocommerce-index .pagination .page-item.active .page-link {
+        background-color: #f1ac16 !important;
+        border-color: #f1ac16 !important;
+        color: white !important;
+    }
+    
+    .woocommerce-index .pagination .page-link:hover {
+        background-color: #f1ac16 !important;
+        border-color: #f1ac16 !important;
+        color: white !important;
+    }
+</style>
+
+<script>
+$(document).ready(function() {
+    // Animation au chargement
+    $('.woocommerce-index .card').css('opacity', '0').animate({opacity: 1}, 500);
+    
+    // Effet de survol sur les lignes du tableau
+    $('.woocommerce-index .table tbody tr').hover(
+        function() {
+            $(this).css({
+                'transform': 'translateY(-2px)',
+                'box-shadow': '0 4px 12px rgba(0,0,0,0.15)'
+            });
+        },
+        function() {
+            $(this).css({
+                'transform': 'translateY(0)',
+                'box-shadow': 'none'
+            });
+        }
+    );
+    
+    // Animation pour les boutons d'action
+    $('.woocommerce-index .action-column a').hover(
+        function() {
+            $(this).animate({fontSize: '1.2em'}, 100);
+        },
+        function() {
+            $(this).animate({fontSize: '1em'}, 100);
+        }
+    );
+});
+</script>

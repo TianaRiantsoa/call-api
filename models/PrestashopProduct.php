@@ -16,12 +16,13 @@ class PrestashopProduct extends Model
     public function rules()
     {
         return [
-            [['url', 'api_key', 'ref','type'], 'required'],
-            [['variation_type'], 'required', 'when' => function ($mod) {
-                return $mod->type === 'variation';
+            [['url', 'api_key', 'ref', 'type'], 'required'],
+            [['variation_type'], 'required', 'when' => function ($model) {
+                return $model->type === 'variation';
             }, 'whenClient' => "function (attribute, value) {
-                return $('.product-type-radio:checked').val() === 'variation';
+                return $('[name=\"PrestashopProduct[type]\"]:checked').val() === 'variation';
             }"],
+            [['variation_type'], 'default', 'value' => ''], // Valeur par défaut vide
             [['language'], 'safe'],
         ];
     }
