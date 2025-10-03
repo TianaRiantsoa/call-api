@@ -2,7 +2,6 @@
 
 use yii\helpers\Html;
 use yii\widgets\ActiveForm;
-use yii\widgets\DetailView;
 
 /** @var yii\web\View $this */
 /** @var app\models\Prestashop $model */

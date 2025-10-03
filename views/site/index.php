@@ -19,7 +19,7 @@ $this->title = 'Webservices Vaisonet';
                          alt="Vaisonet"
                          style="border: 5px solid #f1ac16;">
                     <h1 class="display-4 fw-bold text-dark mb-4">
-                        <span class="text-warning">Vaisonet</span> est un éditeur de solutions e-commerce
+                        <span style="color: #f1ac16;">Vaisonet</span> est un éditeur de solutions e-commerce
                     </h1>
                     <p class="lead text-muted mb-4">
                         Spécialiste de la gestion des flux e-commerce et de l'optimisation des processus métier multicanal
@@ -27,7 +27,7 @@ $this->title = 'Webservices Vaisonet';
                     <div class="mb-5">
                         <p class="text-uppercase text-muted mb-3">Sélectionnez votre CMS</p>
                         <div class="vr mx-3 d-none d-md-inline"></div>
-                        <i class="fas fa-chevron-down text-warning"></i>
+                        <i class="fas fa-chevron-down" style="color: #f1ac16;"></i>
                     </div>
                 </div>
             </div>

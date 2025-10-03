@@ -94,6 +94,32 @@ $this->registerLinkTag(['rel' => 'icon', 'type' => 'image/x-icon', 'href' => Yii
             padding: 0.75rem 1rem;
         }
 
+        /* STYLES POUR LES BREADCRUMBS */
+        .breadcrumb {
+            background-color: rgba(246, 244, 240, 0.8) !important;
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .breadcrumb-item + .breadcrumb-item::before {
+            color: #f1ac16 !important;
+        }
+        
+        .breadcrumb-item a {
+            color: #5c5c5c !important;
+            text-decoration: none;
+        }
+        
+        .breadcrumb-item a:hover {
+            color: #f1ac16 !important;
+            text-decoration: underline;
+        }
+        
+        .breadcrumb-item.active {
+            color: #f1ac16 !important;
+        }
+
         /* FOOTER STYLES - RENOMMÉ POUR ÉVITER LES CONFLITS */
         .custom-footer {
             background-color: #5c5c5c !important;
@@ -268,7 +294,7 @@ $this->registerLinkTag(['rel' => 'icon', 'type' => 'image/x-icon', 'href' => Yii
             <hr class="my-3 bg-secondary">
             <div class="row">
                 <div class="col-12 text-center">
-                    <p class="text-light mb-0">Propulsé par <span class="text-warning fw-bold">Tiana</span></p>
+                    <p class="text-light mb-0">Propulsé par <span class="fw-bold" style="color: #f1ac16;">Tiana</span></p>
                 </div>
             </div>
         </div>
