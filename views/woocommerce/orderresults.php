@@ -8,6 +8,7 @@ use yii\data\ArrayDataProvider;
 
 /** @var yii\web\View $this */
 /** @var app\models\Woocommerce $model */
+/** @var string $ref - La référence (ID) de la commande recherchée */
 
 // Définir le titre et les breadcrumbs
 $this->title = 'Commande ' . Html::encode($ref);
@@ -21,26 +22,33 @@ $this->params['breadcrumbs'][] = ['label' => Html::encode($ref)];
 $url = Html::encode($model->url);
 $consumer_key = Html::encode($model->consumer_key);
 $consumer_secret = Html::encode($model->consumer_secret);
-$ref = Html::encode($ref);
+$ref = Html::encode($ref); // Ne pas encoder ici pour la requête API
 
 // Forcer HTTPS pour l'URL
-$url = "https://" . $url;
+$url = "https://" . ltrim($url, "https://");
 
 // Initialiser le client WooCommerce
-$client = new Client($url, $consumer_key, $consumer_secret, ['version' => 'wc/v3', 'verify_ssl' => false]);
+$client = new Client($url, $consumer_key, $consumer_secret, [
+    'version' => 'wc/v3',
+    'verify_ssl' => false, // Désactiver la vérification SSL pour les tests
+]);
 
 // Initialiser les tableaux de données
 $orderDetails = [];
 $customerDetails = [];
 $billingShippingDetails = [];
 $productDetails = [];
+$taxDetails = [];
+$shippingDetails = [];
+$metaDetails = [];
+$refundDetails = [];
 
 try {
     // Récupérer les données de la commande
     $order = $client->get('orders/' . $ref);
 
     // Récupérer les informations du client
-    if (!empty($order->customer_id)) {
+    if (!empty($order->customer_id) && $order->customer_id != 0) {
         $customerDetails = getCustomerDetails($client, $order->customer_id);
     }
 
@@ -52,6 +60,18 @@ try {
 
     // Préparer les détails des produits
     $productDetails = prepareProductDetails($order);
+
+    // Préparer les détails des taxes
+    $taxDetails = prepareTaxDetails($order);
+
+    // Préparer les détails des frais de livraison
+    $shippingDetails = prepareShippingDetails($order);
+
+    // Préparer les métadonnées
+    $metaDetails = prepareMetaDetails($order);
+
+    // Préparer les remboursements
+    $refundDetails = prepareRefundDetails($order);
 } catch (HttpClientException $e) {
     handleHttpClientException($e);
 }
@@ -566,6 +586,57 @@ $this->registerCss("
     .status-payment-refunded { background-color: rgba(108, 117, 125, 0.2); color: #6c757d; }
     .status-payment-failed { background-color: rgba(220, 53, 69, 0.2); color: #dc3545; }
     
+    .tax-line, .shipping-line {
+        padding: 0.8rem 1rem;
+        border-bottom: 1px solid #f0f0f0;
+        display: flex;
+        justify-content: space-between;
+    }
+    
+    .tax-line:last-child, .shipping-line:last-child {
+        border-bottom: none;
+    }
+    
+    .meta-item {
+        padding: 0.5rem 0;
+        border-bottom: 1px solid #f5f5f5;
+    }
+    
+    .meta-item:last-child {
+        border-bottom: none;
+    }
+    
+    .meta-key {
+        font-weight: 600;
+        color: var(--primary-color);
+        display: inline-block;
+        min-width: 120px;
+    }
+    
+    .meta-value {
+        color: var(--text-color);
+    }
+    
+    .refund-item {
+        padding: 0.8rem 0;
+        border-bottom: 1px solid #f5f5f5;
+    }
+    
+    .refund-item:last-child {
+        border-bottom: none;
+    }
+    
+    .refund-amount {
+        color: #dc3545;
+        font-weight: 600;
+    }
+    
+    .refund-date {
+        font-size: 0.9em;
+        color: var(--text-color);
+        opacity: 0.8;
+    }
+    
     @media (max-width: 768px) {
         .stat-grid {
             grid-template-columns: 1fr;
@@ -586,6 +657,14 @@ $this->registerCss("
         .info-label {
             min-width: 100%;
             margin-bottom: 0.3rem;
+        }
+        
+        .table-responsive {
+            font-size: 0.85rem;
+        }
+        
+        .table th, .table td {
+            padding: 0.5rem;
         }
     }
 ");
@@ -758,7 +837,7 @@ echo '</div>';
             </div>
             <div class="stat-card">
                 <div class="stat-label">Méthode de paiement</div>
-                <div class="stat-value" style="font-size: 1.3rem;"><?= $orderDetails[0]['payment_method_title'] ?></div>
+                <div class="stat-value" style="font-size: 1.3rem;"><?= Html::encode($orderDetails[0]['payment_method_title']) ?></div>
             </div>
         </div>
 
@@ -778,16 +857,32 @@ echo '</div>';
                 <div class="data-item">
                     <div class="data-item-label">Statut</div>
                     <div class="data-item-value">
-                        <span class="status-badge status-<?= strtolower($orderDetails[0]['status']) ?>"><?= $orderDetails[0]['status'] ?></span>
+                        <span class="status-badge status-<?= strtolower(Html::encode($orderDetails[0]['status'])) ?>"><?= Html::encode($orderDetails[0]['status']) ?></span>
                     </div>
                 </div>
                 <div class="data-item">
-                    <div class="data-item-label">Transporteur</div>
-                    <div class="data-item-value"><?= $orderDetails[0]['carrier'] ?></div>
+                    <div class="data-item-label">Numéro</div>
+                    <div class="data-item-value"><?= Html::encode($orderDetails[0]['number']) ?></div>
                 </div>
                 <div class="data-item">
                     <div class="data-item-label">Date de création</div>
                     <div class="data-item-value"><?= formatDate($orderDetails[0]['date_created']) ?></div>
+                </div>
+                <div class="data-item">
+                    <div class="data-item-label">Date de modification</div>
+                    <div class="data-item-value"><?= formatDate($orderDetails[0]['date_modified']) ?></div>
+                </div>
+                <div class="data-item">
+                    <div class="data-item-label">Date de paiement</div>
+                    <div class="data-item-value"><?= $orderDetails[0]['date_paid'] ? formatDate($orderDetails[0]['date_paid']) : 'N/A' ?></div>
+                </div>
+                <div class="data-item">
+                    <div class="data-item-label">Clé de commande</div>
+                    <div class="data-item-value"><?= Html::encode($orderDetails[0]['order_key']) ?></div>
+                </div>
+                <div class="data-item">
+                    <div class="data-item-label">IP Client</div>
+                    <div class="data-item-value"><?= Html::encode($orderDetails[0]['customer_ip_address']) ?></div>
                 </div>
             </div>
 
@@ -804,6 +899,13 @@ echo '</div>';
                     <div class="info-row">
                         <span class="info-label">🔄 Dernière mise à jour</span>
                         <span class="info-value"><?= formatDate($orderDetails[0]['date_modified']) ?></span>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="info-row">
+                        <span class="info-label">💳 Paiement</span>
+                        <span class="info-value"><?= $orderDetails[0]['date_paid'] ? formatDate($orderDetails[0]['date_paid']) : 'Non payée' ?></span>
                     </div>
                 </div>
             </div>
@@ -825,13 +927,13 @@ echo '</div>';
                         </div>
                         <div class="data-item">
                             <div class="data-item-label">Nom complet</div>
-                            <div class="data-item-value"><?= $customer['first_name'] ?> <?= $customer['last_name'] ?></div>
+                            <div class="data-item-value"><?= Html::encode($customer['first_name'] . ' ' . $customer['last_name']) ?></div>
                         </div>
                         <div class="data-item">
                             <div class="data-item-label">Email</div>
                             <div class="data-item-value">
-                                <a href="mailto:<?= $customer['email'] ?>" style="color: var(--primary-color); text-decoration: none;">
-                                    <?= $customer['email'] ?>
+                                <a href="mailto:<?= Html::encode($customer['email']) ?>" style="color: var(--primary-color); text-decoration: none;">
+                                    <?= Html::encode($customer['email']) ?>
                                 </a>
                             </div>
                         </div>
@@ -854,27 +956,27 @@ echo '</div>';
                             <div class="address-card">
                                 <div class="address-type">
                                     <?= $address['type'] === 'Facturation' ? '🧾' : '📦' ?>
-                                    <?= $address['type'] ?>
+                                    <?= Html::encode($address['type']) ?>
                                 </div>
                                 <p style="margin: 0.3rem 0;">
-                                    <strong><?= $address['name'] ?></strong>
+                                    <strong><?= Html::encode($address['name']) ?></strong>
                                 </p>
                                 <p style="margin: 0.3rem 0; color: var(--text-color);">
-                                    <?= $address['address'] ?>
+                                    <?= Html::encode($address['address']) ?>
                                 </p>
                                 <?php if ($address['phone']): ?>
                                     <p style="margin: 0.5rem 0 0.3rem 0;">
                                         <span style="color: var(--primary-color);">📞</span>
-                                        <a href="tel:<?= $address['phone'] ?>" style="color: var(--text-color); text-decoration: none;">
-                                            <?= $address['phone'] ?>
+                                        <a href="tel:<?= Html::encode($address['phone']) ?>" style="color: var(--text-color); text-decoration: none;">
+                                            <?= Html::encode($address['phone']) ?>
                                         </a>
                                     </p>
                                 <?php endif; ?>
                                 <?php if ($address['email']): ?>
                                     <p style="margin: 0.3rem 0;">
                                         <span style="color: var(--primary-color);">✉️</span>
-                                        <a href="mailto:<?= $address['email'] ?>" style="color: var(--text-color); text-decoration: none;">
-                                            <?= $address['email'] ?>
+                                        <a href="mailto:<?= Html::encode($address['email']) ?>" style="color: var(--text-color); text-decoration: none;">
+                                            <?= Html::encode($address['email']) ?>
                                         </a>
                                     </p>
                                 <?php endif; ?>
@@ -896,39 +998,176 @@ echo '</div>';
                         <thead>
                             <tr>
                                 <th>ID Produit</th>
+                                <th>Image</th>
                                 <th>SKU</th>
                                 <th>Produit</th>
                                 <th style="text-align: center;">Qté</th>
-                                <th style="text-align: right;">P.U</th>
+                                <th style="text-align: right;">P.U HT</th>
                                 <th style="text-align: right;">Taxes</th>
                                 <th style="text-align: right;">Total HT</th>
                                 <th style="text-align: right;">Total TTC</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <?php foreach ($productDetails as $product): ?>
+                            <?php foreach ($order->line_items as $item): ?>
                                 <tr>
                                     <td>
-                                        <a href="<?= $url ?>/wp-json/wc/v3/products/<?= $product['product_id'] ?>?consumer_key=<?= $consumer_key ?>&consumer_secret=<?= $consumer_secret ?>" target="_blank">
-                                            #<?= $product['product_id'] ?>
+                                        <a href="<?= $url ?>/wp-json/wc/v3/products/<?= $item->product_id ?>?consumer_key=<?= $consumer_key ?>&consumer_secret=<?= $consumer_secret ?>" target="_blank">
+                                            #<?= $item->product_id ?>
                                         </a>
                                     </td>
-                                    <td><?= $product['sku'] ?></td>
-                                    <td class="product-name">
-                                        <?= $product['name'] ?>
-                                        <?php if ($product['variant_id']): ?>
-                                            <span class="product-type">Variante</span>
+                                    <td>
+                                        <?php if (!empty($item->image->src)): ?>
+                                            <img src="<?= Html::encode($item->image->src) ?>" alt="<?= Html::encode($item->name) ?>" style="width: 50px; height: auto; border-radius: 4px;">
+                                        <?php else: ?>
+                                            <div class="product-image-placeholder">N/A</div>
                                         <?php endif; ?>
                                     </td>
-                                    <td style="text-align: center;"><strong><?= $product['quantity'] ?></strong></td>
-                                    <td style="text-align: right;" class="currency"><?= Yii::$app->formatter->asCurrency($product['price'], 'EUR') ?></td>
-                                    <td style="text-align: right;" class="currency"><?= Yii::$app->formatter->asCurrency($product['total_tax'], 'EUR') ?></td>
-                                    <td style="text-align: right;" class="currency"><?= Yii::$app->formatter->asCurrency($product['total'], 'EUR') ?></td>
-                                    <td style="text-align: right;"><strong class="currency"><?= Yii::$app->formatter->asCurrency($product['total_ttc'], 'EUR') ?></strong></td>
+                                    <td><?= Html::encode($item->sku) ?></td>
+                                    <td class="product-name">
+                                        <?= Html::encode($item->name) ?>
+                                        <?php if ($item->variation_id): ?>
+                                            <span class="product-type">Variante #<?= $item->variation_id ?></span>
+                                        <?php endif; ?>
+                                        <?php if (!empty($item->meta_data)): ?>
+                                            <div style="margin-top: 0.5rem;">
+                                                <?php foreach ($item->meta_data as $meta): ?>
+                                                    <small style="display: block; color: var(--text-color); opacity: 0.8;">
+                                                        <strong><?= Html::encode($meta->display_key) ?>:</strong> <?= Html::encode(is_array($meta->display_value) || is_object($meta->display_value) ? json_encode($meta->display_value, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) : $meta->display_value) ?>
+                                                    </small>
+                                                <?php endforeach; ?>
+                                            </div>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td style="text-align: center;"><strong><?= $item->quantity ?></strong></td>
+                                    <td style="text-align: right;" class="currency"><?= Yii::$app->formatter->asCurrency($item->price, 'EUR') ?></td>
+                                    <td style="text-align: right;" class="currency"><?= Yii::$app->formatter->asCurrency($item->total_tax, 'EUR') ?></td>
+                                    <td style="text-align: right;" class="currency"><?= Yii::$app->formatter->asCurrency($item->total, 'EUR') ?></td>
+                                    <td style="text-align: right;"><strong class="currency"><?= Yii::$app->formatter->asCurrency($item->total + $item->total_tax, 'EUR') ?></strong></td>
                                 </tr>
                             <?php endforeach; ?>
                         </tbody>
                     </table>
+                </div>
+            </div>
+        <?php endif; ?>
+
+        <!-- Détails des taxes -->
+        <?php if (!empty($taxDetails)): ?>
+            <div class="info-card">
+                <h3>💰 Détails des taxes</h3>
+                <div class="data-grid">
+                    <div class="data-item">
+                        <div class="data-item-label">Taxe totale</div>
+                        <div class="data-item-value"><?= Yii::$app->formatter->asCurrency($orderDetails[0]['total_tax'], 'EUR') ?></div>
+                    </div>
+                </div>
+                <?php foreach ($taxDetails as $tax): ?>
+                    <div class="tax-line">
+                        <span class="tax-label"><?= Html::encode($tax['label']) ?> (<?= $tax['rate_percent'] ?>%)</span>
+                        <span class="tax-amount currency"><?= Yii::$app->formatter->asCurrency($tax['tax_total'], 'EUR') ?></span>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+        <?php endif; ?>
+
+        <!-- Détails de la livraison -->
+        <?php if (!empty($shippingDetails)): ?>
+            <div class="info-card">
+                <h3>🚚 Détails de la livraison</h3>
+                <?php foreach ($shippingDetails as $shipping): ?>
+                    <div class="shipping-line">
+                        <div class="data-grid">
+                            <div class="data-item">
+                                <div class="data-item-label">Méthode</div>
+                                <div class="data-item-value"><?= Html::encode($shipping['method_title']) ?></div>
+                            </div>
+                            <div class="data-item">
+                                <div class="data-item-label">Total</div>
+                                <div class="data-item-value"><?= Yii::$app->formatter->asCurrency($shipping['total'], 'EUR') ?></div>
+                            </div>
+                            <div class="data-item">
+                                <div class="data-item-label">Taxes</div>
+                                <div class="data-item-value"><?= Yii::$app->formatter->asCurrency($shipping['total_tax'], 'EUR') ?></div>
+                            </div>
+                        </div>
+                        <?php if (!empty($shipping['meta_data'])): ?>
+                            <div style="margin-top: 1rem;">
+                                <strong style="color: var(--primary-color);">Métadonnées :</strong>
+                                <?php foreach ($shipping['meta_data'] as $meta): ?>
+                                    <div class="meta-item">
+                                        <span class="meta-key"><?= Html::encode($meta->display_key) ?>:</span>
+                                        <span class="meta-value"><?= is_array($meta->display_value ? print_r($meta->display_value, true) : $meta->display_value) ?></span>
+                                    </div>
+                                <?php endforeach; ?>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+        <?php endif; ?>
+
+        <!-- Métadonnées de la commande -->
+        <?php if (!empty($metaDetails)): ?>
+            <div class="info-card">
+                <h3>📋 Métadonnées de la commande</h3>
+                <?php foreach ($metaDetails as $meta): ?>
+                    <div class="meta-item">
+                        <span class="meta-key"><?= Html::encode($meta['key']) ?>:</span>
+                        <span class="meta-value">
+                            <?php
+                            $value = $meta['value'];
+                            if (is_object($value) || is_array($value)) {
+                                // Si c'est un objet ou un tableau, on l'affiche en JSON pour le rendre lisible
+                                echo Html::encode(json_encode($value, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+                            } else {
+                                // Sinon, on affiche la valeur brute encodée
+                                echo Html::encode($value);
+                            }
+                            ?>
+                        </span>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+        <?php endif; ?>
+
+        <!-- Remboursements -->
+        <?php if (!empty($refundDetails)): ?>
+            <div class="info-card">
+                <h3>💸 Remboursements</h3>
+                <?php foreach ($refundDetails as $refund): ?>
+                    <div class="refund-item">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <strong><?= Html::encode($refund['reason']) ?></strong>
+                                <div class="refund-date"><?= formatDate($refund['date_created']) ?></div>
+                            </div>
+                            <div class="refund-amount currency"><?= Yii::$app->formatter->asCurrency($refund['total'], 'EUR') ?></div>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+        <?php endif; ?>
+
+        <!-- Résumé des totaux -->
+        <?php if (!empty($orderDetails)): ?>
+            <div class="price-total">
+                <h4 style="color: var(--primary-color); margin-top: 0;">Résumé des totaux</h4>
+                <div class="price-row">
+                    <span>Sous-total HT</span>
+                    <span class="currency"><?= Yii::$app->formatter->asCurrency($orderDetails[0]['total_ht'], 'EUR') ?></span>
+                </div>
+                <div class="price-row">
+                    <span>Taxes</span>
+                    <span class="currency"><?= Yii::$app->formatter->asCurrency($orderDetails[0]['total_tax'], 'EUR') ?></span>
+                </div>
+                <div class="price-row">
+                    <span>Frais de livraison</span>
+                    <span class="currency"><?= Yii::$app->formatter->asCurrency($orderDetails[0]['shipping_total'], 'EUR') ?></span>
+                </div>
+                <div class="price-row">
+                    <span><strong>Total TTC</strong></span>
+                    <span class="currency"><strong><?= Yii::$app->formatter->asCurrency($orderDetails[0]['total'], 'EUR') ?></strong></span>
                 </div>
             </div>
         <?php endif; ?>
@@ -961,7 +1200,7 @@ function getCustomerDetails($client, $customerId)
             'date_modified' => $customer->date_modified,
         ]];
     } catch (HttpClientException $e) {
-        Yii::$app->session->setFlash('error', "Erreur lors de la récupération des informations du client : " . $e->getMessage());
+        \Yii::$app->session->setFlash('error', "Erreur lors de la récupération des informations du client : " . $e->getMessage());
         return [];
     }
 }
@@ -969,22 +1208,36 @@ function getCustomerDetails($client, $customerId)
 // Préparer les détails de la commande
 function prepareOrderDetails($order)
 {
+    // S'assurer que $order est un objet stdClass
+    if (is_array($order)) {
+        $order = (object) $order;
+    }
+
     return [[
         'id' => $order->id,
         'status' => $order->status,
         'date_created' => $order->date_created,
         'date_modified' => $order->date_modified,
+        'date_paid' => $order->date_paid,
         'total' => $order->total,
         'total_tax' => $order->total_tax,
-        'total_ht' => $order->total - $order->total_tax,
+        'total_ht' => $order->total - $order->total_tax - $order->shipping_total, // Sous-total HT
         'payment_method_title' => $order->payment_method_title,
-        'carrier' => $order->shipping_lines[0]->method_title ?? 'N/A',
+        'number' => $order->number,
+        'order_key' => $order->order_key,
+        'customer_ip_address' => $order->customer_ip_address,
+        'shipping_total' => $order->shipping_total,
     ]];
 }
 
 // Préparer les informations de facturation et livraison
 function prepareBillingShippingDetails($order)
 {
+    // S'assurer que $order est un objet stdClass
+    if (is_array($order)) {
+        $order = (object) $order;
+    }
+
     return [
         [
             'type' => 'Facturation',
@@ -1006,6 +1259,11 @@ function prepareBillingShippingDetails($order)
 // Préparer les détails des produits
 function prepareProductDetails($order)
 {
+    // S'assurer que $order est un objet stdClass
+    if (is_array($order)) {
+        $order = (object) $order;
+    }
+
     $productDetails = [];
     foreach ($order->line_items as $item) {
         $productDetails[] = [
@@ -1018,9 +1276,90 @@ function prepareProductDetails($order)
             'total' => $item->total,
             'total_tax' => $item->total_tax,
             'total_ttc' => $item->total + $item->total_tax,
+            'image' => $item->image,
         ];
     }
     return $productDetails;
+}
+
+// Préparer les détails des taxes
+function prepareTaxDetails($order)
+{
+    // S'assurer que $order est un objet stdClass
+    if (is_array($order)) {
+        $order = (object) $order;
+    }
+
+    $taxDetails = [];
+    foreach ($order->tax_lines as $tax) {
+        $taxDetails[] = [
+            'id' => $tax->id,
+            'label' => $tax->label,
+            'rate_percent' => $tax->rate_percent,
+            'tax_total' => $tax->tax_total,
+        ];
+    }
+    return $taxDetails;
+}
+
+// Préparer les détails des frais de livraison
+function prepareShippingDetails($order)
+{
+    // S'assurer que $order est un objet stdClass
+    if (is_array($order)) {
+        $order = (object) $order;
+    }
+
+    $shippingDetails = [];
+    foreach ($order->shipping_lines as $shipping) {
+        $shippingDetails[] = [
+            'id' => $shipping->id,
+            'method_title' => $shipping->method_title,
+            'total' => $shipping->total,
+            'total_tax' => $shipping->total_tax,
+            'meta_data' => $shipping->meta_data,
+        ];
+    }
+    return $shippingDetails;
+}
+
+// Préparer les métadonnées de la commande
+function prepareMetaDetails($order)
+{
+    // S'assurer que $order est un objet stdClass
+    if (is_array($order)) {
+        $order = (object) $order;
+    }
+
+    $metaDetails = [];
+    foreach ($order->meta_data as $meta) {
+        $metaDetails[] = [
+            'id' => $meta->id,
+            'key' => $meta->key,
+            'value' => $meta->value,
+        ];
+    }
+    return $metaDetails;
+}
+
+// Préparer les détails des remboursements
+function prepareRefundDetails($order)
+{
+    // S'assurer que $order est un objet stdClass
+    if (is_array($order)) {
+        $order = (object) $order;
+    }
+
+    $refundDetails = [];
+    foreach ($order->refunds as $refund) {
+        $refundDetails[] = [
+            'id' => $refund->id,
+            'reason' => $refund->reason,
+            'total' => $refund->total,
+            'date_created' => $refund->date_created,
+        ];
+    }
+    return $refundDetails;
 }
 
 // Gérer les exceptions HTTP
@@ -1041,21 +1380,27 @@ function handleHttpClientException($e)
             $message = "Erreur interne du serveur (Erreur 500).";
             break;
         default:
-            $message = "Erreur inconnue : $errorMessage.";
+            $message = "Erreur WooCommerce : $errorMessage (Code: $errorCode).";
     }
 
-    Yii::$app->session->setFlash('error', $message);
+    \Yii::$app->session->setFlash('error', $message);
 }
 
 // Formater une date
 function formatDate($date)
 {
-    return Yii::$app->formatter->asDatetime($date, 'php:d/m/Y H:i:s');
+    if (empty($date)) {
+        return 'N/A';
+    }
+    return \Yii::$app->formatter->asDatetime($date, 'php:d/m/Y H:i:s');
 }
 
 // Formater une valeur monétaire
 function formatCurrency($value)
 {
-    return Yii::$app->formatter->asCurrency($value, 'EUR');
+    if ($value === null || $value === '') {
+        return 'N/A';
+    }
+    return \Yii::$app->formatter->asCurrency($value, 'EUR');
 }
 ?>

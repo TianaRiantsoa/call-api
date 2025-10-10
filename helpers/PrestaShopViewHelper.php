@@ -105,6 +105,34 @@ class PrestaShopViewHelper
                     ],
                     'contentOptions' => ['style' => 'vertical-align: middle;'],
                 ],
+                [
+                    'attribute' => 'date_add',
+                    'label' => '<i class="fas fa-calendar-plus me-2 text-white"></i>Création',
+                    'format' => 'raw',
+                    'encodeLabel' => false,
+                    'headerOptions' => [
+                        'class' => 'text-white',
+                        'style' => 'background: linear-gradient(145deg, #f1ac16, #e69500) !important; border: none !important; color: white !important; font-weight: 600 !important; text-transform: uppercase !important; font-size: 0.85rem !important; letter-spacing: 0.5px !important; padding: 1rem 1.25rem !important;'
+                    ],
+                    'value' => function ($model) {
+                        $date = is_array($model) ? $model['date_add'] : $model->date_add;
+                        return Yii::$app->formatter->asDatetime($date, 'php:d/m/Y H:i:s');
+                    },
+                ],
+                [
+                    'attribute' => 'date_upd',
+                    'label' => '<i class="fas fa-calendar-check me-2 text-white"></i>Mise à jour',
+                    'format' => 'raw',
+                    'encodeLabel' => false,
+                    'headerOptions' => [
+                        'class' => 'text-white',
+                        'style' => 'background: linear-gradient(145deg, #f1ac16, #e69500) !important; border: none !important; color: white !important; font-weight: 600 !important; text-transform: uppercase !important; font-size: 0.85rem !important; letter-spacing: 0.5px !important; padding: 1rem 1.25rem !important;'
+                    ],
+                    'value' => function ($model) {
+                        $date = is_array($model) ? $model['date_upd'] : $model->date_upd;
+                        return Yii::$app->formatter->asDatetime($date, 'php:d/m/Y H:i:s');
+                    },
+                ],
             ],
             'pager' => [
                 'options' => [

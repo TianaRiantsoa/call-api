@@ -29,13 +29,13 @@ class PrestaShopProductService
     private function normalizeUrl($url)
     {
         $url = Html::encode($url);
-        
+
         if (strpos($url, 'localhost') !== false) {
             return "http://" . $url;
         } else {
             $headers = @get_headers("http://" . $url);
-            return ($headers && strpos($headers[0], '200') !== false) 
-                ? "https://" . $url 
+            return ($headers && strpos($headers[0], '200') !== false)
+                ? "https://" . $url
                 : "https://" . $url;
         }
     }
@@ -55,7 +55,7 @@ class PrestaShopProductService
                 'filter[iso_code]' => $languageIso,
                 'display' => 'full',
             ];
-            
+
             $languageXml = $this->webService->get($languageOpt);
             $languages = $languageXml->languages->children();
 
@@ -63,7 +63,7 @@ class PrestaShopProductService
                 $this->languageId = (int)$language->id;
                 return $this->languageId;
             }
-            
+
             throw new PrestaShopWebserviceException('Langue introuvable dans la boutique.');
         } catch (\Exception $e) {
             throw new PrestaShopWebserviceException('Erreur lors de la récupération de la langue : ' . $e->getMessage());
@@ -76,7 +76,7 @@ class PrestaShopProductService
     public function getSimpleProducts($reference, $languageIso)
     {
         $languageId = $this->getLanguageId($languageIso);
-        
+
         $opt = [
             'resource' => 'products',
             'filter[reference]' => $reference,
@@ -95,7 +95,7 @@ class PrestaShopProductService
             $productList = [];
             foreach ($products as $product) {
                 $this->validateSimpleProduct($product);
-                
+
                 $productList[] = [
                     'id' => (int)$product->id,
                     'name' => (string)$product->name->language,
@@ -132,7 +132,7 @@ class PrestaShopProductService
     public function getParentProductWithVariations($reference, $languageIso)
     {
         $languageId = $this->getLanguageId($languageIso);
-        
+
         $opt = [
             'resource' => 'products',
             'language' => $languageId,
@@ -196,7 +196,7 @@ class PrestaShopProductService
 
         // Récupération du stock
         $productData['quantity'] = $this->getProductStock((int)$product->id);
-        
+
         return $productData;
     }
 
@@ -265,7 +265,7 @@ class PrestaShopProductService
     public function getChildCombination($reference, $languageIso)
     {
         $languageId = $this->getLanguageId($languageIso);
-        
+
         $opt = [
             'resource' => 'combinations',
             'language' => $languageId,
@@ -287,7 +287,7 @@ class PrestaShopProductService
             foreach ($combinations as $combination) {
                 $combinationData = $this->buildCombinationData($combination, $languageId);
                 $combinationList[] = $combinationData;
-                
+
                 // Récupération des tarifs spécifiques
                 $tarifs = $this->getSpecificPrices((int)$combination->id, $languageId);
                 $tarifList = array_merge($tarifList, $tarifs);
@@ -367,7 +367,7 @@ class PrestaShopProductService
     private function getOptionValues($combination, $languageId)
     {
         $optionValues = [];
-        
+
         if (!isset($combination->associations->product_option_values->product_option_value)) {
             return '';
         }
@@ -423,7 +423,7 @@ class PrestaShopProductService
             $tarifList = [];
             foreach ($tarifXML as $tarifItem) {
                 $groupName = $this->getGroupName((int)$tarifItem->id_group, $languageId);
-                
+
                 $tarifList[] = [
                     'id' => (int)$tarifItem->id,
                     'id_product' => (int)$tarifItem->id_product,
