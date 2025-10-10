@@ -1092,14 +1092,31 @@ echo '</div>';
                             </div>
                         </div>
                         <?php if (!empty($shipping['meta_data'])): ?>
-                            <div style="margin-top: 1rem;">
-                                <strong style="color: var(--primary-color);">Métadonnées :</strong>
-                                <?php foreach ($shipping['meta_data'] as $meta): ?>
-                                    <div class="meta-item">
-                                        <span class="meta-key"><?= Html::encode($meta->display_key) ?>:</span>
-                                        <span class="meta-value"><?= is_array($meta->display_value ? print_r($meta->display_value, true) : $meta->display_value) ?></span>
-                                    </div>
-                                <?php endforeach; ?>
+                            <div style="margin-top: 1.5rem;">
+                                <strong style="color: var(--primary-color); display: block; margin-bottom: 0.5rem;">Métadonnées :</strong>
+                                <div class="row">
+                                    <?php foreach ($shipping['meta_data'] as $index => $meta): ?>
+                                        <div class="col-md-6">
+                                            <div class="meta-item" style="display: flex; flex-direction: column; align-items: flex-start;">
+                                                <span class="meta-key" style="font-weight: 600; color: var(--primary-color); margin-bottom: 0.2rem;"><?= Html::encode($meta->display_key) ?>:</span>
+                                                <span class="meta-value" style="text-align: left;">
+                                                    <?php
+                                                    $value = $meta->display_value;
+                                                    if (is_array($value) || is_object($value)) {
+                                                        echo Html::encode(json_encode($value, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+                                                    } else {
+                                                        echo Html::encode($value);
+                                                    }
+                                                    ?>
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <?php if (($index + 1) % 2 == 0): ?>
+                                            <!-- Saut de ligne après chaque paire de métadonnées -->
+                                            <div class="w-100"></div>
+                                        <?php endif; ?>
+                                    <?php endforeach; ?>
+                                </div>
                             </div>
                         <?php endif; ?>
                     </div>
