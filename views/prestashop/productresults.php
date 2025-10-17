@@ -9,7 +9,7 @@ use app\helpers\PrestaShopViewHelper;
 // =============================================================================
 
 /** @var yii\web\View $this */
-/** @var app\models\Prestashop $model */
+/** @var app\models\PrestashopProduct $model */
 
 $this->title = 'Produits | ' . Html::encode($ref) . ' | ' . $model->url;
 $this->params['breadcrumbs'][] = ['label' => 'Prestashop', 'url' => ['index']];

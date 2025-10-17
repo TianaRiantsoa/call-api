@@ -76,12 +76,12 @@ $this->params['breadcrumbs'][] = $this->title;
                         'headerOptions' => ['class' => 'bg-dark text-white', 'style' => 'border: none;'],
                         'contentOptions' => ['style' => 'vertical-align: middle;'],
                         'value' => function ($model) {
-                            $displayKey = strlen($model->api_key) > 20 ? 
-                                substr($model->api_key, 0, 10) . '...' . substr($model->api_key, -10) : 
+                            $displayKey = strlen($model->api_key) > 20 ?
+                                substr($model->api_key, 0, 10) . '...' . substr($model->api_key, -10) :
                                 $model->api_key;
-                            
+
                             return Html::a(
-                                '<i class="fas fa-key me-2 text-warning"></i>' . Html::encode($model->api_key),
+                                '<i class="fas fa-key me-2 text-warning"></i>' . Html::encode($displayKey),
                                 ['view', 'id' => $model->id],
                                 [
                                     'target' => '_blank',
@@ -92,48 +92,25 @@ $this->params['breadcrumbs'][] = $this->title;
                             );
                         },
                     ],
-                    // [
-                    //     'class' => 'yii\grid\ActionColumn',
-                    //     'template' => '{view} {update} {delete}',
-                    //     'headerOptions' => ['class' => 'bg-dark text-white', 'style' => 'border: none; width: 120px;'],
-                    //     'contentOptions' => ['class' => 'text-center', 'style' => 'vertical-align: middle;'],
-                    //     'buttons' => [
-                    //         'view' => function ($url, $model) {
-                    //             return Html::a(
-                    //                 '<i class="fas fa-eye text-primary"></i>',
-                    //                 $url,
-                    //                 [
-                    //                     'title' => 'Voir',
-                    //                     'class' => 'me-2',
-                    //                     'data-pjax' => 0
-                    //                 ]
-                    //             );
-                    //         },
-                    //         'update' => function ($url, $model) {
-                    //             return Html::a(
-                    //                 '<i class="fas fa-edit text-success"></i>',
-                    //                 $url,
-                    //                 [
-                    //                     'title' => 'Modifier',
-                    //                     'class' => 'me-2',
-                    //                     'data-pjax' => 0
-                    //                 ]
-                    //             );
-                    //         },
-                    //         'delete' => function ($url, $model) {
-                    //             return Html::a(
-                    //                 '<i class="fas fa-trash text-danger"></i>',
-                    //                 $url,
-                    //                 [
-                    //                     'title' => 'Supprimer',
-                    //                     'data-confirm' => 'Êtes-vous sûr de vouloir supprimer cet élément ?',
-                    //                     'data-method' => 'post',
-                    //                     'data-pjax' => 0
-                    //                 ]
-                    //             );
-                    //         },
-                    //     ],
-                    // ],
+
+                    // nouvelle colonne Version
+                    [
+                        'label' => 'Version',
+                        'format' => 'raw',
+                        'headerOptions' => ['class' => 'bg-dark text-white', 'style' => 'border: none; width:120px;'],
+                        'contentOptions' => ['style' => 'vertical-align: middle;'],
+                        'value' => function ($model) {
+                            try {
+                                $serviceUrl = prepareServiceUrl($model->url);
+                                $version = getPrestaShopWsVersion($serviceUrl, $model->api_key);
+                                return Html::tag('span', Html::encode($version), ['class' => 'badge bg-light text-dark']);
+                            } catch (\Throwable $e) {
+                                return Html::tag('span', 'n/a', ['class' => 'badge bg-light text-muted']);
+                            }
+                        },
+                    ],
+
+                    // ...existing columns or action columns...
                 ],
                 'pager' => [
                     'options' => [
@@ -246,3 +223,64 @@ $(document).ready(function() {
     );
 });
 </script>
+
+<?php
+// helpers pour récupérer la version PS Webservice (inspiré de view.php)
+// if (!function_exists('prepareServiceUrl')) {
+    function prepareServiceUrl(string $rawUrl): string
+    {
+        $url = trim($rawUrl);
+        $url = preg_replace('#^https?://#', '', $url);
+        if (stripos($url, 'localhost') !== false) {
+            return "http://$url";
+        }
+        return "https://$url";
+    }
+// }
+
+// if (!function_exists('getPrestaShopWsVersion')) {
+    function getPrestaShopWsVersion(string $serviceUrl, string $apiKey): string
+    {
+        $endpoint = rtrim($serviceUrl, '/') . '/api/?ws_key=' . $apiKey;
+        $ch = curl_init();
+        curl_setopt_array($ch, [
+            CURLOPT_URL => $endpoint,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_HEADER => true,
+            CURLOPT_NOBODY => false,
+            CURLOPT_TIMEOUT => 6,
+            CURLOPT_CONNECTTIMEOUT => 3,
+            CURLOPT_HTTPHEADER => ['Expect:'],
+        ]);
+        $resp = @curl_exec($ch);
+        $err = curl_error($ch);
+        curl_close($ch);
+
+        if ($resp === false || $resp === null) {
+            return 'n/a';
+        }
+
+        // séparer header/body et chercher l'en-tête psws-version
+        $pos = strpos($resp, "\r\n\r\n");
+        $header = $pos !== false ? substr($resp, 0, $pos) : $resp;
+        $lines = preg_split("/\r\n|\n|\r/", $header);
+        foreach ($lines as $line) {
+            if (stripos($line, 'psws-version:') !== false) {
+                $parts = explode(':', $line, 2);
+                return trim($parts[1]);
+            }
+        }
+
+        // fallback : essayer d'extraire version dans le body si XML contient <prestashop> infos (rare)
+        if ($pos !== false) {
+            $body = substr($resp, $pos + 4);
+            if (stripos($body, 'psws-version') !== false) {
+                if (preg_match('#psws-version[^\>]*\>([^<]+)\<#i', $body, $m)) {
+                    return trim($m[1]);
+                }
+            }
+        }
+
+        return 'n/a';
+    }
+// }

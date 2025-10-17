@@ -13,14 +13,14 @@ use Yii;
  */
 class Prestashop extends \yii\db\ActiveRecord
 {
-    // Déclare les propriétés dynamiques
-    public $config;
-    public $erp;
-    public $type;
-    public $serial_id;
-    public $slug;
-    public $client;
-    public $ctsage;
+    // // Déclare les propriétés dynamiques
+    // public $config;
+    // public $erp;
+    // public $type;
+    // public $serial_id;
+    // public $slug;
+    // public $client;
+    // public $ctsage;
     public $language;
 
     /**
@@ -39,8 +39,8 @@ class Prestashop extends \yii\db\ActiveRecord
         return [
             [['url', 'api_key'], 'required'],
             [['url', 'api_key'], 'string', 'max' => 255],
-            [['config', 'erp', 'type', 'serial_id', 'slug', 'client', 'ctsage','language'], 'safe'], // "safe" pour les propriétés non liées à la base de données
-            [['language'], 'required'],
+            [['language'], 'safe'], // "safe" pour les propriétés non liées à la base de données
+            // [['language'], 'required'],
         ];
     }
 

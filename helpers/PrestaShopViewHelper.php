@@ -6,6 +6,7 @@ use yii\grid\GridView;
 use yii\data\ArrayDataProvider;
 use yii\helpers\Html;
 use Yii;
+
 /**
  * Helper class pour générer les vues
  */
@@ -686,8 +687,8 @@ class PrestaShopViewHelper
                         $value = is_numeric($model['difference_amount'])
                             ? Yii::$app->formatter->asCurrency($model['difference_amount'], 'EUR')
                             : $model['difference_amount'];
-                        $icon = is_numeric($model['difference_amount']) && $model['difference_amount'] >= 0 
-                            ? 'fa-arrow-up text-success' 
+                        $icon = is_numeric($model['difference_amount']) && $model['difference_amount'] >= 0
+                            ? 'fa-arrow-up text-success'
                             : 'fa-arrow-down text-danger';
                         return '<i class="fas ' . $icon . ' me-2"></i><span style="color: ' . (is_numeric($model['difference_amount']) && $model['difference_amount'] >= 0 ? 'green' : 'red') . ';">' . $value . '</span>';
                     },

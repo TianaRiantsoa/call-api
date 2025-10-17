@@ -76,6 +76,7 @@ class PrestashopController extends Controller
 
     public function actionCreate()
     {
+        $this->layout = 'main';
         $model = new Prestashop();
 
         if ($this->request->isPost) {
@@ -366,7 +367,7 @@ class PrestashopController extends Controller
 
         // URL de votre webhook Slack
         $webhookUrl = 'https://hooks.slack.com/services/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'; // Remplacez par votre URL de webhook Slack
-        
+
         // Utiliser cURL pour envoyer le message à Slack
         $ch = curl_init($webhookUrl);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);

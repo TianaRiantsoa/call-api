@@ -24,6 +24,7 @@ class PrestashopProduct extends Model
             }"],
             [['variation_type'], 'default', 'value' => ''], // Valeur par défaut vide
             [['language'], 'safe'],
+            [['language'], 'required'],
         ];
     }
 
