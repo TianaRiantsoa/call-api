@@ -26,13 +26,13 @@
 * @package PrestaShopWebservice
 */
 
-namespace prestashop;
+namespace prestashopqsdqsdqsdqsd;
 
 /**
  * @package PrestaShopWebservice
  */
 
-class PrestaShopWebservice
+class PrestaShopWebserviceqsdqsdqsdqsd
 {
     /** @var string Shop URL */
     protected $url;
@@ -651,4 +651,4 @@ class PrestaShopWebservice
 /**
  * @package PrestaShopWebservice
  */
-class PrestaShopWebserviceException extends \Exception {}
+class PrestaShopWebserviceExceptionqsdqsdqsdqsdqsd extends \Exception {}
